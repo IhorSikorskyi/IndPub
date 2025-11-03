@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: dotnet watch run --urls=http://0.0.0.0:5000
+    ports:
+      - "${port_number_1}:${port_number_1}"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=${ASPNETCORE_URL_HTTP}
+      - ConnectionStrings__IndPubConnection=Host=${DB_Host};Database=${DB_Name};Username=${DB_User};Password=${DB_Password}
+    volumes:
+      - .:/app
+      - /app/bin
+      - /app/obj
+    depends_on:
+      db:
+        condition: service_healthy
