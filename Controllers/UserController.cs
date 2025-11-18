@@ -8,8 +8,10 @@ namespace IndPubBack.Controllers
 {
     [ApiController]
     [Route("api/user")]
-    public class UserController(IUserService _userService) : Controller
+    public class UserController(IUserService _userService) : ControllerBase
     {
+        private const string GenericErrorMessage = "An error occurred while processing your request.";
+
         [HttpPost("register")]
         public async Task<ActionResult<UserResponse>> RegisterAsync([FromBody] RegisterRequest request)
         {
@@ -33,7 +35,7 @@ namespace IndPubBack.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = "An error occurred while processing your request." });
+                return StatusCode(500, new { message = GenericErrorMessage });
             }
         }
 
@@ -60,7 +62,7 @@ namespace IndPubBack.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = "An error occurred while processing your request." });
+                return StatusCode(500, new { message = GenericErrorMessage });
             }
         }
 
@@ -83,17 +85,17 @@ namespace IndPubBack.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = "An error occurred while processing your request." });
+                return StatusCode(500, new { message = GenericErrorMessage });
             }
         }
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<UserInfoResponse>> GetProfileAsync()
+        public async Task<ActionResult<UserInfoResponse>> GetProfileAsync([FromHeader(Name = "Authorization")] string authorization)
         {
             try
             { 
-                var accessToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                var accessToken = authorization?.Replace("Bearer ", "") ?? string.Empty;
                 var result = await _userService.GetUserInfoAsync(accessToken);
                 return Ok(result);
             }
@@ -103,17 +105,19 @@ namespace IndPubBack.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = "An error occurred while processing your request." });
+                return StatusCode(500, new { message = GenericErrorMessage });
             }
         }
 
         [Authorize]
         [HttpPut]
-        public async Task<ActionResult<UserInfoResponse>> UpdateProfileAsync([FromBody] UpdateProfileRequest request)
+        public async Task<ActionResult<UserInfoResponse>> UpdateProfileAsync(
+            [FromBody] UpdateProfileRequest request,
+            [FromHeader(Name = "Authorization")] string authorization)
         {
             try
             {
-                var accessToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                var accessToken = authorization?.Replace("Bearer ", "") ?? string.Empty;
                 var result = await _userService.UpdateUserInfoAsync(accessToken, request);
                 return Ok(result);
             }
@@ -123,7 +127,7 @@ namespace IndPubBack.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = "An error occurred while processing your request." });
+                return StatusCode(500, new { message = GenericErrorMessage });
             }
         }
     }

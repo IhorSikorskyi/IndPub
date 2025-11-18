@@ -221,13 +221,6 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
             .WithMany(r => r.Comments)
             .HasForeignKey(c => c.ReviewId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        // modelBuilder.Entity<Comment>()
-        //     .HasMany(c => c.Replies)
-        //     .WithOne(r => r.ParentComment)
-        //     .HasForeignKey(r => r.ParentCommentId)
-        //     .OnDelete(DeleteBehavior.Cascade);
-
         #endregion
 
         #region CommentLikes

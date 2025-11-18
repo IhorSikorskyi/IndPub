@@ -94,7 +94,7 @@ namespace IndPubBack.Services.Implementations
             return CreateAccessTokenResponse(user);
         }
 
-        private Guid GetUserIdFromClaims(string accessToken)
+        private static Guid GetUserIdFromClaims(string accessToken)
         {
             var handler = new JwtSecurityTokenHandler();
             var token = handler.ReadJwtToken(accessToken);
@@ -222,44 +222,8 @@ namespace IndPubBack.Services.Implementations
             if (!string.IsNullOrWhiteSpace(request.ProfilePictureUrl))
                 user.ProfilePictureUrl = request.ProfilePictureUrl;
 
-            if (!string.IsNullOrWhiteSpace(request.Email))
-            {
-                var emailExists = await _userRepository.GetByEmailAsync(request.Email);
-                if (emailExists != null && emailExists.Id != user.Id)
-                {
-                    throw new ArgumentException("Email already in use.");
-                }
-                user.Email = request.Email;
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.CurrentPassword))
-            {
-                var verificationResult = new PasswordHasher<User>()
-                    .VerifyHashedPassword(user, user.PasswordHash, request.CurrentPassword);
-
-                if (verificationResult == PasswordVerificationResult.Failed)
-                {
-                    throw new ArgumentException("Invalid password.");
-                }
-                if (!string.IsNullOrWhiteSpace(request.NewPassword) && !string.IsNullOrWhiteSpace(request.ConfirmNewPassword))
-                {
-                    if (request.NewPassword != request.ConfirmNewPassword)
-                    {
-                        throw new ArgumentException("New password do not match.");
-                    }
-
-                    if (!IsPasswordComplex(request.NewPassword))
-                    {
-                        throw new ArgumentException(
-                            "Password must be at least 8 characters long, " +
-                            "contain at least one uppercase letter, one lowercase letter, " +
-                            "one number and one special character.");
-                    }
-
-                    user.PasswordHash = new PasswordHasher<User>()
-                        .HashPassword(user, request.NewPassword);
-                }
-            }
+            await UpdateEmailIfProvidedAsync(user, request.Email);
+            UpdatePasswordIfProvided(user, request);
 
             await _userRepository.UpdateAsync(user);
 
@@ -271,6 +235,61 @@ namespace IndPubBack.Services.Implementations
                 ProfilePictureUrl = user.ProfilePictureUrl,
                 JoiningDate = user.JoiningDate
             };
+        }
+
+        private async Task UpdateEmailIfProvidedAsync(User user, string? newEmail)
+        {
+            if (string.IsNullOrWhiteSpace(newEmail))
+                return;
+
+            var emailExists = await _userRepository.GetByEmailAsync(newEmail);
+            if (emailExists != null && emailExists.Id != user.Id)
+            {
+                throw new ArgumentException("Email already in use.");
+            }
+            user.Email = newEmail;
+        }
+
+        private static void UpdatePasswordIfProvided(User user, UpdateProfileRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.CurrentPassword))
+                return;
+
+            VerifyCurrentPassword(user, request.CurrentPassword);
+            UpdateToNewPassword(user, request);
+        }
+
+        private static void VerifyCurrentPassword(User user, string currentPassword)
+        {
+            var verificationResult = new PasswordHasher<User>()
+                .VerifyHashedPassword(user, user.PasswordHash, currentPassword);
+
+            if (verificationResult == PasswordVerificationResult.Failed)
+            {
+                throw new ArgumentException("Invalid password.");
+            }
+        }
+
+        private static void UpdateToNewPassword(User user, UpdateProfileRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.NewPassword) || string.IsNullOrWhiteSpace(request.ConfirmNewPassword))
+                return;
+
+            if (request.NewPassword != request.ConfirmNewPassword)
+            {
+                throw new ArgumentException("New password do not match.");
+            }
+
+            if (!IsPasswordComplex(request.NewPassword))
+            {
+                throw new ArgumentException(
+                    "Password must be at least 8 characters long, " +
+                    "contain at least one uppercase letter, one lowercase letter, " +
+                    "one number and one special character.");
+            }
+
+            user.PasswordHash = new PasswordHasher<User>()
+                .HashPassword(user, request.NewPassword);
         }
     }
 }
