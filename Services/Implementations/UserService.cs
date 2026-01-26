@@ -69,7 +69,7 @@ namespace IndPubBack.Services.Implementations
 
         public async Task<UserResponse> UpdateAccessTokenAsync(AccessTokenRequest request, string refreshToken)
         {
-            var userId = GetUserIdFromClaims(request.AccessToken);
+            var userId = GetUserIdFromClaims(request.AccessToken, _configuration);
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
             {
@@ -89,18 +89,18 @@ namespace IndPubBack.Services.Implementations
             return CreateAccessTokenResponse(user);
         }
 
-        private Guid GetUserIdFromClaims(string accessToken)
+        private static Guid GetUserIdFromClaims(string accessToken, IConfiguration _configuration1)
         {
             var handler = new JwtSecurityTokenHandler();
             var validationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
-                ValidIssuer = _configuration.GetValue<string>("AppSettings:Issuer"),
+                ValidIssuer = _configuration1.GetValue<string>("AppSettings:Issuer"),
                 ValidateAudience = true,
-                ValidAudience = _configuration.GetValue<string>("AppSettings:Audience"),
+                ValidAudience = _configuration1.GetValue<string>("AppSettings:Audience"),
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(_configuration.GetValue<string>("AppSettings:AccessToken")!)),
+                    Encoding.UTF8.GetBytes(_configuration1.GetValue<string>("AppSettings:AccessToken")!)),
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.Zero,
                 RequireExpirationTime = true
@@ -222,7 +222,7 @@ namespace IndPubBack.Services.Implementations
 
         public async Task<UserInfoResponse> GetUserInfoAsync(string accessToken)
         {
-            var userId = GetUserIdFromClaims(accessToken);
+            var userId = GetUserIdFromClaims(accessToken, _configuration);
 
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
@@ -240,7 +240,7 @@ namespace IndPubBack.Services.Implementations
 
         public async Task<UserInfoResponse> UpdateUserInfoAsync(string accessToken, UpdateProfileRequest request)
         {
-            var userId = GetUserIdFromClaims(accessToken);
+            var userId = GetUserIdFromClaims(accessToken, _configuration);
             var user = await _userRepository.GetByIdAsync(userId);
 
             if (user == null)
@@ -279,7 +279,6 @@ namespace IndPubBack.Services.Implementations
                     }
 
                     EnsurePasswordComplex(request.NewPassword);
-
                     user.PasswordHash = new PasswordHasher<User>()
                         .HashPassword(user, request.NewPassword);
                 }
