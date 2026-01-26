@@ -9,6 +9,7 @@ using IndPubBack.DTO.Requests;
 using IndPubBack.DTO.Responses;
 using IndPubBack.Services.Interfaces;
 using IndPubBack.Repositories.Interfaces;
+using IndPubBack.Exceptions;
 
 namespace IndPubBack.Services.Implementations
 {
@@ -18,23 +19,17 @@ namespace IndPubBack.Services.Implementations
         {
             if (string.IsNullOrWhiteSpace(request.Login) || request.Login.Length < 3
             || string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains("@"))
-                throw new ArgumentException("Invalid login or email.");
+                throw new ValidationException("Invalid login or email.");
 
             var existingUser = await _userRepository.GetByLoginAsync(request.Login)
                                 ?? await _userRepository.GetByEmailAsync(request.Email);
             if (existingUser != null)
-                throw new ArgumentException("User with the same username or email already exists");
+                throw new ConflictException("User with the same username or email already exists.");
 
             if (request.Password != request.ConfirmPassword)
-                throw new ArgumentException("Passwords do not match.");
+                throw new ValidationException("Passwords do not match.");
 
-            if (!IsPasswordComplex(request.Password))
-            {
-                throw new ArgumentException(
-                    "Password must be at least 8 characters long, " +
-                    "contain at least one uppercase letter, one lowercase letter, " +
-                    "one number and one special character.");
-            }
+            EnsurePasswordComplex(request.Password);
 
             var user = new User
             {
@@ -57,12 +52,12 @@ namespace IndPubBack.Services.Implementations
             var user = await _userRepository.GetByLoginAsync(request.LoginOrEmail)
                        ?? await _userRepository.GetByEmailAsync(request.LoginOrEmail);
             if (user == null)
-                throw new ArgumentException("Invalid User or Password");
+                throw new InvalidCredentialsException("Invalid user or password.");
 
             var verificationResult = new PasswordHasher<User>()
                 .VerifyHashedPassword(user, user.PasswordHash, request.Password);
             if (verificationResult == PasswordVerificationResult.Failed)
-                throw new ArgumentException("Invalid User or Password");
+                throw new InvalidCredentialsException("Invalid user or password.");
             if (!ValidateRefreshToken(user))
             {
                 user.RefreshToken = GenerateRefreshToken();
@@ -78,17 +73,17 @@ namespace IndPubBack.Services.Implementations
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
             {
-                throw new ArgumentException("Invalid Access Token");
+                throw new UnauthorizedException("Invalid access token.");
             }
 
             if (!ValidateRefreshToken(user, refreshToken))
             {
-                throw new ArgumentException("Invalid Refresh Token. Please log in again.");
+                throw new UnauthorizedException("Invalid refresh token. Please log in again.");
             }
 
             if (!ValidateRefreshToken(user))
             {
-                throw new ArgumentException("Refresh token is expired. Please log in again.");
+                throw new UnauthorizedException("Refresh token is expired. Please log in again.");
             }
 
             return CreateAccessTokenResponse(user);
@@ -97,13 +92,37 @@ namespace IndPubBack.Services.Implementations
         private Guid GetUserIdFromClaims(string accessToken)
         {
             var handler = new JwtSecurityTokenHandler();
-            var token = handler.ReadJwtToken(accessToken);
-            var userIdClaim = token.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            var validationParameters = new TokenValidationParameters
             {
-                throw new ArgumentException("Invalid Access Token");
+                ValidateIssuer = true,
+                ValidIssuer = _configuration.GetValue<string>("AppSettings:Issuer"),
+                ValidateAudience = true,
+                ValidAudience = _configuration.GetValue<string>("AppSettings:Audience"),
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(_configuration.GetValue<string>("AppSettings:AccessToken")!)),
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero,
+                RequireExpirationTime = true
+            };
+
+            try
+            {
+                handler.ValidateToken(accessToken, validationParameters, out var validated);
+                var jwt = (JwtSecurityToken)validated;
+                var userIdClaim = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+                    throw new SecurityTokenException("User ID claim missing");
+                return userId;
             }
-            return userId;
+            catch (SecurityTokenExpiredException)
+            {
+                throw new UnauthorizedException("Invalid access token.");
+            }
+            catch (SecurityTokenException)
+            {
+                throw new UnauthorizedException("Invalid access token.");
+            }
         }
 
         private UserResponse CreateAccessTokenResponse(User user)
@@ -153,6 +172,17 @@ namespace IndPubBack.Services.Implementations
             return new PasswordHasher<User>().HashPassword(user, password);
         }
 
+        private static void EnsurePasswordComplex(string password)
+        {
+            if (IsPasswordComplex(password))
+                return;
+
+            throw new ValidationException(
+                "Password must be at least 8 characters long, " +
+                "contain at least one uppercase letter, one lowercase letter, " +
+                "one number and one special character.");
+        }
+
         private static bool IsPasswordComplex(string password)
         {
             if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
@@ -196,7 +226,7 @@ namespace IndPubBack.Services.Implementations
 
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-                throw new ArgumentException("User not found.");
+                throw new NotFoundException("User not found.");
 
             return new UserInfoResponse
             {
@@ -214,7 +244,7 @@ namespace IndPubBack.Services.Implementations
             var user = await _userRepository.GetByIdAsync(userId);
 
             if (user == null)
-                throw new ArgumentException("Invalid Access Token");
+                throw new UnauthorizedException("Invalid access token.");
 
             if (!string.IsNullOrWhiteSpace(request.Bio))
                 user.Bio = request.Bio;
@@ -227,7 +257,7 @@ namespace IndPubBack.Services.Implementations
                 var emailExists = await _userRepository.GetByEmailAsync(request.Email);
                 if (emailExists != null && emailExists.Id != user.Id)
                 {
-                    throw new ArgumentException("Email already in use.");
+                    throw new ConflictException("Email already in use.");
                 }
                 user.Email = request.Email;
             }
@@ -239,22 +269,16 @@ namespace IndPubBack.Services.Implementations
 
                 if (verificationResult == PasswordVerificationResult.Failed)
                 {
-                    throw new ArgumentException("Invalid password.");
+                    throw new InvalidCredentialsException("Invalid password.");
                 }
                 if (!string.IsNullOrWhiteSpace(request.NewPassword) && !string.IsNullOrWhiteSpace(request.ConfirmNewPassword))
                 {
                     if (request.NewPassword != request.ConfirmNewPassword)
                     {
-                        throw new ArgumentException("New password do not match.");
+                        throw new ValidationException("New passwords do not match.");
                     }
 
-                    if (!IsPasswordComplex(request.NewPassword))
-                    {
-                        throw new ArgumentException(
-                            "Password must be at least 8 characters long, " +
-                            "contain at least one uppercase letter, one lowercase letter, " +
-                            "one number and one special character.");
-                    }
+                    EnsurePasswordComplex(request.NewPassword);
 
                     user.PasswordHash = new PasswordHasher<User>()
                         .HashPassword(user, request.NewPassword);

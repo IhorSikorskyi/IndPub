@@ -3,6 +3,7 @@ using IndPubBack.DTO.Responses;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using IndPubBack.Exceptions;
 
 namespace IndPubBack.Controllers
 {
@@ -27,9 +28,13 @@ namespace IndPubBack.Controllers
 
                 return Ok(new { accessToken = result.AccessToken });
             }
-            catch (ArgumentException ex)
+            catch (ValidationException ex)
             {
                 return BadRequest(new { message = ex.Message });
+            }
+            catch (ConflictException ex)
+            {
+                return Conflict(new { message = ex.Message });
             }
             catch (Exception)
             {
@@ -54,9 +59,9 @@ namespace IndPubBack.Controllers
 
                 return Ok(new { accessToken = result.AccessToken });
             }
-            catch (ArgumentException ex)
+            catch (InvalidCredentialsException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
             catch (Exception)
             {
@@ -77,9 +82,13 @@ namespace IndPubBack.Controllers
                 var result = await _userService.UpdateAccessTokenAsync(request, refreshToken);
                 return Ok(new { accessToken = result.AccessToken });
             }
-            catch (ArgumentException ex)
+            catch (ValidationException ex)
             {
                 return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
             }
             catch (Exception)
             {
@@ -97,9 +106,13 @@ namespace IndPubBack.Controllers
                 var result = await _userService.GetUserInfoAsync(accessToken);
                 return Ok(result);
             }
-            catch (ArgumentException ex)
+            catch (NotFoundException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
             }
             catch (Exception)
             {
@@ -117,9 +130,17 @@ namespace IndPubBack.Controllers
                 var result = await _userService.UpdateUserInfoAsync(accessToken, request);
                 return Ok(result);
             }
-            catch (ArgumentException ex)
+            catch (ValidationException ex)
             {
                 return BadRequest(new { message = ex.Message });
+            }
+            catch (InvalidCredentialsException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (ConflictException ex)
+            {
+                return Conflict(new { message = ex.Message });
             }
             catch (Exception)
             {
