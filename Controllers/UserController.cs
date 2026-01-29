@@ -111,7 +111,8 @@ namespace IndPubBack.Controllers
                 {
                     return BadRequest(new { message = "Refresh token cookie is missing." });
                 }
-                return await _userService.LogoutAsync(accessToken, refreshToken);
+                var result = await _userService.LogoutAsync(accessToken, refreshToken);
+                return Ok(new { success = result });
             }
             catch (ValidationException ex)
             {
