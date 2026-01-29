@@ -7,7 +7,8 @@ namespace IndPubBack.Services.Interfaces
     {
         Task<UserResponse> RegisterAsync(RegisterRequest request);
         Task<UserResponse> LoginAsync(LoginRequest request);
-        Task<UserResponse> UpdateAccessTokenAsync(AccessTokenRequest request, string refreshToken);
+        Task<UserResponse> UpdateAccessTokenAsync(string accessToken, string refreshToken);
+        Task<bool> LogoutAsync(string accessToken, string refreshToken);
 
         Task<UserInfoResponse> GetUserInfoAsync(string accessToken);
         Task<UserInfoResponse> UpdateUserInfoAsync(string accessToken, UpdateProfileRequest request);

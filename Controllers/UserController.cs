@@ -72,17 +72,46 @@ namespace IndPubBack.Controllers
         }
 
         [HttpPost("refresh")]
-        public async Task<ActionResult<UserResponse>> Refresh([FromBody] AccessTokenRequest request)
+        public async Task<ActionResult<UserResponse>> Refresh([FromHeader(Name = "Authorization")] string authorization)
         {
             try
             {
+                var accessToken = authorization?.Replace("Bearer ", "") ?? string.Empty;
                 var refreshToken = Request.Cookies["refreshToken"];
                 if (string.IsNullOrEmpty(refreshToken))
                 {
                     return BadRequest(new { message = "Refresh token cookie is missing." });
                 }
-                var result = await _userService.UpdateAccessTokenAsync(request, refreshToken);
+                var result = await _userService.UpdateAccessTokenAsync(accessToken, refreshToken);
                 return Ok(new { accessToken = result.AccessToken });
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (UnauthorizedException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = GenericErrorMessage });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<ActionResult<bool>> LogoutAsync([FromHeader(Name = "Authorization")] string authorization)
+        {
+            try
+            {
+                var accessToken = authorization?.Replace("Bearer ", "") ?? string.Empty;
+                var refreshToken = Request.Cookies["refreshToken"];
+                if (string.IsNullOrEmpty(refreshToken))
+                {
+                    return BadRequest(new { message = "Refresh token cookie is missing." });
+                }
+                return await _userService.LogoutAsync(accessToken, refreshToken);
             }
             catch (ValidationException ex)
             {
@@ -156,5 +185,6 @@ namespace IndPubBack.Controllers
                 return StatusCode(500, new { message = GenericErrorMessage });
             }
         }
+
     }
 }

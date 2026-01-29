@@ -15,5 +15,14 @@ namespace IndPubBack.Repositories.Implementations
         {
             return _context.Users.FirstOrDefaultAsync(u => u.Login == login);
         }
+
+        public async Task<bool> ExpireRefreshTokenAsync(Guid userId)
+        {
+            var affectedRows = await _context.Users
+                .Where(u => u.Id == userId)
+                .ExecuteUpdateAsync(s => s.SetProperty(u => u.RefreshTokenExpiry, DateTime.UtcNow));
+
+            return affectedRows > 0;
+        }
     }
 }

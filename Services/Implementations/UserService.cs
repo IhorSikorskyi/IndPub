@@ -18,7 +18,7 @@ namespace IndPubBack.Services.Implementations
         public async Task<UserResponse> RegisterAsync(RegisterRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Login) || request.Login.Length < 3
-            || string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains("@"))
+            || string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains('@'))
                 throw new ValidationException("Invalid login or email.");
 
             var existingUser = await _userRepository.GetByLoginAsync(request.Login)
@@ -67,40 +67,60 @@ namespace IndPubBack.Services.Implementations
             return CreateAccessTokenResponse(user);
         }
 
-        public async Task<UserResponse> UpdateAccessTokenAsync(AccessTokenRequest request, string refreshToken)
+        public async Task<bool> LogoutAsync(string accessToken, string refreshToken)
         {
-            var userId = GetUserIdFromClaims(request.AccessToken, _configuration);
+            var userId = GetUserIdFromClaims(accessToken, _configuration);
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null)
+            {
+                throw new UnauthorizedException("Invalid access token.");
+            }
+
+            if (!ValidateRefreshToken(user, refreshToken) || !ValidateRefreshToken(user))
+            {
+                throw new UnauthorizedException("Invalid refresh token. Please log in again.");
+            }
+
+            var tokenExpiredSuccessfully = await _userRepository.ExpireRefreshTokenAsync(user.Id);
+
+            if (!tokenExpiredSuccessfully)
+            {
+                throw new UnauthorizedException("Failed to expire refresh token. User may have been deleted.");
+            }
+            
+            return true;
+        }
+
+        public async Task<UserResponse> UpdateAccessTokenAsync(string accessToken, string refreshToken)
+        {
+            var userId = GetUserIdFromClaims(accessToken, _configuration);
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
             {
                 throw new UnauthorizedException("Invalid access token.");
             }
 
-            if (!ValidateRefreshToken(user, refreshToken))
+            if (!ValidateRefreshToken(user, refreshToken) || !ValidateRefreshToken(user))
             {
                 throw new UnauthorizedException("Invalid refresh token. Please log in again.");
-            }
-
-            if (!ValidateRefreshToken(user))
-            {
-                throw new UnauthorizedException("Refresh token is expired. Please log in again.");
             }
 
             return CreateAccessTokenResponse(user);
         }
 
-        private static Guid GetUserIdFromClaims(string accessToken, IConfiguration _configuration1)
+        private static Guid GetUserIdFromClaims(string accessToken, IConfiguration configuration)
         {
             var handler = new JwtSecurityTokenHandler();
             var validationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
-                ValidIssuer = _configuration1.GetValue<string>("AppSettings:Issuer"),
+                ValidIssuer = configuration.GetValue<string>("AppSettings:Issuer"),
                 ValidateAudience = true,
-                ValidAudience = _configuration1.GetValue<string>("AppSettings:Audience"),
+                ValidAudience = configuration.GetValue<string>("AppSettings:Audience"),
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(_configuration1.GetValue<string>("AppSettings:AccessToken")!)),
+                    Encoding.UTF8.GetBytes(configuration.GetValue<string>("AppSettings:AccessToken")!)),
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.Zero,
                 RequireExpirationTime = true
