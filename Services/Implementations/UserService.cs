@@ -23,6 +23,7 @@ namespace IndPubBack.Services.Implementations
 
             var existingUser = await _userRepository.GetByLoginAsync(request.Login)
                                 ?? await _userRepository.GetByEmailAsync(request.Email);
+
             if (existingUser != null)
                 throw new ConflictException("User with the same username or email already exists.");
 
@@ -56,8 +57,10 @@ namespace IndPubBack.Services.Implementations
 
             var verificationResult = new PasswordHasher<User>()
                 .VerifyHashedPassword(user, user.PasswordHash, request.Password);
+
             if (verificationResult == PasswordVerificationResult.Failed)
                 throw new InvalidCredentialsException("Invalid user or password.");
+
             if (!ValidateRefreshToken(user))
             {
                 user.RefreshToken = GenerateRefreshToken();
@@ -73,21 +76,15 @@ namespace IndPubBack.Services.Implementations
             var user = await _userRepository.GetByIdAsync(userId);
 
             if (user == null)
-            {
                 throw new UnauthorizedException("Invalid access token.");
-            }
-
+            
             if (!ValidateRefreshToken(user, refreshToken) || !ValidateRefreshToken(user))
-            {
                 throw new UnauthorizedException("Invalid refresh token. Please log in again.");
-            }
-
+            
             var tokenExpiredSuccessfully = await _userRepository.ExpireRefreshTokenAsync(user.Id);
 
             if (!tokenExpiredSuccessfully)
-            {
                 throw new UnauthorizedException("Failed to expire refresh token. User may have been deleted.");
-            }
             
             return true;
         }
@@ -97,14 +94,10 @@ namespace IndPubBack.Services.Implementations
             var userId = GetUserIdFromClaims(accessToken, _configuration);
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-            {
                 throw new UnauthorizedException("Invalid access token.");
-            }
-
+            
             if (!ValidateRefreshToken(user, refreshToken) || !ValidateRefreshToken(user))
-            {
                 throw new UnauthorizedException("Invalid refresh token. Please log in again.");
-            }
 
             return CreateAccessTokenResponse(user);
         }
@@ -288,15 +281,12 @@ namespace IndPubBack.Services.Implementations
                     .VerifyHashedPassword(user, user.PasswordHash, request.CurrentPassword);
 
                 if (verificationResult == PasswordVerificationResult.Failed)
-                {
                     throw new InvalidCredentialsException("Invalid password.");
-                }
+
                 if (!string.IsNullOrWhiteSpace(request.NewPassword) && !string.IsNullOrWhiteSpace(request.ConfirmNewPassword))
                 {
                     if (request.NewPassword != request.ConfirmNewPassword)
-                    {
                         throw new ValidationException("New passwords do not match.");
-                    }
 
                     EnsurePasswordComplex(request.NewPassword);
                     user.PasswordHash = new PasswordHasher<User>()
