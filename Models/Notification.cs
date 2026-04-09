@@ -3,10 +3,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace IndPubBack.Models;
 
-public class Notification
+public class Notification : BaseEntity
 {
-    [Key]
-    public Guid Id { get; set; }
+    public Notification()
+        : base()
+    {
+
+    }
+
     public string Message { get; set; } = null!;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

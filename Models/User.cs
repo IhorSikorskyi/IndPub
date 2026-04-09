@@ -4,10 +4,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Models;
 
-public class User
+public class User : BaseEntity
 {
-    [Key]
-    public Guid Id { get; set; }
+    public User() : base()
+    {
+
+    }
 
     [Required]
     [StringLength(50, MinimumLength = 3)]

@@ -3,9 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace IndPubBack.Models;
 
-public class Genre
+public class Genre : BaseEntity
 {
-    public Guid Id { get; set; }
+    public Genre()
+        : base()
+    {
+
+    }
 
     public string Name { get; set; } = null!;
     public string Description { get; set; } = null!;

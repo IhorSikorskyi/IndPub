@@ -3,10 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace IndPubBack.Models;
 
-public class Comment
+public class Comment : BaseEntity
 {
-    [Key]
-    public Guid Id { get; set; }
+    public Comment() 
+        : base()
+    {
+
+    }
 
     [Required]
     public required string Text { get; set; } = null!;
