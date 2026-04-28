@@ -443,9 +443,9 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Role>().HasData(
-            new Role { Id = Guid.Parse("6ec01178-40d2-4ec8-92bf-418e706c1fe5"), Name = "User" },
-            new Role { Id = Guid.Parse("9b9645b4-55e1-4192-a434-6811d9c241db"), Name = "Moderator" },
-            new Role { Id = Guid.Parse("76102ce5-b319-43ff-b8b2-9cca2e54360f"), Name = "Admin" }
+            new Role(Guid.Parse("6ec01178-40d2-4ec8-92bf-418e706c1fe5")) { Name = "User" },
+            new Role(Guid.Parse("9b9645b4-55e1-4192-a434-6811d9c241db")) { Name = "Moderator" },
+            new Role(Guid.Parse("76102ce5-b319-43ff-b8b2-9cca2e54360f")) { Name = "Admin" }
         );
 
         #endregion
