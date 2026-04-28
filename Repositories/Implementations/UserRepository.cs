@@ -24,5 +24,13 @@ namespace IndPubBack.Repositories.Implementations
 
             return affectedRows > 0;
         }
+
+        public async Task<IList<string>> GetUserRolesAsync(Guid userId)
+        {
+            return await _context.UserRoles
+                .Where(ur => ur.UserId == userId)
+                .Select(ur => ur.Role.Name)
+                .ToListAsync();
+        }
     }
 }

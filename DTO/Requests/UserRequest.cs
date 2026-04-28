@@ -15,11 +15,6 @@ namespace IndPubBack.DTO.Requests
         public required string Password { get; set; }
     }
 
-    public class AccessTokenRequest
-    {
-        public required string AccessToken { get; set; }
-    }
-
     public class UpdateProfileRequest
     {
         public string? Email { get; set; }

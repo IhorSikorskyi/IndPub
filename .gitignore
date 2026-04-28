@@ -379,3 +379,5 @@ migrations/
 *.migration.cs
 *.migration.sql
 *.migration.json
+
+appsettings.*

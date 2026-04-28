@@ -1,31 +1,34 @@
-using System.Text;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using IndPubBack.Models;
 using IndPubBack.DTO.Requests;
 using IndPubBack.DTO.Responses;
-using IndPubBack.Services.Interfaces;
-using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Exceptions;
+using IndPubBack.Models;
+using IndPubBack.Repositories.Interfaces;
+using IndPubBack.Services.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using System.Data;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace IndPubBack.Services.Implementations
 {
     public class UserService(IConfiguration _configuration, IUserRepository _userRepository) : IUserService
     {
         private static readonly string _check = "Invalid access token.";
+
         public async Task<UserResponse> RegisterAsync(RegisterRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Login) || request.Login.Length < 3
-            || string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains('@'))
+                                                         || string.IsNullOrWhiteSpace(request.Email) ||
+                                                         !request.Email.Contains('@'))
             {
                 throw new ValidationException("Invalid login or email.");
             }
 
             var existingUser = await _userRepository.GetByLoginAsync(request.Login)
-                                ?? await _userRepository.GetByEmailAsync(request.Email);
+                               ?? await _userRepository.GetByEmailAsync(request.Email);
 
             if (existingUser != null)
             {
@@ -52,14 +55,14 @@ namespace IndPubBack.Services.Implementations
 
             await _userRepository.AddAsync(user);
 
-            return CreateAccessTokenResponse(user);
+            return await CreateAccessTokenResponse(user);
         }
 
         public async Task<UserResponse> LoginAsync(LoginRequest request)
         {
             var user = await _userRepository.GetByLoginAsync(request.LoginOrEmail)
                        ?? await _userRepository.GetByEmailAsync(request.LoginOrEmail);
-            
+
             if (user == null)
             {
                 throw new InvalidCredentialsException("Invalid user or password.");
@@ -79,7 +82,8 @@ namespace IndPubBack.Services.Implementations
                 user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
                 await _userRepository.UpdateAsync(user);
             }
-            return CreateAccessTokenResponse(user);
+
+            return await CreateAccessTokenResponse(user);
         }
 
         public async Task<bool> LogoutAsync(string accessToken, string refreshToken)
@@ -91,19 +95,19 @@ namespace IndPubBack.Services.Implementations
             {
                 throw new UnauthorizedException(_check);
             }
-            
+
             if (!ValidateRefreshToken(user, refreshToken) || !ValidateRefreshToken(user))
             {
                 throw new UnauthorizedException("Invalid refresh token. Please log in again.");
             }
-            
+
             var tokenExpiredSuccessfully = await _userRepository.ExpireRefreshTokenAsync(user.Id);
 
             if (!tokenExpiredSuccessfully)
             {
                 throw new UnauthorizedException("Failed to expire refresh token. User may have been deleted.");
             }
-            
+
             return true;
         }
 
@@ -115,15 +119,101 @@ namespace IndPubBack.Services.Implementations
             {
                 throw new UnauthorizedException(_check);
             }
-            
+
             if (!ValidateRefreshToken(user, refreshToken) || !ValidateRefreshToken(user))
             {
                 throw new UnauthorizedException("Invalid refresh token. Please log in again.");
             }
 
-            return CreateAccessTokenResponse(user);
+            return await CreateAccessTokenResponse(user);
+        }
+        
+        public async Task<UserInfoResponse> GetUserInfoAsync(string accessToken)
+        {
+            var userId = GetUserIdFromClaims(accessToken, _configuration);
+
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null)
+            {
+                throw new NotFoundException("User not found.");
+            }
+
+            return new UserInfoResponse
+            {
+                Login = user.Login,
+                Email = user.Email,
+                Bio = user.Bio,
+                ProfilePictureUrl = user.ProfilePictureUrl,
+                JoiningDate = user.JoiningDate
+            };
         }
 
+        public async Task<UserInfoResponse> UpdateUserInfoAsync(string accessToken, UpdateProfileRequest request)
+        {
+            var userId = GetUserIdFromClaims(accessToken, _configuration);
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null)
+            {
+                throw new UnauthorizedException(_check);
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Bio))
+            {
+                user.Bio = request.Bio;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.ProfilePictureUrl))
+            {
+                user.ProfilePictureUrl = request.ProfilePictureUrl;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Email))
+            {
+                var emailExists = await _userRepository.GetByEmailAsync(request.Email);
+                if (emailExists != null && emailExists.Id != user.Id)
+                {
+                    throw new ConflictException("Email already in use.");
+                }
+
+                user.Email = request.Email;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.CurrentPassword))
+            {
+                var verificationResult = new PasswordHasher<User>()
+                    .VerifyHashedPassword(user, user.PasswordHash, request.CurrentPassword);
+
+                if (verificationResult == PasswordVerificationResult.Failed)
+                {
+                    throw new InvalidCredentialsException("Invalid password.");
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.NewPassword) &&
+                    !string.IsNullOrWhiteSpace(request.ConfirmNewPassword))
+                {
+                    if (request.NewPassword != request.ConfirmNewPassword)
+                        throw new ValidationException("New passwords do not match.");
+
+                    EnsurePasswordComplex(request.NewPassword);
+                    user.PasswordHash = new PasswordHasher<User>()
+                        .HashPassword(user, request.NewPassword);
+                }
+            }
+
+            await _userRepository.UpdateAsync(user);
+
+            return new UserInfoResponse
+            {
+                Login = user.Login,
+                Email = user.Email,
+                Bio = user.Bio,
+                ProfilePictureUrl = user.ProfilePictureUrl,
+                JoiningDate = user.JoiningDate
+            };
+        }
+        
         private static Guid GetUserIdFromClaims(string accessToken, IConfiguration configuration)
         {
             var handler = new JwtSecurityTokenHandler();
@@ -160,24 +250,32 @@ namespace IndPubBack.Services.Implementations
             }
         }
 
-        private UserResponse CreateAccessTokenResponse(User user)
+        private async Task<UserResponse> CreateAccessTokenResponse(User user)
         {
+
             return new UserResponse
             {
                 RefreshToken = user.RefreshToken,
                 RefreshTokenExpiry = user.RefreshTokenExpiry,
-                AccessToken = CreateToken(user)
+                AccessToken = await CreateToken(user)
             };
         }
 
-        private string CreateToken(User user)
+        private async Task<string> CreateToken(User user)
         {
+            var roles = await _userRepository.GetUserRolesAsync(user.Id);
+
             var claims = new List<Claim>
             {
                 new(ClaimTypes.Name, user.Login),
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new(ClaimTypes.Email, user.Email)
             };
+
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_configuration.GetValue<string>("AppSettings:AccessToken")!));
@@ -263,90 +361,6 @@ namespace IndPubBack.Services.Implementations
             }
 
             return true;
-        }
-
-        public async Task<UserInfoResponse> GetUserInfoAsync(string accessToken)
-        {
-            var userId = GetUserIdFromClaims(accessToken, _configuration);
-
-            var user = await _userRepository.GetByIdAsync(userId);
-
-            if (user == null)
-            {
-                throw new NotFoundException("User not found.");
-            }
-
-            return new UserInfoResponse
-            {
-                Login = user.Login,
-                Email = user.Email,
-                Bio = user.Bio,
-                ProfilePictureUrl = user.ProfilePictureUrl,
-                JoiningDate = user.JoiningDate
-            };
-        }
-
-        public async Task<UserInfoResponse> UpdateUserInfoAsync(string accessToken, UpdateProfileRequest request)
-        {
-            var userId = GetUserIdFromClaims(accessToken, _configuration);
-            var user = await _userRepository.GetByIdAsync(userId);
-
-            if (user == null)
-            {
-                throw new UnauthorizedException(_check);
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.Bio))
-            {
-                user.Bio = request.Bio;
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.ProfilePictureUrl))
-            {
-                user.ProfilePictureUrl = request.ProfilePictureUrl;
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.Email))
-            {
-                var emailExists = await _userRepository.GetByEmailAsync(request.Email);
-                if (emailExists != null && emailExists.Id != user.Id)
-                {
-                    throw new ConflictException("Email already in use.");
-                }
-                user.Email = request.Email;
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.CurrentPassword))
-            {
-                var verificationResult = new PasswordHasher<User>()
-                    .VerifyHashedPassword(user, user.PasswordHash, request.CurrentPassword);
-
-                if (verificationResult == PasswordVerificationResult.Failed)
-                {
-                    throw new InvalidCredentialsException("Invalid password.");
-                }
-
-                if (!string.IsNullOrWhiteSpace(request.NewPassword) && !string.IsNullOrWhiteSpace(request.ConfirmNewPassword))
-                {
-                    if (request.NewPassword != request.ConfirmNewPassword)
-                        throw new ValidationException("New passwords do not match.");
-
-                    EnsurePasswordComplex(request.NewPassword);
-                    user.PasswordHash = new PasswordHasher<User>()
-                        .HashPassword(user, request.NewPassword);
-                }
-            }
-
-            await _userRepository.UpdateAsync(user);
-
-            return new UserInfoResponse
-            {
-                Login = user.Login,
-                Email = user.Email,
-                Bio = user.Bio,
-                ProfilePictureUrl = user.ProfilePictureUrl,
-                JoiningDate = user.JoiningDate
-            };
         }
     }
 }

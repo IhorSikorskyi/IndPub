@@ -37,7 +37,10 @@ builder.Services.AddSignalR();
 // DI Container registrations for services and repositories
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IBookRepository, BookRepository>();
+
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IBookService, BookService>();
 
 // Configure Entity Framework and SQL Server
 builder.Services.AddDbContext<Connected>(options =>
