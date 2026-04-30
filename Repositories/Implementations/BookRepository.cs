@@ -10,4 +10,9 @@ public class BookRepository(Connected _context) : Repository<Book>(_context), IB
     {
         return _context.Books.FirstOrDefaultAsync(b => b.Title == title);
     }
+
+    public Task<bool> HasTitleAsync(string title)
+    {
+        return _context.Books.AnyAsync(b => b.Title == title);
+    }
 }

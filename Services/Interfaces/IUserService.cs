@@ -3,6 +3,7 @@ using IndPubBack.DTO.Requests;
 
 namespace IndPubBack.Services.Interfaces
 {
+    // TODO: Implement save CoverImages to Azure Blob Storage and update CoverImageUrl to the URL and save to DB
     public interface IUserService
     {
         Task<UserResponse> RegisterAsync(RegisterRequest request);

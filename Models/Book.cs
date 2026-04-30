@@ -11,7 +11,7 @@ public class Book : BaseEntity
     {
 
     }
-
+    
     public required string Title { get; set; } = null!;
     public string? Description { get; set; }
     public string? CoverImageUrl { get; set; }
@@ -65,5 +65,5 @@ public enum Status
 {
     Ongoing,
     Completed,
-    Droped
+    Dropped
 }

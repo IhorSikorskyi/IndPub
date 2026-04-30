@@ -1,6 +1,6 @@
 namespace IndPubBack.DTO.Requests
 {
-
+    // TODO: Add CoverImage and Bio to RegisterRequest and UpdateProfileRequest
     public class RegisterRequest
     {
         public required string Login { get; set; }

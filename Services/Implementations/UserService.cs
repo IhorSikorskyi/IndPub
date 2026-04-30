@@ -14,6 +14,7 @@ using System.Text;
 
 namespace IndPubBack.Services.Implementations
 {
+    // TODO: Implement save CoverImages to Azure Blob Storage and update CoverImageUrl to the URL and save to DB
     public class UserService(IConfiguration _configuration, IUserRepository _userRepository) : IUserService
     {
         private static readonly string _check = "Invalid access token.";
@@ -55,7 +56,7 @@ namespace IndPubBack.Services.Implementations
 
             await _userRepository.AddAsync(user);
 
-            return await CreateAccessTokenResponse(user);
+            return await CreateAccessTokenResponseAsync(user);
         }
 
         public async Task<UserResponse> LoginAsync(LoginRequest request)
@@ -83,7 +84,7 @@ namespace IndPubBack.Services.Implementations
                 await _userRepository.UpdateAsync(user);
             }
 
-            return await CreateAccessTokenResponse(user);
+            return await CreateAccessTokenResponseAsync(user);
         }
 
         public async Task<bool> LogoutAsync(string accessToken, string refreshToken)
@@ -125,7 +126,7 @@ namespace IndPubBack.Services.Implementations
                 throw new UnauthorizedException("Invalid refresh token. Please log in again.");
             }
 
-            return await CreateAccessTokenResponse(user);
+            return await CreateAccessTokenResponseAsync(user);
         }
         
         public async Task<UserInfoResponse> GetUserInfoAsync(string accessToken)
@@ -250,18 +251,18 @@ namespace IndPubBack.Services.Implementations
             }
         }
 
-        private async Task<UserResponse> CreateAccessTokenResponse(User user)
+        private async Task<UserResponse> CreateAccessTokenResponseAsync(User user)
         {
 
             return new UserResponse
             {
                 RefreshToken = user.RefreshToken,
                 RefreshTokenExpiry = user.RefreshTokenExpiry,
-                AccessToken = await CreateToken(user)
+                AccessToken = await CreateTokenAsync(user)
             };
         }
 
-        private async Task<string> CreateToken(User user)
+        private async Task<string> CreateTokenAsync(User user)
         {
             var roles = await _userRepository.GetUserRolesAsync(user.Id);
 

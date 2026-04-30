@@ -9,7 +9,9 @@ public class BookCreateRequest
 
     public string? Description { get; set; }
 
-    public string? CoverImageUrl { get; set; }
+    public IFormFile? CoverImage { get; set; }
+
+    public DateTime PublishedDate { get; set; }
 
     public required string Language { get; set; }
 
@@ -33,6 +35,8 @@ public class BookUpdateRequest
     public string? Description { get; set; }
 
     public string? CoverImageUrl { get; set; }
+
+    public DateTime UpdateDate { get; set; }
 
     public string? Language { get; set; }
 
