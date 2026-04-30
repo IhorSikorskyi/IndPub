@@ -1,5 +1,5 @@
 using System.Text;
-using Scalar.AspNetCore;
+using Azure.Storage.Blobs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -28,18 +28,25 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// Add Swagger for API documentation
+builder.Services.AddSwaggerGen();
 
 // SignalR and Data Protection
 builder.Services.AddDataProtection();
 builder.Services.AddSignalR();
 
-// DI Container registrations for services and repositories
+// DI Container registrations for repositories
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IBookRepository, BookRepository>();
+
+// DI Container registrations for services
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IBookService, BookService>();
+
+// Azure Blob Storage configuration
+builder.Services.AddSingleton(x => new BlobServiceClient(
+    builder.Configuration.GetValue<string>("AzureStorage:ConnectionString")));
 
 // Configure Entity Framework and SQL Server
 builder.Services.AddDbContext<Connected>(options =>
@@ -83,17 +90,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+
+// Enable Swagger UI in development
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
-    app.MapScalarApiReference();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-// Enable HTTPS redirection in production. Need to set up SSL certificates for production environment.
-// if (app.Environment.IsProduction())
-// {
-//     app.UseHttpsRedirection();
-// }
+// Enable HTTPS redirection in production.
+if (app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors("AllowConfiguredOrigins");
 

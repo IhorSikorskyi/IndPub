@@ -21,7 +21,9 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
     public DbSet<LibraryEntry> Libraries { get; set; } 
     public DbSet<Comment> Comments { get; set; } 
     public DbSet<CommentLike> CommentLikes { get; set; } 
-    public DbSet<ReviewLike> ReviewLikes { get; set; } 
+    public DbSet<ReviewLike> ReviewLikes { get; set; }
+    public DbSet<Role> Roles { get; set; }
+    public DbSet<UserRole> UserRoles { get; set; }
 
     #endregion
 
@@ -419,6 +421,34 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
 
         #endregion
 
+        #region Roles
+
+        modelBuilder.Entity<Role>()
+            .HasIndex(r => r.Name)
+            .IsUnique();
+
+        modelBuilder.Entity<UserRole>()
+            .HasKey(ur => new { ur.UserId, ur.RoleId });
+
+        modelBuilder.Entity<UserRole>()
+            .HasOne(ur => ur.User)
+            .WithMany(u => u.UserRoles)
+            .HasForeignKey(ur => ur.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<UserRole>()
+            .HasOne(ur => ur.Role)
+            .WithMany(r => r.UserRoles)
+            .HasForeignKey(ur => ur.RoleId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Role>().HasData(
+            new Role(Guid.Parse("6ec01178-40d2-4ec8-92bf-418e706c1fe5")) { Name = "User" },
+            new Role(Guid.Parse("9b9645b4-55e1-4192-a434-6811d9c241db")) { Name = "Moderator" },
+            new Role(Guid.Parse("76102ce5-b319-43ff-b8b2-9cca2e54360f")) { Name = "Admin" }
+        );
+
+        #endregion
     }
 
     public override int SaveChanges()

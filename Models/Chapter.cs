@@ -3,10 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace IndPubBack.Models;
 
-public class Chapter
+public class Chapter : BaseEntity
 {
-    [Key]
-    public Guid Id { get; set; }
+    public Chapter()
+        : base()
+    {
+
+    }
 
     [Required]
     public string Title { get; set; } = null!;

@@ -1,34 +1,45 @@
-using System.Text;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using IndPubBack.Models;
 using IndPubBack.DTO.Requests;
 using IndPubBack.DTO.Responses;
-using IndPubBack.Services.Interfaces;
-using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Exceptions;
+using IndPubBack.Models;
+using IndPubBack.Repositories.Interfaces;
+using IndPubBack.Services.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using System.Data;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace IndPubBack.Services.Implementations
 {
+    // TODO: Implement save CoverImages to Azure Blob Storage and update CoverImageUrl to the URL and save to DB
     public class UserService(IConfiguration _configuration, IUserRepository _userRepository) : IUserService
     {
+        private static readonly string _check = "Invalid access token.";
+
         public async Task<UserResponse> RegisterAsync(RegisterRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Login) || request.Login.Length < 3
-            || string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains('@'))
+                                                         || string.IsNullOrWhiteSpace(request.Email) ||
+                                                         !request.Email.Contains('@'))
+            {
                 throw new ValidationException("Invalid login or email.");
+            }
 
             var existingUser = await _userRepository.GetByLoginAsync(request.Login)
-                                ?? await _userRepository.GetByEmailAsync(request.Email);
+                               ?? await _userRepository.GetByEmailAsync(request.Email);
 
             if (existingUser != null)
+            {
                 throw new ConflictException("User with the same username or email already exists.");
+            }
 
             if (request.Password != request.ConfirmPassword)
+            {
                 throw new ValidationException("Passwords do not match.");
+            }
 
             EnsurePasswordComplex(request.Password);
 
@@ -45,21 +56,26 @@ namespace IndPubBack.Services.Implementations
 
             await _userRepository.AddAsync(user);
 
-            return CreateAccessTokenResponse(user);
+            return await CreateAccessTokenResponseAsync(user);
         }
 
         public async Task<UserResponse> LoginAsync(LoginRequest request)
         {
             var user = await _userRepository.GetByLoginAsync(request.LoginOrEmail)
                        ?? await _userRepository.GetByEmailAsync(request.LoginOrEmail);
+
             if (user == null)
+            {
                 throw new InvalidCredentialsException("Invalid user or password.");
+            }
 
             var verificationResult = new PasswordHasher<User>()
                 .VerifyHashedPassword(user, user.PasswordHash, request.Password);
 
             if (verificationResult == PasswordVerificationResult.Failed)
+            {
                 throw new InvalidCredentialsException("Invalid user or password.");
+            }
 
             if (!ValidateRefreshToken(user))
             {
@@ -67,7 +83,8 @@ namespace IndPubBack.Services.Implementations
                 user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
                 await _userRepository.UpdateAsync(user);
             }
-            return CreateAccessTokenResponse(user);
+
+            return await CreateAccessTokenResponseAsync(user);
         }
 
         public async Task<bool> LogoutAsync(string accessToken, string refreshToken)
@@ -76,16 +93,22 @@ namespace IndPubBack.Services.Implementations
             var user = await _userRepository.GetByIdAsync(userId);
 
             if (user == null)
-                throw new UnauthorizedException("Invalid access token.");
-            
+            {
+                throw new UnauthorizedException(_check);
+            }
+
             if (!ValidateRefreshToken(user, refreshToken) || !ValidateRefreshToken(user))
+            {
                 throw new UnauthorizedException("Invalid refresh token. Please log in again.");
-            
+            }
+
             var tokenExpiredSuccessfully = await _userRepository.ExpireRefreshTokenAsync(user.Id);
 
             if (!tokenExpiredSuccessfully)
+            {
                 throw new UnauthorizedException("Failed to expire refresh token. User may have been deleted.");
-            
+            }
+
             return true;
         }
 
@@ -94,14 +117,104 @@ namespace IndPubBack.Services.Implementations
             var userId = GetUserIdFromClaims(accessToken, _configuration);
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-                throw new UnauthorizedException("Invalid access token.");
-            
-            if (!ValidateRefreshToken(user, refreshToken) || !ValidateRefreshToken(user))
-                throw new UnauthorizedException("Invalid refresh token. Please log in again.");
+            {
+                throw new UnauthorizedException(_check);
+            }
 
-            return CreateAccessTokenResponse(user);
+            if (!ValidateRefreshToken(user, refreshToken) || !ValidateRefreshToken(user))
+            {
+                throw new UnauthorizedException("Invalid refresh token. Please log in again.");
+            }
+
+            return await CreateAccessTokenResponseAsync(user);
+        }
+        
+        public async Task<UserInfoResponse> GetUserInfoAsync(string accessToken)
+        {
+            var userId = GetUserIdFromClaims(accessToken, _configuration);
+
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null)
+            {
+                throw new NotFoundException("User not found.");
+            }
+
+            return new UserInfoResponse
+            {
+                Login = user.Login,
+                Email = user.Email,
+                Bio = user.Bio,
+                ProfilePictureUrl = user.ProfilePictureUrl,
+                JoiningDate = user.JoiningDate
+            };
         }
 
+        public async Task<UserInfoResponse> UpdateUserInfoAsync(string accessToken, UpdateProfileRequest request)
+        {
+            var userId = GetUserIdFromClaims(accessToken, _configuration);
+            var user = await _userRepository.GetByIdAsync(userId);
+
+            if (user == null)
+            {
+                throw new UnauthorizedException(_check);
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Bio))
+            {
+                user.Bio = request.Bio;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.ProfilePictureUrl))
+            {
+                user.ProfilePictureUrl = request.ProfilePictureUrl;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Email))
+            {
+                var emailExists = await _userRepository.GetByEmailAsync(request.Email);
+                if (emailExists != null && emailExists.Id != user.Id)
+                {
+                    throw new ConflictException("Email already in use.");
+                }
+
+                user.Email = request.Email;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.CurrentPassword))
+            {
+                var verificationResult = new PasswordHasher<User>()
+                    .VerifyHashedPassword(user, user.PasswordHash, request.CurrentPassword);
+
+                if (verificationResult == PasswordVerificationResult.Failed)
+                {
+                    throw new InvalidCredentialsException("Invalid password.");
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.NewPassword) &&
+                    !string.IsNullOrWhiteSpace(request.ConfirmNewPassword))
+                {
+                    if (request.NewPassword != request.ConfirmNewPassword)
+                        throw new ValidationException("New passwords do not match.");
+
+                    EnsurePasswordComplex(request.NewPassword);
+                    user.PasswordHash = new PasswordHasher<User>()
+                        .HashPassword(user, request.NewPassword);
+                }
+            }
+
+            await _userRepository.UpdateAsync(user);
+
+            return new UserInfoResponse
+            {
+                Login = user.Login,
+                Email = user.Email,
+                Bio = user.Bio,
+                ProfilePictureUrl = user.ProfilePictureUrl,
+                JoiningDate = user.JoiningDate
+            };
+        }
+        
         private static Guid GetUserIdFromClaims(string accessToken, IConfiguration configuration)
         {
             var handler = new JwtSecurityTokenHandler();
@@ -130,32 +243,40 @@ namespace IndPubBack.Services.Implementations
             }
             catch (SecurityTokenExpiredException)
             {
-                throw new UnauthorizedException("Invalid access token.");
+                throw new UnauthorizedException(_check);
             }
             catch (SecurityTokenException)
             {
-                throw new UnauthorizedException("Invalid access token.");
+                throw new UnauthorizedException(_check);
             }
         }
 
-        private UserResponse CreateAccessTokenResponse(User user)
+        private async Task<UserResponse> CreateAccessTokenResponseAsync(User user)
         {
+
             return new UserResponse
             {
                 RefreshToken = user.RefreshToken,
                 RefreshTokenExpiry = user.RefreshTokenExpiry,
-                AccessToken = CreateToken(user)
+                AccessToken = await CreateTokenAsync(user)
             };
         }
 
-        private string CreateToken(User user)
+        private async Task<string> CreateTokenAsync(User user)
         {
+            var roles = await _userRepository.GetUserRolesAsync(user.Id);
+
             var claims = new List<Claim>
             {
                 new(ClaimTypes.Name, user.Login),
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new(ClaimTypes.Email, user.Email)
             };
+
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_configuration.GetValue<string>("AppSettings:AccessToken")!));
@@ -188,7 +309,9 @@ namespace IndPubBack.Services.Implementations
         private static void EnsurePasswordComplex(string password)
         {
             if (IsPasswordComplex(password))
+            {
                 return;
+            }
 
             throw new ValidationException(
                 "Password must be at least 8 characters long, " +
@@ -199,7 +322,9 @@ namespace IndPubBack.Services.Implementations
         private static bool IsPasswordComplex(string password)
         {
             if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
+            {
                 return false;
+            }
 
             bool hasUpper = false, hasLower = false, hasDigit = false, hasSpecial = false;
 
@@ -211,7 +336,9 @@ namespace IndPubBack.Services.Implementations
                 else if (!char.IsLetterOrDigit(c)) hasSpecial = true;
 
                 if (hasUpper && hasLower && hasDigit && hasSpecial)
+                {
                     return true;
+                }
             }
 
             return false;
@@ -220,7 +347,9 @@ namespace IndPubBack.Services.Implementations
         private static bool ValidateRefreshToken(User user, string refreshToken)
         {
             if (user == null || user.RefreshToken != refreshToken)
+            {
                 return false;
+            }
 
             return true;
         }
@@ -228,82 +357,11 @@ namespace IndPubBack.Services.Implementations
         private static bool ValidateRefreshToken(User user)
         {
             if (user == null || user.RefreshTokenExpiry <= DateTime.UtcNow)
+            {
                 return false;
+            }
 
             return true;
-        }
-
-        public async Task<UserInfoResponse> GetUserInfoAsync(string accessToken)
-        {
-            var userId = GetUserIdFromClaims(accessToken, _configuration);
-
-            var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null)
-                throw new NotFoundException("User not found.");
-
-            return new UserInfoResponse
-            {
-                Login = user.Login,
-                Email = user.Email,
-                Bio = user.Bio,
-                ProfilePictureUrl = user.ProfilePictureUrl,
-                JoiningDate = user.JoiningDate
-            };
-        }
-
-        public async Task<UserInfoResponse> UpdateUserInfoAsync(string accessToken, UpdateProfileRequest request)
-        {
-            var userId = GetUserIdFromClaims(accessToken, _configuration);
-            var user = await _userRepository.GetByIdAsync(userId);
-
-            if (user == null)
-                throw new UnauthorizedException("Invalid access token.");
-
-            if (!string.IsNullOrWhiteSpace(request.Bio))
-                user.Bio = request.Bio;
-
-            if (!string.IsNullOrWhiteSpace(request.ProfilePictureUrl))
-                user.ProfilePictureUrl = request.ProfilePictureUrl;
-
-            if (!string.IsNullOrWhiteSpace(request.Email))
-            {
-                var emailExists = await _userRepository.GetByEmailAsync(request.Email);
-                if (emailExists != null && emailExists.Id != user.Id)
-                {
-                    throw new ConflictException("Email already in use.");
-                }
-                user.Email = request.Email;
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.CurrentPassword))
-            {
-                var verificationResult = new PasswordHasher<User>()
-                    .VerifyHashedPassword(user, user.PasswordHash, request.CurrentPassword);
-
-                if (verificationResult == PasswordVerificationResult.Failed)
-                    throw new InvalidCredentialsException("Invalid password.");
-
-                if (!string.IsNullOrWhiteSpace(request.NewPassword) && !string.IsNullOrWhiteSpace(request.ConfirmNewPassword))
-                {
-                    if (request.NewPassword != request.ConfirmNewPassword)
-                        throw new ValidationException("New passwords do not match.");
-
-                    EnsurePasswordComplex(request.NewPassword);
-                    user.PasswordHash = new PasswordHasher<User>()
-                        .HashPassword(user, request.NewPassword);
-                }
-            }
-
-            await _userRepository.UpdateAsync(user);
-
-            return new UserInfoResponse
-            {
-                Login = user.Login,
-                Email = user.Email,
-                Bio = user.Bio,
-                ProfilePictureUrl = user.ProfilePictureUrl,
-                JoiningDate = user.JoiningDate
-            };
         }
     }
 }

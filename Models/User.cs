@@ -4,10 +4,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Models;
 
-public class User
+public class User : BaseEntity
 {
-    [Key]
-    public Guid Id { get; set; }
+    public User() : base()
+    {
+
+    }
 
     [Required]
     [StringLength(50, MinimumLength = 3)]
@@ -39,4 +41,6 @@ public class User
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
     public ICollection<Bookmark> Bookmarks { get; set; } = new List<Bookmark>();
+
+    public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

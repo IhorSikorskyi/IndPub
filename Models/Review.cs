@@ -3,10 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace IndPubBack.Models;
 
-public class Review
+public class Review : BaseEntity
 {
-    [Key]
-    public Guid Id { get; set; }
+    public Review()
+        : base()
+    {
+
+    }
 
     [Range(0.5, 5.0)]
     [Required]

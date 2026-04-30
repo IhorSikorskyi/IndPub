@@ -3,10 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace IndPubBack.Models;
 
-public class Tag
+public class Tag : BaseEntity
 {
-    [Key]
-    public Guid Id { get; set; }
+    public Tag()
+        : base()
+    {
+
+    }
 
     public string Name { get; set; } = null!;
 
