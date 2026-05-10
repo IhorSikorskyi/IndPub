@@ -1,9 +1,9 @@
 using IndPubBack.DTO.Requests;
 using IndPubBack.DTO.Responses;
-using IndPubBack.Services.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using IndPubBack.Exceptions;
+using IndPubBack.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace IndPubBack.Controllers
 {
@@ -133,7 +133,7 @@ namespace IndPubBack.Controllers
         public async Task<ActionResult<UserInfoResponse>> GetProfileAsync([FromHeader(Name = "Authorization")] string authorization)
         {
             try
-            { 
+            {
                 var accessToken = authorization?.Replace("Bearer ", "") ?? string.Empty;
                 var result = await _userService.GetUserInfoAsync(accessToken);
                 return Ok(result);

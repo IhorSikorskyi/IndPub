@@ -1,11 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace IndPubBack.Models;
 
 public class Comment : BaseEntity
 {
-    public Comment() 
+    public Comment()
         : base()
     {
 
