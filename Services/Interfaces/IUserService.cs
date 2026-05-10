@@ -1,23 +1,28 @@
-using IndPubBack.DTO.Responses;
 using IndPubBack.DTO.Requests;
+using IndPubBack.DTO.Responses;
 
 namespace IndPubBack.Services.Interfaces
 {
-    // TODO: Implement save CoverImages to Azure Blob Storage and update CoverImageUrl to the URL and save to DB
     public interface IUserService
     {
+        // Автентифікація
         Task<UserResponse> RegisterAsync(RegisterRequest request);
         Task<UserResponse> LoginAsync(LoginRequest request);
         Task<UserResponse> UpdateAccessTokenAsync(string accessToken, string refreshToken);
         Task<bool> LogoutAsync(string accessToken, string refreshToken);
 
+        // Профіль
         Task<UserInfoResponse> GetUserInfoAsync(string accessToken);
-        Task<UserInfoResponse> UpdateUserInfoAsync(string accessToken, UpdateProfileRequest request);
+        Task<UserInfoResponse> UpdateUserInfoAsync(string accessToken, UpdateProfileRequest request); Task<bool> DeleteAccountAsync(string accessToken);
 
-        //TODO: Add methods for password reset, email confirmation, etc.
+        // Публічний профіль автора
+        Task<UserInfoResponse> GetAuthorProfileAsync(Guid authorId);
 
-        //TODO: Consider adding methods for role management, if needed in the future.
+        // Підписки
+        Task SubscribeAsync(Guid authorId, Guid userId);
+        Task UnsubscribeAsync(Guid authorId, Guid userId);
 
-        //TODO: Add methods for user account deletion, if required by the application.
+        // Бібліотека
+        Task<IList<BookResponse>> GetLibraryAsync(string accessToken);
     }
 }

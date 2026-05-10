@@ -5,25 +5,22 @@ namespace IndPubBack.Models;
 public class Connected(DbContextOptions<Connected> options) : DbContext(options)
 {
     #region DbSets
-    
-    public DbSet<User> Users { get; set; } 
-    public DbSet<Book> Books { get; set; } 
-    public DbSet<Bookmark> Bookmarks { get; set; } 
-    public DbSet<BookTag> BookTags { get; set; } 
-    public DbSet<BookLike> BookLikes { get; set; } 
-    public DbSet<BookAuthor> BookAuthors { get; set; } 
-    public DbSet<Tag> Tags { get; set; } 
-    public DbSet<Genre> Genres { get; set; } 
-    public DbSet<Review> Reviews { get; set; } 
-    public DbSet<Chapter> Chapters { get; set; } 
-    public DbSet<Subscription> Subscriptions { get; set; } 
-    public DbSet<Notification> Notifications { get; set; } 
-    public DbSet<LibraryEntry> Libraries { get; set; } 
-    public DbSet<Comment> Comments { get; set; } 
-    public DbSet<CommentLike> CommentLikes { get; set; } 
+    public DbSet<User> Users { get; set; }
+    public DbSet<Book> Books { get; set; }
+    public DbSet<Bookmark> Bookmarks { get; set; }
+    public DbSet<BookTag> BookTags { get; set; }
+    public DbSet<BookLike> BookLikes { get; set; }
+    public DbSet<BookAuthor> BookAuthors { get; set; }
+    public DbSet<Tag> Tags { get; set; }
+    public DbSet<Genre> Genres { get; set; }
+    public DbSet<Review> Reviews { get; set; }
+    public DbSet<Chapter> Chapters { get; set; }
+    public DbSet<Subscription> Subscriptions { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
+    public DbSet<LibraryEntry> Libraries { get; set; }
+    public DbSet<Comment> Comments { get; set; }
+    public DbSet<CommentLike> CommentLikes { get; set; }
     public DbSet<ReviewLike> ReviewLikes { get; set; }
-    public DbSet<Role> Roles { get; set; }
-    public DbSet<UserRole> UserRoles { get; set; }
 
     #endregion
 
@@ -98,6 +95,11 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
             .WithOne(le => le.User)
             .HasForeignKey(le => le.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<User>()
+            .Property(u => u.Role)
+            .HasConversion<string>()
+            .HasDefaultValue(Roles.User);
 
         #endregion
 
@@ -418,35 +420,6 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
             .WithMany(b => b.LibraryEntries)
             .HasForeignKey(le => le.BookId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        #endregion
-
-        #region Roles
-
-        modelBuilder.Entity<Role>()
-            .HasIndex(r => r.Name)
-            .IsUnique();
-
-        modelBuilder.Entity<UserRole>()
-            .HasKey(ur => new { ur.UserId, ur.RoleId });
-
-        modelBuilder.Entity<UserRole>()
-            .HasOne(ur => ur.User)
-            .WithMany(u => u.UserRoles)
-            .HasForeignKey(ur => ur.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<UserRole>()
-            .HasOne(ur => ur.Role)
-            .WithMany(r => r.UserRoles)
-            .HasForeignKey(ur => ur.RoleId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<Role>().HasData(
-            new Role(Guid.Parse("6ec01178-40d2-4ec8-92bf-418e706c1fe5")) { Name = "User" },
-            new Role(Guid.Parse("9b9645b4-55e1-4192-a434-6811d9c241db")) { Name = "Moderator" },
-            new Role(Guid.Parse("76102ce5-b319-43ff-b8b2-9cca2e54360f")) { Name = "Admin" }
-        );
 
         #endregion
     }

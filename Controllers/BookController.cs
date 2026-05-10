@@ -1,24 +1,25 @@
-﻿using System.Security.Claims;
-using IndPubBack.DTO.Requests;
+﻿using IndPubBack.DTO.Requests;
 using IndPubBack.DTO.Responses;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using IndPubBack.Exceptions;
 using IndPubBack.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
-namespace IndPubBack.Controllers{
+namespace IndPubBack.Controllers
+{
 
     [ApiController]
     [Route("api/book")]
-    public class BookController(IBookService _bookService) : ControllerBase
+    public class BookController(IBookService bookService) : ControllerBase
     {
         [Authorize]
         [HttpPost("create")]
-        public async Task<ActionResult<BookCreateResponse>> CreateBookAsync([FromBody] BookCreateRequest request)
+        public async Task<ActionResult<BookResponse>> CreateBookAsync([FromBody] BookCreateRequest request)
         {
             try
             {
-                var result = await _bookService.CreateBookAsync(request);
+                var result = await bookService.CreateBookAsync(request);
                 return Ok(result);
             }
             catch (ValidationException ex)
@@ -33,7 +34,7 @@ namespace IndPubBack.Controllers{
 
         [Authorize]
         [HttpPut("update/{bookId}")]
-        public async Task<ActionResult<BookUpdateResponse>> UpdateBookAsync([FromBody] BookUpdateRequest request, [FromHeader(Name = "Authorization")] string authorization)
+        public async Task<ActionResult<BookResponse>> UpdateBookAsync([FromBody] BookUpdateRequest request, [FromHeader(Name = "Authorization")] string authorization)
         {
             try
             {
@@ -45,7 +46,7 @@ namespace IndPubBack.Controllers{
                     return Unauthorized(new { message = "Invalid user id in token." });
                 }
 
-                var result = await _bookService.UpdateBookAsync(request, userId);
+                var result = await bookService.UpdateBookAsync(request, userId);
                 return Ok(result);
             }
             catch (ValidationException ex)
@@ -60,7 +61,7 @@ namespace IndPubBack.Controllers{
 
         [Authorize]
         [HttpDelete("delete/{bookId}")]
-        public async Task<ActionResult<BookDeleteResponse>> DeleteBookAsync([FromBody] BookDeleteRequest request, [FromHeader(Name = "Authorization")] string authorization)
+        public async Task<ActionResult<DeleteResponse>> DeleteBookAsync([FromBody] BookDeleteRequest request, [FromHeader(Name = "Authorization")] string authorization)
         {
             try
             {
@@ -72,7 +73,7 @@ namespace IndPubBack.Controllers{
                     return Unauthorized(new { message = "Invalid user id in token." });
                 }
 
-                var result = await _bookService.DeleteBookAsync(request, userId);
+                var result = await bookService.DeleteBookAsync(request, userId);
                 return Ok(result);
             }
             catch (ValidationException ex)

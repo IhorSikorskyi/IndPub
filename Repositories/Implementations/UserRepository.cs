@@ -1,6 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using IndPubBack.Models;
 using IndPubBack.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Repositories.Implementations
 {
@@ -25,12 +25,18 @@ namespace IndPubBack.Repositories.Implementations
             return affectedRows > 0;
         }
 
-        public async Task<IList<string>> GetUserRolesAsync(Guid userId)
+        public async Task<string> GetUserRoleAsync(Guid userId)
         {
-            return await context.UserRoles
-                .Where(ur => ur.UserId == userId)
-                .Select(ur => ur.Role.Name)
-                .ToListAsync();
+            var user = await context.Users.FindAsync(userId);
+            return user!.Role.ToString();
+        }
+
+        public async Task<List<Guid>> GetExistingIdsAsync(List<Guid> ids)
+        {
+            return await context.Users
+                    .Where(u => ids.Contains(u.Id))
+                    .Select(u => u.Id)
+                    .ToListAsync();
         }
     }
 }

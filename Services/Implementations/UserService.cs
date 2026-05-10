@@ -6,7 +6,6 @@ using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -14,8 +13,7 @@ using System.Text;
 
 namespace IndPubBack.Services.Implementations
 {
-    // TODO: Implement save CoverImages to Azure Blob Storage and update CoverImageUrl to the URL and save to DB
-    public class UserService(IConfiguration configuration, IUserRepository userRepository) : IUserService
+    public class UserService(IConfiguration configuration, IUserRepository userRepository, IBlobService blobService) : IUserService
     {
         private static readonly string _check = "Invalid access token.";
 
@@ -129,7 +127,7 @@ namespace IndPubBack.Services.Implementations
 
             return await CreateAccessTokenResponseAsync(user);
         }
-        
+
         public async Task<UserInfoResponse> GetUserInfoAsync(string accessToken)
         {
             var userId = GetUserIdFromClaims(accessToken, configuration);
@@ -166,9 +164,18 @@ namespace IndPubBack.Services.Implementations
                 user.Bio = request.Bio;
             }
 
-            if (!string.IsNullOrWhiteSpace(request.ProfilePictureUrl))
+            if (request.ProfilePicture is not null)
             {
-                user.ProfilePictureUrl = request.ProfilePictureUrl;
+                if (!AvatarImageValidation(request.ProfilePicture))
+                {
+                    throw new ValidationException("Invalid image");
+                }
+
+                string folder = configuration["AzureStorage:ProfilePicturesFolder"]!;
+
+                string avatarUrl = await blobService.UploadBlobAsync(folder, request.ProfilePicture, user.Id);
+
+                user.ProfilePictureUrl = avatarUrl;
             }
 
             if (!string.IsNullOrWhiteSpace(request.Email))
@@ -215,7 +222,7 @@ namespace IndPubBack.Services.Implementations
                 JoiningDate = user.JoiningDate
             };
         }
-        
+
         private static Guid GetUserIdFromClaims(string accessToken, IConfiguration configuration)
         {
             var handler = new JwtSecurityTokenHandler();
@@ -265,19 +272,15 @@ namespace IndPubBack.Services.Implementations
 
         private async Task<string> CreateTokenAsync(User user)
         {
-            var roles = await userRepository.GetUserRolesAsync(user.Id);
+            var role = await userRepository.GetUserRoleAsync(user.Id);
 
             var claims = new List<Claim>
             {
                 new(ClaimTypes.Name, user.Login),
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new(ClaimTypes.Email, user.Email)
+                new(ClaimTypes.Email, user.Email),
+                new(ClaimTypes.Role, role)
             };
-
-            foreach (var role in roles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            }
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(configuration.GetValue<string>("AppSettings:AccessToken")!));
@@ -363,6 +366,37 @@ namespace IndPubBack.Services.Implementations
             }
 
             return true;
+        }
+
+        private static bool AvatarImageValidation(IFormFile image)
+        {
+            if (image.Length == 0)
+            {
+                return false;
+            }
+
+            const long maxFileSize = 2 * 1024 * 1024;
+            if (image.Length > maxFileSize)
+            {
+                return false;
+            }
+
+            var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".jpg", ".jpeg", ".png"
+            };
+
+            var allowedContentTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "image/jpeg", "image/png", "image/jpg"
+            };
+
+            var extension = Path.GetExtension(image.FileName);
+
+            return !string.IsNullOrWhiteSpace(extension)
+                   && allowedExtensions.Contains(extension)
+                   && !string.IsNullOrWhiteSpace(image.ContentType)
+                   && allowedContentTypes.Contains(image.ContentType);
         }
     }
 }

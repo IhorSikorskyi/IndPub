@@ -1,6 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Models;
 
@@ -24,6 +22,7 @@ public class User : BaseEntity
     public DateTime JoiningDate { get; set; } = DateTime.UtcNow;
     public required string RefreshToken { get; set; }
     public DateTime RefreshTokenExpiry { get; set; } = DateTime.UtcNow.AddDays(7);
+    public Roles Role = Roles.User;
 
     public ICollection<LibraryEntry> Entries { get; set; } = new List<LibraryEntry>();
     public ICollection<BookAuthor> BookAuthors { get; set; } = new List<BookAuthor>();
@@ -39,6 +38,11 @@ public class User : BaseEntity
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
     public ICollection<Bookmark> Bookmarks { get; set; } = new List<Bookmark>();
+}
 
-    public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+public enum Roles
+{
+    User,
+    Moderator,
+    Admin
 }

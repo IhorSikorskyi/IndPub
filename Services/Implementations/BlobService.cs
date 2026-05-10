@@ -1,7 +1,7 @@
 ﻿using Azure.Storage.Blobs;
+using IndPubBack.Services.Interfaces;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
-using IndPubBack.Services.Interfaces;
 
 namespace IndPubBack.Services.Implementations;
 

@@ -1,15 +1,13 @@
-using System.Text;
 using Azure.Storage.Blobs;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using IndPubBack.Models;
-using IndPubBack.DTO.Requests;
-using IndPubBack.DTO.Responses;
-using IndPubBack.Services.Interfaces;
+using IndPubBack.Repositories.Implementations;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Implementations;
-using IndPubBack.Repositories.Implementations;
+using IndPubBack.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +45,7 @@ builder.Services.AddDbContext<Connected>(options =>
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddScoped<ITagRepository, TagRepository>();
 
 // DI Container registrations for services
 builder.Services.AddScoped<IUserService, UserService>();
