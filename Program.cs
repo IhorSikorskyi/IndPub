@@ -35,6 +35,14 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDataProtection();
 builder.Services.AddSignalR();
 
+// Azure Blob Storage configuration
+builder.Services.AddSingleton(x => new BlobServiceClient(
+    builder.Configuration.GetValue<string>("AzureStorage:ConnectionString")));
+
+// Configure Entity Framework and SQL Server
+builder.Services.AddDbContext<Connected>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("IndPubConnection")));
+
 // DI Container registrations for repositories
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -43,14 +51,7 @@ builder.Services.AddScoped<IBookRepository, BookRepository>();
 // DI Container registrations for services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IBookService, BookService>();
-
-// Azure Blob Storage configuration
-builder.Services.AddSingleton(x => new BlobServiceClient(
-    builder.Configuration.GetValue<string>("AzureStorage:ConnectionString")));
-
-// Configure Entity Framework and SQL Server
-builder.Services.AddDbContext<Connected>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("IndPubConnection")));
+builder.Services.AddScoped<IBlobService, BlobService>();
 
 // Configure JWT Authentication and Authorization
 builder.Services.AddAuthorization();

@@ -12,10 +12,9 @@ public class Review : BaseEntity
     }
 
     [Range(0.5, 5.0)]
-    [Required]
     public required double Rating { get; set; }
-    [Required]
-    public required string Text { get; set; } = null!;
+    [MinLength(1)]
+    public required string Text { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public Guid BookId { get; set; }

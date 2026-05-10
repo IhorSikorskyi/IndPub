@@ -12,7 +12,8 @@ public class Comment : BaseEntity
     }
 
     [Required]
-    public required string Text { get; set; } = null!;
+    [MinLength(1)]
+    public required string Text { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public Guid? ChapterId { get; set; }

@@ -1,10 +1,13 @@
-﻿namespace IndPubBack.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace IndPubBack.Models;
 
 public class Role : BaseEntity
 {
     public Role(Guid id) : base(id) { }
     public Role() : base() { }
 
-    public string Name { get; set; } = null!;
+    [MinLength(1)]
+    public required string Name { get; set; }
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

@@ -11,6 +11,7 @@ public class Tag : BaseEntity
 
     }
 
+    [MinLength(1)]
     public string Name { get; set; } = null!;
 
     public ICollection<BookTag>? BookTags { get; set; }

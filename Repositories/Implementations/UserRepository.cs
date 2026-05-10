@@ -4,21 +4,21 @@ using IndPubBack.Repositories.Interfaces;
 
 namespace IndPubBack.Repositories.Implementations
 {
-    public class UserRepository(Connected _context) : Repository<User>(_context), IUserRepository
+    public class UserRepository(Connected context) : Repository<User>(context), IUserRepository
     {
         public Task<User?> GetByEmailAsync(string email)
         {
-            return _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            return context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
         public Task<User?> GetByLoginAsync(string login)
         {
-            return _context.Users.FirstOrDefaultAsync(u => u.Login == login);
+            return context.Users.FirstOrDefaultAsync(u => u.Login == login);
         }
 
         public async Task<bool> ExpireRefreshTokenAsync(Guid userId)
         {
-            var affectedRows = await _context.Users
+            var affectedRows = await context.Users
                 .Where(u => u.Id == userId)
                 .ExecuteUpdateAsync(s => s.SetProperty(u => u.RefreshTokenExpiry, DateTime.UtcNow));
 
@@ -27,7 +27,7 @@ namespace IndPubBack.Repositories.Implementations
 
         public async Task<IList<string>> GetUserRolesAsync(Guid userId)
         {
-            return await _context.UserRoles
+            return await context.UserRoles
                 .Where(ur => ur.UserId == userId)
                 .Select(ur => ur.Role.Name)
                 .ToListAsync();

@@ -11,14 +11,16 @@ public class Book : BaseEntity
     {
 
     }
-    
-    public required string Title { get; set; } = null!;
+
+    [MinLength(1)]
+    public required string Title { get; set; }
+    [MinLength(1)]
     public string? Description { get; set; }
     public string? CoverImageUrl { get; set; }
     public required DateTime PublishedDate { get; set; }
     public required DateTime UpdatedDate { get; set; }
     public required int ChapterCount { get; set; }
-    public required string Language { get; set; } = null!;
+    public required string Language { get; set; } = "en";
     public required Status Status { get; set; } = Status.Ongoing;
 
     public Guid GenreId { get; set; }

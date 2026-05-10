@@ -11,8 +11,10 @@ public class Genre : BaseEntity
 
     }
 
-    public string Name { get; set; } = null!;
-    public string Description { get; set; } = null!;
+    [MinLength(1)]
+    public required string Name { get; set; }
+    [MinLength(1)]
+    public required string Description { get; set; }
 
     public ICollection<Book> Books { get; set; } = new List<Book>();
 }
