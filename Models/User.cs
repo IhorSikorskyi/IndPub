@@ -11,20 +11,18 @@ public class User : BaseEntity
 
     }
 
-    [Required]
     [StringLength(50, MinimumLength = 3)]
-    public required string Login { get; set; } = null!;
+    public required string Login { get; set; }
 
-    [Required]
     [EmailAddress]
-    public required string Email { get; set; } = null!;
+    public required string Email { get; set; }
 
-    public string PasswordHash { get; set; } = null!;
+    public required string PasswordHash { get; set; }
 
     public string? Bio { get; set; }
     public string? ProfilePictureUrl { get; set; }
     public DateTime JoiningDate { get; set; } = DateTime.UtcNow;
-    public string RefreshToken { get; set; } = null!;
+    public required string RefreshToken { get; set; }
     public DateTime RefreshTokenExpiry { get; set; } = DateTime.UtcNow.AddDays(7);
 
     public ICollection<LibraryEntry> Entries { get; set; } = new List<LibraryEntry>();

@@ -11,11 +11,10 @@ public class Chapter : BaseEntity
 
     }
 
-    [Required]
-    public string Title { get; set; } = null!;
-
-    [Required]
-    public string Content { get; set; } = null!;
+    [MinLength(1)]
+    public required string Title { get; set; }
+    [MinLength(100)]
+    public required string Content { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public Guid BookId { get; set; }

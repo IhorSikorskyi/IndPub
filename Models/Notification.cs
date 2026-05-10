@@ -11,7 +11,8 @@ public class Notification : BaseEntity
 
     }
 
-    public string Message { get; set; } = null!;
+    [MinLength(1)] [MaxLength(255)]
+    public required string Message { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public Guid UserId { get; set; }

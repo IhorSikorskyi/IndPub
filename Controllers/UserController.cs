@@ -24,7 +24,7 @@ namespace IndPubBack.Controllers
                 {
                     HttpOnly = true,
                     Secure = true,
-                    SameSite = SameSiteMode.Strict,
+                    SameSite = SameSiteMode.Strict, // Change to None, if you need cross-site cookies
                     Expires = result.RefreshTokenExpiry
                 });
 
@@ -55,7 +55,7 @@ namespace IndPubBack.Controllers
                 {
                     HttpOnly = true,
                     Secure = true,
-                    SameSite = SameSiteMode.Strict,
+                    SameSite = SameSiteMode.Strict, // Change to None, if you need cross-site cookies
                     Expires = result.RefreshTokenExpiry
                 });
 

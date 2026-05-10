@@ -15,7 +15,7 @@ using System.Text;
 namespace IndPubBack.Services.Implementations
 {
     // TODO: Implement save CoverImages to Azure Blob Storage and update CoverImageUrl to the URL and save to DB
-    public class UserService(IConfiguration _configuration, IUserRepository _userRepository) : IUserService
+    public class UserService(IConfiguration configuration, IUserRepository userRepository) : IUserService
     {
         private static readonly string _check = "Invalid access token.";
 
@@ -28,8 +28,8 @@ namespace IndPubBack.Services.Implementations
                 throw new ValidationException("Invalid login or email.");
             }
 
-            var existingUser = await _userRepository.GetByLoginAsync(request.Login)
-                               ?? await _userRepository.GetByEmailAsync(request.Email);
+            var existingUser = await userRepository.GetByLoginAsync(request.Login)
+                               ?? await userRepository.GetByEmailAsync(request.Email);
 
             if (existingUser != null)
             {
@@ -47,22 +47,23 @@ namespace IndPubBack.Services.Implementations
             {
                 Login = request.Login,
                 Email = request.Email,
-                PasswordHash = null! // Will be set after hashing
+                PasswordHash = null!, // Will be set after hashing
+                RefreshToken = null! // Will be set after generation
             };
 
             user.PasswordHash = HashPassword(user, request.Password);
             user.RefreshToken = GenerateRefreshToken();
             user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
 
-            await _userRepository.AddAsync(user);
+            await userRepository.AddAsync(user);
 
             return await CreateAccessTokenResponseAsync(user);
         }
 
         public async Task<UserResponse> LoginAsync(LoginRequest request)
         {
-            var user = await _userRepository.GetByLoginAsync(request.LoginOrEmail)
-                       ?? await _userRepository.GetByEmailAsync(request.LoginOrEmail);
+            var user = await userRepository.GetByLoginAsync(request.LoginOrEmail)
+                       ?? await userRepository.GetByEmailAsync(request.LoginOrEmail);
 
             if (user == null)
             {
@@ -81,7 +82,7 @@ namespace IndPubBack.Services.Implementations
             {
                 user.RefreshToken = GenerateRefreshToken();
                 user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-                await _userRepository.UpdateAsync(user);
+                await userRepository.UpdateAsync(user);
             }
 
             return await CreateAccessTokenResponseAsync(user);
@@ -89,8 +90,8 @@ namespace IndPubBack.Services.Implementations
 
         public async Task<bool> LogoutAsync(string accessToken, string refreshToken)
         {
-            var userId = GetUserIdFromClaims(accessToken, _configuration);
-            var user = await _userRepository.GetByIdAsync(userId);
+            var userId = GetUserIdFromClaims(accessToken, configuration);
+            var user = await userRepository.GetByIdAsync(userId);
 
             if (user == null)
             {
@@ -102,7 +103,7 @@ namespace IndPubBack.Services.Implementations
                 throw new UnauthorizedException("Invalid refresh token. Please log in again.");
             }
 
-            var tokenExpiredSuccessfully = await _userRepository.ExpireRefreshTokenAsync(user.Id);
+            var tokenExpiredSuccessfully = await userRepository.ExpireRefreshTokenAsync(user.Id);
 
             if (!tokenExpiredSuccessfully)
             {
@@ -114,8 +115,8 @@ namespace IndPubBack.Services.Implementations
 
         public async Task<UserResponse> UpdateAccessTokenAsync(string accessToken, string refreshToken)
         {
-            var userId = GetUserIdFromClaims(accessToken, _configuration);
-            var user = await _userRepository.GetByIdAsync(userId);
+            var userId = GetUserIdFromClaims(accessToken, configuration);
+            var user = await userRepository.GetByIdAsync(userId);
             if (user == null)
             {
                 throw new UnauthorizedException(_check);
@@ -131,9 +132,9 @@ namespace IndPubBack.Services.Implementations
         
         public async Task<UserInfoResponse> GetUserInfoAsync(string accessToken)
         {
-            var userId = GetUserIdFromClaims(accessToken, _configuration);
+            var userId = GetUserIdFromClaims(accessToken, configuration);
 
-            var user = await _userRepository.GetByIdAsync(userId);
+            var user = await userRepository.GetByIdAsync(userId);
 
             if (user == null)
             {
@@ -152,8 +153,8 @@ namespace IndPubBack.Services.Implementations
 
         public async Task<UserInfoResponse> UpdateUserInfoAsync(string accessToken, UpdateProfileRequest request)
         {
-            var userId = GetUserIdFromClaims(accessToken, _configuration);
-            var user = await _userRepository.GetByIdAsync(userId);
+            var userId = GetUserIdFromClaims(accessToken, configuration);
+            var user = await userRepository.GetByIdAsync(userId);
 
             if (user == null)
             {
@@ -172,7 +173,7 @@ namespace IndPubBack.Services.Implementations
 
             if (!string.IsNullOrWhiteSpace(request.Email))
             {
-                var emailExists = await _userRepository.GetByEmailAsync(request.Email);
+                var emailExists = await userRepository.GetByEmailAsync(request.Email);
                 if (emailExists != null && emailExists.Id != user.Id)
                 {
                     throw new ConflictException("Email already in use.");
@@ -203,7 +204,7 @@ namespace IndPubBack.Services.Implementations
                 }
             }
 
-            await _userRepository.UpdateAsync(user);
+            await userRepository.UpdateAsync(user);
 
             return new UserInfoResponse
             {
@@ -264,7 +265,7 @@ namespace IndPubBack.Services.Implementations
 
         private async Task<string> CreateTokenAsync(User user)
         {
-            var roles = await _userRepository.GetUserRolesAsync(user.Id);
+            var roles = await userRepository.GetUserRolesAsync(user.Id);
 
             var claims = new List<Claim>
             {
@@ -279,12 +280,12 @@ namespace IndPubBack.Services.Implementations
             }
 
             var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_configuration.GetValue<string>("AppSettings:AccessToken")!));
+                Encoding.UTF8.GetBytes(configuration.GetValue<string>("AppSettings:AccessToken")!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
 
             var accessToken = new JwtSecurityToken(
-                issuer: _configuration.GetValue<string>("AppSettings:Issuer"),
-                audience: _configuration.GetValue<string>("AppSettings:Audience"),
+                issuer: configuration.GetValue<string>("AppSettings:Issuer"),
+                audience: configuration.GetValue<string>("AppSettings:Audience"),
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(15),
                 signingCredentials: creds
