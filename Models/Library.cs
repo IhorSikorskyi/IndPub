@@ -8,6 +8,8 @@ public class LibraryEntry
     public Guid BookId { get; set; }
     public Book Book { get; set; } = null!;
 
+    public DateTime DateAdded { get; set; } = DateTime.UtcNow;
+
     public LibraryBookStatus Status { get; set; } = LibraryBookStatus.Planned;
 }
 

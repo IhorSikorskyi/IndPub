@@ -22,14 +22,16 @@ public class BookShortResponse
 {
     public Guid BookId { get; set; }
     public string Title { get; set; } = null!;
-    public string CoverImageUrl { get; set; }
+    public string? CoverImageUrl { get; set; }
     public DateTime? UpdatedDate { get; set; }
-    public string Language { get; set; } = null!;
+    public string? Language { get; set; }
     public Status Status { get; set; }
     public int ChapterCount { get; set; }
-    public string GenreName { get; set; }
-    public List<AuthorResponse> Authors { get; set; } = [];
+    public string? GenreName { get; set; }
+    public List<AuthorResponse>? Authors { get; set; } = [];
 }
+
+
 
 public class BookmarkShortResponse
 {
@@ -42,21 +44,11 @@ public class BookmarkShortResponse
     public string? BookCoverImageUrl { get; set; }
 }
 
-public class LikeBookResponse // This is for both like and unlike, so we can return the current like status after the operation
-{
-    // UserId from ClaimsPrincipal, so we don't need it here
-    public Guid BookId { get; set; }
-    public bool IsLiked { get; set; }
-}
-
-public class GenreResponse // Create and Update use the same response
+public class GenreResponse
 {
     public required string GenreName { get; set; }
     public required string GenreDescription { get; set; }
 }
-
-// For Delete use DeleteResponse
-// But we can use 204 No Content for successful delete, so we don't need a specific response for that
 
 public class AddTagResponse
 {

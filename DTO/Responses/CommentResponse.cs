@@ -9,8 +9,9 @@ public class CommentShortResponse
 {
     // UserId from ClaimsPrincipal, so we don't need it here
     public Guid Id { get; set; }
-    public Guid BookId { get; set; }
-    public string BookTitle { get; set; } = string.Empty;
+    public Guid ChapterId { get; set; }
+    public int ChapterNumber { get; set; }
+    public string? ChapterTitle { get; set; }
     public string Text { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 }

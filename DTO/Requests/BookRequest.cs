@@ -30,8 +30,6 @@ public class BookCreateRequest
 
 public class BookUpdateRequest
 {
-    public required Guid BookId { get; set; }
-
     public string? Title { get; set; }
 
     public string? Description { get; set; }
@@ -46,11 +44,6 @@ public class BookUpdateRequest
     public List<Guid>? AuthorIds { get; set; }
 
     public List<CreateBookTagRequest>? Tags { get; set; }
-}
-
-public class BookDeleteRequest
-{
-    public required Guid BookId { get; set; }
 }
 
 public class ChapterCreateWithBookRequest
