@@ -44,12 +44,15 @@ builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<ILibraryRepository, LibraryRepository>();
-
+builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 
 // DI Container registrations for services
-builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IBlobService, BlobService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+builder.Services.AddScoped<ILibraryService, LibraryService>();
 
 // Azure Blob Storage configuration
 builder.Services.AddSingleton(_ => new BlobServiceClient(

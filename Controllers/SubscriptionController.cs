@@ -1,5 +1,4 @@
-﻿using IndPubBack.DTO.Requests;
-using IndPubBack.DTO.Responses;
+﻿using IndPubBack.DTO.Responses;
 using IndPubBack.Exceptions;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -10,36 +9,31 @@ using System.Security.Claims;
 namespace IndPubBack.Controllers
 {
     [Authorize]
-    [Route("api/user")]
+    [Route("api/subscriptions")]
     [ApiController]
-    public class UserController(IUserService userService) : ControllerBase
+    public class SubscriptionController(ISubscriptionService subscriptionService) : ControllerBase
     {
         private const string GenericErrorMessage = "An error occurred while processing your request.";
-        
-        [AllowAnonymous]
-        [HttpGet("{userId}")]
-        public async Task<ActionResult<UserInfoResponse>> GetProfileAsync(
-            [FromRoute(Name = "userId")] Guid userId)
+
+        [HttpGet]
+        public async Task<ActionResult<IList<BookShortResponse>>> GetSubscriptionListAsync()
         {
             try
             {
-                UserInfoResponse response;
-
                 var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                                   ?? User.FindFirst("sub")?.Value;
 
-                if (!Guid.TryParse(userIdValue, out var yourUserId))
+                if (!Guid.TryParse(userIdValue, out var userId))
                 {
-                    response = await userService.GetUserInfoAsync(userId);
-                    return Ok(response);
+                    return Unauthorized(new { message = "Invalid user id in token." });
                 }
 
-                response = await userService.GetUserInfoAsync(yourUserId);
-                return Ok(response);
+                var result = await subscriptionService.GetSubscriptionListAsync(userId);
+                return Ok(result);
             }
-            catch (NotFoundException ex)
+            catch (ValidationException ex)
             {
-                return NotFound(new { message = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
             catch (UnauthorizedException ex)
             {
@@ -51,11 +45,9 @@ namespace IndPubBack.Controllers
             }
         }
 
-        [Authorize]
-        [HttpPut("update")]
-        public async Task<ActionResult<UserInfoResponse>> UpdateProfileAsync(
-            [FromBody] UpdateProfileRequest request,
-            [FromHeader(Name = "Authorization")] string authorization)
+        [HttpPost("{authorId}")]
+        public async Task<ActionResult<bool>> SubscribeAsync(
+            [FromRoute(Name = "authorId")] Guid authorId)
         {
             try
             {
@@ -67,20 +59,16 @@ namespace IndPubBack.Controllers
                     return Unauthorized(new { message = "Invalid user id in token." });
                 }
 
-                var result = await userService.UpdateUserInfoAsync(userId, request);
+                var result = await subscriptionService.SubscribeAsync(authorId, userId);
                 return Ok(result);
             }
             catch (ValidationException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
-            catch (InvalidCredentialsException ex)
+            catch (UnauthorizedException ex)
             {
                 return Unauthorized(new { message = ex.Message });
-            }
-            catch (ConflictException ex)
-            {
-                return Conflict(new { message = ex.Message });
             }
             catch (Exception)
             {
@@ -88,11 +76,9 @@ namespace IndPubBack.Controllers
             }
         }
 
-        [Authorize]
-        [HttpDelete("delete")]
-        [HttpDelete("delete/{userId}")]
-        public async Task<ActionResult<bool>> DeleteProfileAsync(
-            [FromRoute(Name = "userId")] Guid? targetUserId)
+        [HttpDelete("{authorId}")]
+        public async Task<ActionResult<bool>> UnsubscribeAsync(
+            [FromRoute(Name = "authorId")] Guid authorId)
         {
             try
             {
@@ -104,7 +90,7 @@ namespace IndPubBack.Controllers
                     return Unauthorized(new { message = "Invalid user id in token." });
                 }
 
-                var result = await userService.DeleteAccountAsync(userId, targetUserId);
+                var result = await subscriptionService.UnsubscribeAsync(authorId, userId);
                 return Ok(result);
             }
             catch (ValidationException ex)

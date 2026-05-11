@@ -48,13 +48,7 @@ namespace IndPubBack.Repositories.Implementations
         public override async Task<User?> GetByIdAsync(Guid id)
         {
             var data = await dbContext.Users
-                .Include(u => u.Entries).ThenInclude(e => e.Book)
-                .Include(u => u.BookLikes).ThenInclude(bl => bl.Book.Title)
-                .Include(u => u.Reviews).ThenInclude(r => r.Book.Title)
-                .Include(u => u.Comments).ThenInclude(c => c.Chapter) 
                 .Include(u => u.Subscriptions).ThenInclude(s => s.User)
-                .Include(u => u.Bookmarks).ThenInclude(b => b.Chapter)
-                    .ThenInclude(c => c.Book)
                 .FirstOrDefaultAsync(u => u.Id == id);
 
             return data;

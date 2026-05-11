@@ -157,7 +157,8 @@ public class BookService(
     public async Task<bool> DeleteBookAsync(Guid bookId, Guid userId)
     {
         var role = await userRepository.GetUserRoleAsync(userId);
-        var book = await bookRepository.GetByIdAsync(bookId) ?? throw new NotFoundException("Book not found.");
+        var book = await bookRepository.GetByIdAsync(bookId) 
+                   ?? throw new NotFoundException("Book not found.");
 
         if (!(role == "Admin" || book.BookAuthors.Any(ba => ba.UserId == userId)))
         {
