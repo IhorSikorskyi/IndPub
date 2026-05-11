@@ -15,7 +15,8 @@ namespace IndPubBack.Controllers
     {
         [Authorize]
         [HttpPost("create")]
-        public async Task<ActionResult<BookResponse>> CreateBookAsync([FromBody] BookCreateRequest request)
+        public async Task<ActionResult<BookResponse>> CreateBookAsync(
+            [FromBody] BookCreateRequest request)
         {
             try
             {
@@ -34,7 +35,9 @@ namespace IndPubBack.Controllers
 
         [Authorize]
         [HttpPut("update/{bookId}")]
-        public async Task<ActionResult<BookResponse>> UpdateBookAsync([FromBody] BookUpdateRequest request, [FromHeader(Name = "Authorization")] string authorization)
+        public async Task<ActionResult<BookResponse>> UpdateBookAsync(
+            [FromBody] BookUpdateRequest request,
+            [FromRoute(Name = "bookId")] Guid bookId)
         {
             try
             {
@@ -46,7 +49,7 @@ namespace IndPubBack.Controllers
                     return Unauthorized(new { message = "Invalid user id in token." });
                 }
 
-                var result = await bookService.UpdateBookAsync(request, userId);
+                var result = await bookService.UpdateBookAsync(request, bookId, userId);
                 return Ok(result);
             }
             catch (ValidationException ex)
@@ -61,7 +64,8 @@ namespace IndPubBack.Controllers
 
         [Authorize]
         [HttpDelete("delete/{bookId}")]
-        public async Task<ActionResult<DeleteResponse>> DeleteBookAsync([FromBody] BookDeleteRequest request, [FromHeader(Name = "Authorization")] string authorization)
+        public async Task<ActionResult<bool>> DeleteBookAsync(
+            [FromRoute(Name = "bookId")] Guid bookId)
         {
             try
             {
@@ -73,7 +77,7 @@ namespace IndPubBack.Controllers
                     return Unauthorized(new { message = "Invalid user id in token." });
                 }
 
-                var result = await bookService.DeleteBookAsync(request, userId);
+                var result = await bookService.DeleteBookAsync(bookId, userId);
                 return Ok(result);
             }
             catch (ValidationException ex)

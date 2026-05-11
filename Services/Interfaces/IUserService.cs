@@ -12,17 +12,18 @@ namespace IndPubBack.Services.Interfaces
         Task<bool> LogoutAsync(string accessToken, string refreshToken);
 
         // Профіль
-        Task<UserInfoResponse> GetUserInfoAsync(string accessToken);
-        Task<UserInfoResponse> UpdateUserInfoAsync(string accessToken, UpdateProfileRequest request); Task<bool> DeleteAccountAsync(string accessToken);
-
-        // Публічний профіль автора
-        Task<UserInfoResponse> GetAuthorProfileAsync(Guid authorId);
+        Task<UserInfoResponse> GetUserInfoAsync(string? accessToken, Guid? authorId);
+        Task<UserInfoResponse> UpdateUserInfoAsync(string accessToken, UpdateProfileRequest request);
+        Task<bool> DeleteAccountAsync(string accessToken, Guid? targetUserId);
 
         // Підписки
-        Task SubscribeAsync(Guid authorId, Guid userId);
-        Task UnsubscribeAsync(Guid authorId, Guid userId);
+        Task<IList<BookShortResponse>> GetSubscriptionListAsync(string accessToken);
+        Task<bool> SubscribeAsync(Guid authorId, string accessToken);
+        Task<bool> UnsubscribeAsync(Guid authorId, string accessToken);
 
         // Бібліотека
         Task<IList<BookResponse>> GetLibraryAsync(string accessToken);
+        Task<bool> AddToLibraryAsync(Guid bookId, string accessToken);
+        Task<bool> RemoveFromLibraryAsync(Guid bookId, string accessToken);
     }
 }

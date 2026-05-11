@@ -8,12 +8,15 @@ using IndPubBack.Services.Interfaces;
 
 namespace IndPubBack.Services.Implementations;
 
-public class BookService(IConfiguration configuration,
+public class BookService(
+    IConfiguration configuration,
     IBookRepository bookRepository,
     IUserRepository userRepository,
     ITagRepository tagRepository,
+    IGenreRepository genreRepository,
     IBlobService blobService) : IBookService
 {
+    #region CRUD
     public async Task<BookResponse> CreateBookAsync(BookCreateRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Title))
@@ -92,9 +95,9 @@ public class BookService(IConfiguration configuration,
         return MapToBookResponse(book);
     }
 
-    public async Task<BookResponse> UpdateBookAsync(BookUpdateRequest request, Guid userId)
+    public async Task<BookResponse> UpdateBookAsync(BookUpdateRequest request, Guid bookId, Guid userId)
     {
-        var book = await bookRepository.GetByIdAsync(request.BookId)
+        var book = await bookRepository.GetByIdAsync(bookId)
                    ?? throw new NotFoundException("Book not found");
 
         if (!string.IsNullOrWhiteSpace(request.Title) && request.Title != book.Title)
@@ -151,21 +154,80 @@ public class BookService(IConfiguration configuration,
         return MapToBookResponse(book);
     }
 
-    public async Task<DeleteResponse> DeleteBookAsync(BookDeleteRequest request, Guid userId)
+    public async Task<bool> DeleteBookAsync(Guid bookId, Guid userId)
     {
         var role = await userRepository.GetUserRoleAsync(userId);
-        var book = await bookRepository.GetByIdAsync(request.BookId) ?? throw new NotFoundException("Book not found.");
+        var book = await bookRepository.GetByIdAsync(bookId) ?? throw new NotFoundException("Book not found.");
 
         if (!(role == "Admin" || book.BookAuthors.Any(ba => ba.UserId == userId)))
         {
             throw new UnauthorizedException("You are not allowed to delete this book");
         }
 
-        await bookRepository.DeleteAsync(request.BookId);
+        await bookRepository.DeleteAsync(bookId);
 
-        return new DeleteResponse { IsDeleted = true };
+        return true;
     }
 
+    #endregion
+
+    #region Receiving
+
+    //TODO: Add pagination and filtering
+    public async Task<BookResponse> GetBookByIdAsync(Guid bookId)
+    {
+        throw new NotImplementedException();
+    }
+
+    //TODO: Add pagination and filtering
+    public async Task<IList<BookShortResponse>> GetAllBooksAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    //TODO: Add pagination and filtering
+    public async Task<IList<BookShortResponse>> GetBooksByAuthorIdAsync(Guid authorId)
+    {
+        throw new NotImplementedException();
+    }
+
+    //TODO: Add pagination and filtering
+    public async Task<IList<BookShortResponse>> GetBooksByGenreAsync(Guid genreId)
+    {
+        throw new NotImplementedException();
+    }
+
+    //TODO: Add pagination and filtering
+    public async Task<IList<BookShortResponse>> GetBooksByTagsAsync(Guid tagId)
+    {
+        throw new NotImplementedException();
+    }
+
+    //TODO: Add pagination and filtering
+    public async Task<IList<BookShortResponse>> SearchBooksAsync(string query)
+    {
+        throw new NotImplementedException();
+    }
+
+    #endregion
+
+    #region Interaction
+
+    //TODO: Add possibility to like only published books and prevent authors from liking their own books
+    public async Task<bool> LikeBookAsync(Guid bookId, Guid userId)
+    {
+        throw new NotImplementedException();
+    }
+
+    //TODO: Add possibility to unlike only published books and prevent authors from unliking their own books
+    public async Task<bool> UnlikeBookAsync(Guid bookId, Guid userId)
+    {
+        throw new NotImplementedException();
+    }
+
+    #endregion
+
+    #region Helpers
     private async Task<bool> IsTitleExistAsync(string title)
     {
         return await bookRepository.HasTitleAsync(title);
@@ -240,4 +302,7 @@ public class BookService(IConfiguration configuration,
             }).ToList()
         };
     }
+
+    #endregion
+
 }

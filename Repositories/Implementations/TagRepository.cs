@@ -4,18 +4,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Repositories.Implementations;
 
-public class TagRepository(Connected context) : Repository<Tag>(context), ITagRepository
+public class TagRepository(Connected dbContext) : Repository<Tag>(dbContext), ITagRepository
 {
     public Task<Tag?> GetByNameAsync(string name)
     {
-        return context.Tags.FirstOrDefaultAsync(t => t.Name == name);
+        return dbContext.Tags.FirstOrDefaultAsync(t => t.Name == name);
     }
 
     public async Task<Tag> AddAsync(string name)
     {
         var tag = new Tag { Name = name };
-        await context.Tags.AddAsync(tag);
-        await context.SaveChangesAsync();
+        await dbContext.Tags.AddAsync(tag);
+        await dbContext.SaveChangesAsync();
         return tag;
     }
 }
