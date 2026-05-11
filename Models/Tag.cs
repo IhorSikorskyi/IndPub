@@ -1,13 +1,16 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace IndPubBack.Models;
 
-public class Tag
+public class Tag : BaseEntity
 {
-    [Key]
-    public Guid Id { get; set; }
+    public Tag()
+        : base()
+    {
 
+    }
+
+    [MinLength(1)]
     public string Name { get; set; } = null!;
 
     public ICollection<BookTag>? BookTags { get; set; }

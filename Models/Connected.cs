@@ -5,23 +5,22 @@ namespace IndPubBack.Models;
 public class Connected(DbContextOptions<Connected> options) : DbContext(options)
 {
     #region DbSets
-    
-    public DbSet<User> Users { get; set; } 
-    public DbSet<Book> Books { get; set; } 
-    public DbSet<Bookmark> Bookmarks { get; set; } 
-    public DbSet<BookTag> BookTags { get; set; } 
-    public DbSet<BookLike> BookLikes { get; set; } 
-    public DbSet<BookAuthor> BookAuthors { get; set; } 
-    public DbSet<Tag> Tags { get; set; } 
-    public DbSet<Genre> Genres { get; set; } 
-    public DbSet<Review> Reviews { get; set; } 
-    public DbSet<Chapter> Chapters { get; set; } 
-    public DbSet<Subscription> Subscriptions { get; set; } 
-    public DbSet<Notification> Notifications { get; set; } 
-    public DbSet<LibraryEntry> Libraries { get; set; } 
-    public DbSet<Comment> Comments { get; set; } 
-    public DbSet<CommentLike> CommentLikes { get; set; } 
-    public DbSet<ReviewLike> ReviewLikes { get; set; } 
+    public DbSet<User> Users { get; set; }
+    public DbSet<Book> Books { get; set; }
+    public DbSet<Bookmark> Bookmarks { get; set; }
+    public DbSet<BookTag> BookTags { get; set; }
+    public DbSet<BookLike> BookLikes { get; set; }
+    public DbSet<BookAuthor> BookAuthors { get; set; }
+    public DbSet<Tag> Tags { get; set; }
+    public DbSet<Genre> Genres { get; set; }
+    public DbSet<Review> Reviews { get; set; }
+    public DbSet<Chapter> Chapters { get; set; }
+    public DbSet<Subscription> Subscriptions { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
+    public DbSet<LibraryEntry> Libraries { get; set; }
+    public DbSet<Comment> Comments { get; set; }
+    public DbSet<CommentLike> CommentLikes { get; set; }
+    public DbSet<ReviewLike> ReviewLikes { get; set; }
 
     #endregion
 
@@ -86,16 +85,15 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<User>()
-            .HasMany(u => u.Subscriptions)
-            .WithOne(s => s.User)
-            .HasForeignKey(s => s.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<User>()
             .HasMany(u => u.Entries)
             .WithOne(le => le.User)
             .HasForeignKey(le => le.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<User>()
+            .Property(u => u.Role)
+            .HasConversion<string>()
+            .HasDefaultValue(Roles.User);
 
         #endregion
 
@@ -134,12 +132,6 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
             .HasMany(b => b.Notifications)
             .WithOne(n => n.Book)
             .HasForeignKey(n => n.BookId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<Book>()
-            .HasMany(b => b.Subscriptions)
-            .WithOne(s => s.Book)
-            .HasForeignKey(s => s.BookId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Book>()
@@ -327,18 +319,19 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
         #region Subscriptions
 
         modelBuilder.Entity<Subscription>()
-            .HasKey(s => new { s.UserId, s.BookId });
+            .HasKey(s => new { s.UserId, s.AuthorId });
 
         modelBuilder.Entity<Subscription>()
             .HasOne(s => s.User)
             .WithMany(u => u.Subscriptions)
-            .HasForeignKey(s => s.UserId);
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Subscription>()
-            .HasOne(s => s.Book)
-            .WithMany(b => b.Subscriptions)
-            .HasForeignKey(s => s.BookId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasOne(s => s.Author)
+            .WithMany(u => u.Subscribers)
+            .HasForeignKey(s => s.AuthorId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         #endregion
 
@@ -418,7 +411,6 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
             .OnDelete(DeleteBehavior.Cascade);
 
         #endregion
-
     }
 
     public override int SaveChanges()
@@ -454,8 +446,16 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
                         notification.CreatedAt = now;
                         break;
 
+                    case Subscription subscription when entry.State == EntityState.Added:
+                        subscription.SubscribedAt = now;
+                        break;
+
                     case Chapter chapter when entry.State == EntityState.Added:
                         chapter.CreatedAt = now;
+                        break;
+
+                    case LibraryEntry libraryEntry when entry.State == EntityState.Added:
+                        libraryEntry.DateAdded = now;
                         break;
                 }
             }

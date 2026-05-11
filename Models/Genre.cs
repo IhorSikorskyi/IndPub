@@ -1,14 +1,19 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace IndPubBack.Models;
 
-public class Genre
+public class Genre : BaseEntity
 {
-    public Guid Id { get; set; }
+    public Genre()
+        : base()
+    {
 
-    public string Name { get; set; } = null!;
-    public string Description { get; set; } = null!;
+    }
+
+    [MinLength(1)]
+    public required string Name { get; set; }
+    [MinLength(1)]
+    public required string Description { get; set; }
 
     public ICollection<Book> Books { get; set; } = new List<Book>();
 }

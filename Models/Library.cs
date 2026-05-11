@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace IndPubBack.Models;
+﻿namespace IndPubBack.Models;
 
 public class LibraryEntry
 {
@@ -10,6 +7,8 @@ public class LibraryEntry
 
     public Guid BookId { get; set; }
     public Book Book { get; set; } = null!;
+
+    public DateTime DateAdded { get; set; } = DateTime.UtcNow;
 
     public LibraryBookStatus Status { get; set; } = LibraryBookStatus.Planned;
 }

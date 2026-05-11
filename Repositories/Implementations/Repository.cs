@@ -1,38 +1,40 @@
-using Microsoft.EntityFrameworkCore;
 using IndPubBack.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Repositories.Implementations
 {
-    public class Repository<T>(DbContext _context) : IRepository<T> where T : class
+    public class Repository<T>(DbContext dbContext) : IRepository<T> where T : class
     {
-        public async Task<T?> GetByIdAsync(Guid id)
+
+        public virtual async Task<T?> GetByIdAsync(Guid id)
         {
-            return await _context.Set<T>().FindAsync(id);
+            return await dbContext.Set<T>().FindAsync(id);
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync()
+        public virtual async Task<IEnumerable<T>> GetAllAsync()
         {
-            return await _context.Set<T>().ToListAsync();
+            return await dbContext.Set<T>().ToListAsync();
         }
 
-        public async Task AddAsync(T entity)
+        public virtual async Task AddAsync(T entity)
         {
-            await _context.Set<T>().AddAsync(entity);
-            await _context.SaveChangesAsync();
+            await dbContext.Set<T>().AddAsync(entity);
+            await dbContext.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(T entity)
+        public virtual async Task UpdateAsync(T entity)
         {
-            _context.Set<T>().Update(entity);
-            await _context.SaveChangesAsync();
+            dbContext.Set<T>().Update(entity);
+            await dbContext.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(Guid id)
+        public virtual async Task DeleteAsync(Guid id)
         {
             var entity = await GetByIdAsync(id);
             if (entity != null)
             {
-                _context.Set<T>().Remove(entity);
+                dbContext.Set<T>().Remove(entity);
+                await dbContext.SaveChangesAsync();
             }
         }
     }
