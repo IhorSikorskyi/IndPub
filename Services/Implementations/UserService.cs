@@ -69,7 +69,6 @@ public class UserService(
 
     #region Helpers
 
-
     private async Task UpdateAvatarAsync(User user, IFormFile? avatar)
     {
         if (avatar is null)
@@ -174,7 +173,6 @@ public class UserService(
 
         return false;
     }
-
 
     private static void EnsurePasswordComplex(string password)
     {

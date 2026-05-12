@@ -21,6 +21,7 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
     public DbSet<Comment> Comments { get; set; }
     public DbSet<CommentLike> CommentLikes { get; set; }
     public DbSet<ReviewLike> ReviewLikes { get; set; }
+    public DbSet<BookView> BookViews { get; set; }
 
     #endregion
 
@@ -185,6 +186,23 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
             .HasOne(bl => bl.User)
             .WithMany(u => u.BookLikes)
             .HasForeignKey(bl => bl.UserId);
+
+        #endregion
+
+        #region BookViews
+
+        modelBuilder.Entity<BookView>()
+            .HasKey(bv => new { bv.BookId, bv.UserId });
+
+        modelBuilder.Entity<BookView>()
+            .HasOne(bv => bv.Book)
+            .WithMany(b => b.BookViews)
+            .HasForeignKey(bv => bv.BookId);
+
+        modelBuilder.Entity<BookView>()
+            .HasOne(bv => bv.User)
+            .WithMany(u => u.BookViews)
+            .HasForeignKey(bv => bv.UserId);
 
         #endregion
 
@@ -456,6 +474,10 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
 
                     case LibraryEntry libraryEntry when entry.State == EntityState.Added:
                         libraryEntry.DateAdded = now;
+                        break;
+
+                    case BookView bookView when entry.State == EntityState.Added || entry.State == EntityState.Modified:
+                        bookView.ViewedAt = now;
                         break;
                 }
             }

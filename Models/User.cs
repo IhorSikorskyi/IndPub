@@ -42,6 +42,8 @@ public class User : BaseEntity
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
     public ICollection<Bookmark> Bookmarks { get; set; } = new List<Bookmark>();
+
+    public ICollection<BookView> BookViews { get; set; } = new List<BookView>();
 }
 
 public enum Roles

@@ -31,6 +31,7 @@ public class Book : BaseEntity
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     public ICollection<BookTag> BookTags { get; set; } = new List<BookTag>();
     public ICollection<LibraryEntry> LibraryEntries { get; set; } = new List<LibraryEntry>();
+    public ICollection<BookView> BookViews { get; set; } = new List<BookView>();
 }
 
 public class BookAuthor

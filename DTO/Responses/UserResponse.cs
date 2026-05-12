@@ -27,43 +27,14 @@ public class AuthorResponse
     public string? ProfilePictureUrl { get; set; }
 }
 
-public class UserDashboardResponse
+public class UserActivitiesResponse
 {
-    public string Login { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string? Bio { get; set; }
-    public string? ProfilePictureUrl { get; set; }
-    public DateTime JoiningDate { get; set; }
-    public int SubscribersCount { get; set; }
-
-    public IList<LibraryEntryResponse> Library { get; set; } = [];
-    public IList<BookShortResponse> LikedBooks { get; set; } = [];
-    public IList<ReviewShortResponse> Reviews { get; set; } = [];
-    public IList<CommentShortResponse> Comments { get; set; } = [];
-    public IList<SubscriptionShortResponse> Subscriptions { get; set; } = [];
-    public IList<BookmarkShortResponse> Bookmarks { get; set; } = [];
-}
-
-public class LibraryEntryResponse
-{
-    public Guid BookId { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public string? CoverImageUrl { get; set; }
-    public DateTime UpdatedDate { get; set; }
-    public int ChapterCount { get; set; }
-    public LibraryBookStatus Status { get; set; }
-}
-
-public class NotificationResponse
-{
-    public Guid Id { get; set; }
-    public required string Message { get; set; }
-    public DateTime CreatedAt { get; set; }
-}
-
-public class SubscriptionShortResponse
-{
-    public Guid AuthorId { get; set; }
-    public string AuthorLogin { get; set; } = string.Empty;
-    public string? AuthorProfilePictureUrl { get; set; }
+    public IList<LibraryEntryResponse>? Library { get; set; } = [];
+    public IList<BookShortResponse>? LikedBooks { get; set; } = [];
+    public IList<ReviewShortResponse>? Reviews { get; set; } = [];
+    public IList<LikeReviewResponse>? LikeReview { get; set; } = [];
+    public IList<CommentShortResponse>? Comments { get; set; } = [];
+    public IList<LikeCommentResponse>? LikeComment { get; set; } = [];
+    public IList<SubscriptionShortResponse>? Subscriptions { get; set; } = [];
+    public IList<BookmarkShortResponse>? Bookmarks { get; set; } = [];
 }

@@ -5,10 +5,14 @@ namespace IndPubBack.Repositories.Implementations
 {
     public class Repository<T>(DbContext dbContext) : IRepository<T> where T : class
     {
-
         public virtual async Task<T?> GetByIdAsync(Guid id)
         {
             return await dbContext.Set<T>().FindAsync(id);
+        }
+
+        public virtual async Task<bool> IsExistAsync(Guid id)
+        {
+            return await dbContext.Set<T>().AnyAsync(e => EF.Property<Guid>(e, "Id") == id);
         }
 
         public virtual async Task<IEnumerable<T>> GetAllAsync()

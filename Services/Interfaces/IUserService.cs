@@ -5,7 +5,6 @@ namespace IndPubBack.Services.Interfaces;
 
 public interface IUserService
 {
-    // Профіль
     Task<UserInfoResponse> GetUserInfoAsync(Guid authorId);
     Task<UserInfoResponse> UpdateUserInfoAsync(Guid userId, UpdateProfileRequest request);
     Task<bool> DeleteAccountAsync(Guid userId, Guid? targetUserId);
