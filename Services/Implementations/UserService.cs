@@ -1,6 +1,9 @@
-﻿using IndPubBack.DTO.Requests;
+﻿using Azure.Core;
+using IndPubBack.DTO.Requests;
 using IndPubBack.DTO.Responses;
 using IndPubBack.Exceptions;
+using IndPubBack.Infrastructure.Implementations;
+using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Models;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
@@ -11,10 +14,13 @@ namespace IndPubBack.Services.Implementations;
 public class UserService(
     IConfiguration configuration,
     IUserRepository userRepository,
-    IBlobService blobService)
+    IBlobService blobService,
+    IPasswordValidationService passwordValidationService,
+    IImageValidationService imageValidationService)
     : IUserService
 {
     private static readonly string Check = "Invalid access token.";
+    const long MaxFileSize = 2 * 1024 * 1024;
 
     #region Profile
 
@@ -76,7 +82,7 @@ public class UserService(
             return;
         }
 
-        if (!AvatarImageValidation(avatar))
+        if (!imageValidationService.ValidateImage(avatar, MaxFileSize))
         {
             throw new ValidationException("Invalid image");
         }
@@ -118,84 +124,7 @@ public class UserService(
         user.Email = email;
     }
 
-    private static bool AvatarImageValidation(IFormFile image)
-    {
-        if (image.Length == 0)
-        {
-            return false;
-        }
-
-        const long maxFileSize = 2 * 1024 * 1024;
-        if (image.Length > maxFileSize)
-        {
-            return false;
-        }
-
-        var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ".jpg", ".jpeg", ".png"
-        };
-
-        var allowedContentTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "image/jpeg", "image/png", "image/jpg"
-        };
-
-        var extension = Path.GetExtension(image.FileName);
-
-        return !string.IsNullOrWhiteSpace(extension)
-               && allowedExtensions.Contains(extension)
-               && !string.IsNullOrWhiteSpace(image.ContentType)
-               && allowedContentTypes.Contains(image.ContentType);
-    }
-
-    private static bool IsPasswordComplex(string password)
-    {
-        if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
-        {
-            return false;
-        }
-
-        bool hasUpper = false, hasLower = false, hasDigit = false, hasSpecial = false;
-
-        foreach (var c in password)
-        {
-            if (char.IsUpper(c)) hasUpper = true;
-            else if (char.IsLower(c)) hasLower = true;
-            else if (char.IsDigit(c)) hasDigit = true;
-            else if (!char.IsLetterOrDigit(c)) hasSpecial = true;
-
-            if (hasUpper && hasLower && hasDigit && hasSpecial)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static void EnsurePasswordComplex(string password)
-    {
-        if (IsPasswordComplex(password))
-        {
-            return;
-        }
-
-        throw new ValidationException(
-            "Password must be at least 8 characters long, " +
-            "contain at least one uppercase letter, one lowercase letter, " +
-            "one number and one special character.");
-    }
-
-    private static void UpdateBio(User user, string? bio)
-    {
-        if (!string.IsNullOrWhiteSpace(bio))
-        {
-            user.Bio = bio;
-        }
-    }
-
-    private static void UpdatePassword(User user,
+    private void UpdatePassword(User user,
         string? currentPassword,
         string? newPassword,
         string? confirmNewPassword)
@@ -218,8 +147,17 @@ public class UserService(
             throw new ValidationException("New passwords do not match.");
         }
 
-        EnsurePasswordComplex(newPassword);
+        passwordValidationService.EnsurePasswordComplex(newPassword);
+
         user.PasswordHash = new PasswordHasher<User>().HashPassword(user, newPassword);
+    }
+
+    private static void UpdateBio(User user, string? bio)
+    {
+        if (!string.IsNullOrWhiteSpace(bio))
+        {
+            user.Bio = bio;
+        }
     }
 
     private static UserInfoResponse MapToUserInfoResponse(User user)

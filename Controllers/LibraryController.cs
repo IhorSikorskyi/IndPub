@@ -112,7 +112,7 @@ public class LibraryController(ILibraryService libraryService) : ControllerBase
         }
     }
 
-    [HttpGet("check/{bookId}")]
+    [HttpGet("isInLibrary/{bookId}")]
     public async Task<ActionResult<bool>> IsBookInLibraryAsync(
         [FromRoute(Name = "bookId")] Guid bookId)
     {

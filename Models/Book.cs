@@ -17,12 +17,17 @@ public class Book : BaseEntity
     public string? CoverImageUrl { get; set; }
     public required DateTime PublishedDate { get; set; }
     public required DateTime UpdatedDate { get; set; }
-    public required int ChapterCount { get; set; }
     public required string Language { get; set; } = "en";
     public required Status Status { get; set; } = Status.Ongoing;
 
     public Guid GenreId { get; set; }
     public Genre Genre { get; set; } = null!;
+
+    public Guid CategoryId { get; set; }
+    public Category Category { get; set; } = null!;
+
+    public Guid SubcategoryId { get; set; }
+    public Subcategory Subcategory { get; set; } = null!;
 
     public ICollection<BookAuthor> BookAuthors { get; set; } = new List<BookAuthor>();
     public ICollection<BookLike> BookLikes { get; set; } = new List<BookLike>();
@@ -50,6 +55,8 @@ public class BookLike
 
     public Guid UserId { get; set; }
     public User User { get; set; } = null!;
+
+    public DateTime LikedAt { get; set; } = DateTime.UtcNow;
 }
 
 public class Bookmark

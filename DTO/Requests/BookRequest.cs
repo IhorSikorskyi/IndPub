@@ -12,12 +12,16 @@ public class BookCreateRequest
     public IFormFile? CoverImage { get; set; }
 
     public DateTime PublishedDate { get; set; } = DateTime.Now;
+    public DateTime? UpdateDate { get; set; } = DateTime.Now;
 
     public required string Language { get; set; }
 
     public required Status Status { get; set; } = Status.Ongoing;
 
     public required Guid GenreId { get; set; }
+
+    public required Guid CategoryId { get; set; }
+    public required Guid SubcategoryId { get; set; }
 
     [MinLength(1)]
     public required List<Guid> AuthorIds { get; set; }

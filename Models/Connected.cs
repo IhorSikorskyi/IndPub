@@ -22,6 +22,8 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
     public DbSet<CommentLike> CommentLikes { get; set; }
     public DbSet<ReviewLike> ReviewLikes { get; set; }
     public DbSet<BookView> BookViews { get; set; }
+    public DbSet<Category> Categories { get; set; }
+    public DbSet<Subcategory> Subcategories { get; set; }
 
     #endregion
 
@@ -429,6 +431,42 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
             .OnDelete(DeleteBehavior.Cascade);
 
         #endregion
+
+        #region Categories
+
+        modelBuilder.Entity<Category>()
+            .HasIndex(c => c.Name)
+            .IsUnique();
+
+        modelBuilder.Entity<Category>()
+            .HasMany(c => c.Subcategories)
+            .WithOne(sc => sc.Category)
+            .HasForeignKey(sc => sc.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Category>()
+            .HasMany(c => c.Books)
+            .WithOne(b => b.Category)
+            .HasForeignKey(b => b.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Subcategory>()
+            .HasIndex(sc => sc.Name)
+            .IsUnique();
+
+        modelBuilder.Entity<Subcategory>()
+            .HasOne(sc => sc.Category)
+            .WithMany(c => c.Subcategories)
+            .HasForeignKey(sc => sc.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Subcategory>()
+            .HasMany(sc => sc.Books)
+            .WithOne(b => b.Subcategory)
+            .HasForeignKey(b => b.SubcategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        #endregion
     }
 
     public override int SaveChanges()
@@ -447,7 +485,9 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
 
                     case Book book:
                         if (entry.State == EntityState.Added)
+                        {
                             book.PublishedDate = now;
+                        }
 
                         book.UpdatedDate = now;
                         break;
@@ -470,14 +510,24 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
 
                     case Chapter chapter when entry.State == EntityState.Added:
                         chapter.CreatedAt = now;
+
+                        var cBook = chapter.Book;
+
+                        cBook.UpdatedDate = now;
+
                         break;
 
                     case LibraryEntry libraryEntry when entry.State == EntityState.Added:
                         libraryEntry.DateAdded = now;
                         break;
 
-                    case BookView bookView when entry.State == EntityState.Added || entry.State == EntityState.Modified:
+                    case BookView bookView when entry.State == EntityState.Added 
+                                                || entry.State == EntityState.Modified:
                         bookView.ViewedAt = now;
+                        break;
+
+                    case BookLike bookLike when entry.State == EntityState.Added:
+                        bookLike.LikedAt = now;
                         break;
                 }
             }

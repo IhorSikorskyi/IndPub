@@ -1,4 +1,4 @@
-﻿namespace IndPubBack.Services.Interfaces;
+﻿namespace IndPubBack.Infrastructure.Interfaces;
 
 public interface IBlobService
 {

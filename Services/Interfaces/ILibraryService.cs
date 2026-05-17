@@ -1,6 +1,5 @@
 ﻿using IndPubBack.DTO.Requests;
 using IndPubBack.DTO.Responses;
-using IndPubBack.Models;
 
 namespace IndPubBack.Services.Interfaces;
 

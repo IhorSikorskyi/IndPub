@@ -1,6 +1,7 @@
 ﻿using IndPubBack.DTO.Requests;
 using IndPubBack.DTO.Responses;
 using IndPubBack.Exceptions;
+using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Models;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
@@ -13,9 +14,12 @@ public class BookService(
     IBookRepository bookRepository,
     IUserRepository userRepository,
     ITagRepository tagRepository,
-    IGenreRepository genreRepository,
+    IImageValidationService imageValidationService,
     IBlobService blobService) : IBookService
 {
+
+    const long MaxFileSize = 5 * 1024 * 1024;
+
     #region CRUD
     public async Task<BookResponse> CreateBookAsync(BookCreateRequest request)
     {
@@ -45,15 +49,16 @@ public class BookService(
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description,
             PublishedDate = request.PublishedDate,
             UpdatedDate = request.PublishedDate,
-            ChapterCount = request.Chapters.Count,
             Language = request.Language,
             Status = request.Status,
-            GenreId = request.GenreId
+            GenreId = request.GenreId,
+            CategoryId = request.CategoryId,
+            SubcategoryId = request.SubcategoryId
         };
 
         if (request.CoverImage is not null)
         {
-            if (!CoverImageValidation(request.CoverImage))
+            if (!imageValidationService.ValidateImage(request.CoverImage, MaxFileSize))
             {
                 throw new ValidationException("Invalid image");
             }
@@ -115,7 +120,7 @@ public class BookService(
 
         if (request.CoverImage is not null)
         {
-            if (!CoverImageValidation(request.CoverImage))
+            if (!imageValidationService.ValidateImage(request.CoverImage, MaxFileSize))
             {
                 throw new ValidationException("Invalid image");
             }
@@ -170,15 +175,16 @@ public class BookService(
         return true;
     }
 
+    public async Task<BookResponse> GetBookByIdAsync(Guid bookId)
+    {
+        var book = await bookRepository.GetByIdAsync(bookId) ?? throw new NotFoundException("Book not found.");
+
+        return MapToBookResponse(book);
+    }
+
     #endregion
 
     #region Receiving
-
-    //TODO: Add pagination and filtering
-    public async Task<BookResponse> GetBookByIdAsync(Guid bookId)
-    {
-        throw new NotImplementedException();
-    }
 
     //TODO: Add pagination and filtering
     public async Task<IList<BookShortResponse>> GetAllBooksAsync()
@@ -212,22 +218,6 @@ public class BookService(
 
     #endregion
 
-    #region Interaction
-
-    //TODO: Add possibility to like only published books and prevent authors from liking their own books
-    public async Task<bool> LikeBookAsync(Guid bookId, Guid userId)
-    {
-        throw new NotImplementedException();
-    }
-
-    //TODO: Add possibility to unlike only published books and prevent authors from unliking their own books
-    public async Task<bool> UnlikeBookAsync(Guid bookId, Guid userId)
-    {
-        throw new NotImplementedException();
-    }
-
-    #endregion
-
     #region Helpers
     private async Task<bool> IsTitleExistAsync(string title)
     {
@@ -245,37 +235,6 @@ public class BookService(
         }
     }
 
-    private static bool CoverImageValidation(IFormFile image)
-    {
-        if (image.Length == 0)
-        {
-            return false;
-        }
-
-        const long maxFileSize = 5 * 1024 * 1024;
-        if (image.Length > maxFileSize)
-        {
-            return false;
-        }
-
-        var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ".jpg", ".jpeg", ".png"
-        };
-
-        var allowedContentTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "image/jpeg", "image/png", "image/jpg"
-        };
-
-        var extension = Path.GetExtension(image.FileName);
-
-        return !string.IsNullOrWhiteSpace(extension)
-            && allowedExtensions.Contains(extension)
-            && !string.IsNullOrWhiteSpace(image.ContentType)
-            && allowedContentTypes.Contains(image.ContentType);
-    }
-
     private static BookResponse MapToBookResponse(Book book)
     {
         return new BookResponse
@@ -287,14 +246,17 @@ public class BookService(
             UpdatedDate = book.UpdatedDate,
             Language = book.Language,
             Status = book.Status,
-            ChapterCount = book.ChapterCount,
+            GenreName = book.Genre.Name,
+            CategoryName = book.Category.Name,
+            SubcategoryName = book.Subcategory.Name,
+            ChapterCount = book.Chapters.Count,
             Authors = book.BookAuthors.Select(ba => new AuthorResponse
             {
                 Id = ba.UserId,
-                Login = ba.User?.Login ?? string.Empty,
+                Login = ba.User.Login,
                 ProfilePictureUrl = ba.User?.ProfilePictureUrl
             }).ToList(),
-            Tags = book.BookTags?.Select(bt => bt.Tag?.Name ?? string.Empty).ToList() ?? [],
+            Tags = book.BookTags.Select(bt => bt.Tag.Name).ToList(),
             Chapters = book.Chapters.Select(c => new ChapterShortResponse
             {
                 Id = c.Id,
@@ -305,5 +267,4 @@ public class BookService(
     }
 
     #endregion
-
 }

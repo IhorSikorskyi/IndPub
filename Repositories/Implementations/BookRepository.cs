@@ -32,7 +32,14 @@ public class BookRepository(Connected dbContext) : Repository<Book>(dbContext), 
             .Include(b => b.BookTags)
                 .ThenInclude(bt => bt.Tag)
             .Include(b => b.Chapters)
+            .Include(b => b.Genre)
+            .Include(b => b.BookLikes)
+            .Include(b => b.Reviews)
+                .ThenInclude(r => r.ReviewLikes)
+            .Include(b => b.Reviews)
+            .ThenInclude(r => r.User)
+            .Include(b => b.Category)
+            .Include(b => b.Subcategory)
             .FirstOrDefaultAsync(b => b.Id == id);
     }
-
 }

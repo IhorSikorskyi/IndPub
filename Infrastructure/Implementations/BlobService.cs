@@ -1,9 +1,9 @@
 ﻿using Azure.Storage.Blobs;
-using IndPubBack.Services.Interfaces;
+using IndPubBack.Infrastructure.Interfaces;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 
-namespace IndPubBack.Services.Implementations;
+namespace IndPubBack.Infrastructure.Implementations;
 
 public class BlobService(BlobServiceClient blobServiceClient, IConfiguration configuration) : IBlobService
 {

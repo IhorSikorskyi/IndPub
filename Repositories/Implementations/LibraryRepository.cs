@@ -18,20 +18,15 @@ public class LibraryRepository(Connected dbContext) : Repository<LibraryEntry>(d
     public async Task<IList<LibraryEntry>> GetCursorPageAsync(Guid userId, LibraryBookStatus status, DateTime? cursor,
         int pageSize)
     {
-        if (cursor == null)
+        IQueryable<LibraryEntry> query = dbContext.Libraries
+            .Where(e => e.UserId == userId && e.Status == status);
+
+        if (cursor != null)
         {
-            return await dbContext.Libraries
-                .Where(e => e.UserId == userId && e.Status == status)
-                .OrderByDescending(e => e.DateAdded)
-                .Take(pageSize)
-                .Include(e => e.Book)
-                .ToListAsync();
+            query = query.Where(e => e.DateAdded < cursor);
         }
 
-        return await dbContext.Libraries
-            .Where(e => e.UserId == userId)
-            .Where(e => e.Status == status)
-            .Where(e => e.DateAdded > cursor)
+        return await query
             .OrderByDescending(e => e.DateAdded)
             .Take(pageSize)
             .Include(e => e.Book)

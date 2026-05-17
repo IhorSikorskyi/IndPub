@@ -1,4 +1,6 @@
 using Azure.Storage.Blobs;
+using IndPubBack.Infrastructure.Implementations;
+using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Models;
 using IndPubBack.Repositories.Implementations;
 using IndPubBack.Repositories.Interfaces;
@@ -46,13 +48,19 @@ builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<ILibraryRepository, LibraryRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 
+// DI Container registrations for infrastructure services
+builder.Services.AddScoped<IBlobService, BlobService>();
+builder.Services.AddScoped<IEntityValidationService, EntityValidationService>();
+builder.Services.AddScoped<IImageValidationService, ImageValidationService>();
+builder.Services.AddScoped<IPasswordValidationService, PasswordValidationService>();
+
 // DI Container registrations for services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IBookService, BookService>();
-builder.Services.AddScoped<IBlobService, BlobService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<ILibraryService, LibraryService>();
+builder.Services.AddScoped<IBookInteractionService, BookInteractionService>();
 
 // Azure Blob Storage configuration
 builder.Services.AddSingleton(_ => new BlobServiceClient(

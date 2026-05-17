@@ -10,12 +10,14 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using IndPubBack.Infrastructure.Interfaces;
 
 namespace IndPubBack.Services.Implementations;
 
 public class AuthService(
     IConfiguration configuration, 
-    IUserRepository userRepository)
+    IUserRepository userRepository,
+    IPasswordValidationService passwordValidationService)
     : IAuthService
 {
     private static readonly string Check = "Invalid access token.";
@@ -44,7 +46,7 @@ public class AuthService(
             throw new ValidationException("Passwords do not match.");
         }
 
-        EnsurePasswordComplex(request.Password);
+        passwordValidationService.EnsurePasswordComplex(request.Password);
 
         var user = new User
         {
@@ -81,7 +83,7 @@ public class AuthService(
             throw new InvalidCredentialsException("Invalid user or password.");
         }
 
-        if (!ValidateRefreshToken(user))
+        if (!ValidateRefreshToken(user, user.RefreshToken))
         {
             user.RefreshToken = GenerateRefreshToken();
             user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
@@ -91,9 +93,8 @@ public class AuthService(
         return await CreateAccessTokenResponseAsync(user);
     }
 
-    public async Task<bool> LogoutAsync(string accessToken, string refreshToken)
+    public async Task<bool> LogoutAsync(Guid userId, string refreshToken)
     {
-        var userId = GetUserIdFromClaims(accessToken, configuration);
         var user = await userRepository.GetByIdAsync(userId);
 
         if (user == null)
@@ -101,7 +102,7 @@ public class AuthService(
             throw new UnauthorizedException(Check);
         }
 
-        if (!ValidateRefreshToken(user, refreshToken) || !ValidateRefreshToken(user))
+        if (!ValidateRefreshToken(user, refreshToken))
         {
             throw new UnauthorizedException("Invalid refresh token. Please log in again.");
         }
@@ -116,16 +117,15 @@ public class AuthService(
         return true;
     }
 
-    public async Task<UserResponse> UpdateAccessTokenAsync(string accessToken, string refreshToken)
+    public async Task<UserResponse> UpdateAccessTokenAsync(Guid userId, string refreshToken)
     {
-        var userId = GetUserIdFromClaims(accessToken, configuration);
         var user = await userRepository.GetByIdAsync(userId);
         if (user == null)
         {
             throw new UnauthorizedException(Check);
         }
 
-        if (!ValidateRefreshToken(user, refreshToken) || !ValidateRefreshToken(user))
+        if (!ValidateRefreshToken(user, refreshToken))
         {
             throw new UnauthorizedException("Invalid refresh token. Please log in again.");
         }
@@ -188,98 +188,16 @@ public class AuthService(
         return new PasswordHasher<User>().HashPassword(user, password);
     }
 
-    private static void EnsurePasswordComplex(string password)
+    private static bool ValidateRefreshToken(User? user, string refreshToken)
     {
-        if (IsPasswordComplex(password))
-        {
-            return;
-        }
-
-        throw new ValidationException(
-            "Password must be at least 8 characters long, " +
-            "contain at least one uppercase letter, one lowercase letter, " +
-            "one number and one special character.");
-    }
-
-    private static bool IsPasswordComplex(string password)
-    {
-        if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
-        {
-            return false;
-        }
-
-        bool hasUpper = false, hasLower = false, hasDigit = false, hasSpecial = false;
-
-        foreach (var c in password)
-        {
-            if (char.IsUpper(c)) hasUpper = true;
-            else if (char.IsLower(c)) hasLower = true;
-            else if (char.IsDigit(c)) hasDigit = true;
-            else if (!char.IsLetterOrDigit(c)) hasSpecial = true;
-
-            if (hasUpper && hasLower && hasDigit && hasSpecial)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static bool ValidateRefreshToken(User user, string refreshToken)
-    {
-        if (user == null || user.RefreshToken != refreshToken)
+        if (user == null 
+            || user.RefreshToken != refreshToken 
+            || user.RefreshTokenExpiry <= DateTime.UtcNow)
         {
             return false;
         }
 
         return true;
-    }
-
-    private static bool ValidateRefreshToken(User user)
-    {
-        if (user == null || user.RefreshTokenExpiry <= DateTime.UtcNow)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    private static Guid GetUserIdFromClaims(string accessToken, IConfiguration configuration)
-    {
-        var handler = new JwtSecurityTokenHandler();
-        var validationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = configuration.GetValue<string>("AppSettings:Issuer"),
-            ValidateAudience = true,
-            ValidAudience = configuration.GetValue<string>("AppSettings:Audience"),
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(configuration.GetValue<string>("AppSettings:AccessToken")!)),
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero,
-            RequireExpirationTime = true
-        };
-
-        try
-        {
-            handler.ValidateToken(accessToken, validationParameters, out var validated);
-            var jwt = (JwtSecurityToken)validated;
-            var userIdClaim = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
-                throw new SecurityTokenException("User ID claim missing");
-            return userId;
-        }
-        catch (SecurityTokenExpiredException)
-        {
-            throw new UnauthorizedException(Check);
-        }
-        catch (SecurityTokenException)
-        {
-            throw new UnauthorizedException(Check);
-        }
     }
     
     #endregion

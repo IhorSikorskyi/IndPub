@@ -86,5 +86,25 @@ namespace IndPubBack.Controllers
                 return StatusCode(500, new { message = "An error occurred while processing your request." });
             }
         }
+
+        [AllowAnonymous]
+        [HttpGet("{bookId}")]
+        public async Task<ActionResult<BookResponse>> GetBookByIdAsync(
+            [FromRoute(Name = "bookId")] Guid bookId)
+        {
+            try
+            {
+                var result = await bookService.GetBookByIdAsync(bookId);
+                return Ok(result);
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = "An error occurred while processing your request." });
+            }
+        }
     }
 }

@@ -8,7 +8,7 @@ using System.Net;
 
 namespace IndPubBack.Services.Implementations;
 
-public class LibraryService(IConfiguration configuration, ILibraryRepository libraryRepository, IBookRepository bookRepository, IUserRepository userRepository) : ILibraryService
+public class LibraryService(ILibraryRepository libraryRepository, IBookRepository bookRepository, IUserRepository userRepository) : ILibraryService
 {
     public async Task<UserActivitiesResponse> GetLibraryAsync(Guid userId, LibraryListRequest request)
     {
@@ -22,7 +22,7 @@ public class LibraryService(IConfiguration configuration, ILibraryRepository lib
                 Title = e.Book.Title,
                 CoverImageUrl = e.Book.CoverImageUrl,
                 UpdatedDate = e.Book.UpdatedDate,
-                ChapterCount = e.Book.ChapterCount,
+                ChapterCount = e.Book.Chapters.Count,
                 Status = e.Status
             }).ToList()
         };
