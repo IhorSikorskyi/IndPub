@@ -115,8 +115,7 @@ public class AuthController(IAuthService authService) : ControllerBase
 
     [Authorize]
     [HttpPost("logout")]
-    public async Task<ActionResult<bool>> LogoutAsync(
-        [FromHeader(Name = "Authorization")] string authorization)
+    public async Task<ActionResult<bool>> LogoutAsync()
     {
         try
         {

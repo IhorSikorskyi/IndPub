@@ -4,11 +4,11 @@ using IndPubBack.Exceptions;
 using IndPubBack.Models;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
-using System.Net;
+using IndPubBack.Infrastructure.Interfaces;
 
 namespace IndPubBack.Services.Implementations;
 
-public class LibraryService(ILibraryRepository libraryRepository, IBookRepository bookRepository, IUserRepository userRepository) : ILibraryService
+public class LibraryService(ILibraryRepository libraryRepository, IEntityValidationService entityValidationService) : ILibraryService
 {
     public async Task<UserActivitiesResponse> GetLibraryAsync(Guid userId, LibraryListRequest request)
     {
@@ -16,7 +16,7 @@ public class LibraryService(ILibraryRepository libraryRepository, IBookRepositor
 
         return new UserActivitiesResponse
         {
-            Library = data.Select(e => new LibraryEntryResponse
+            Library = [..data.Select(e => new LibraryEntryResponse
             {
                 BookId = e.BookId,
                 Title = e.Book.Title,
@@ -24,21 +24,15 @@ public class LibraryService(ILibraryRepository libraryRepository, IBookRepositor
                 UpdatedDate = e.Book.UpdatedDate,
                 ChapterCount = e.Book.Chapters.Count,
                 Status = e.Status
-            }).ToList()
+            })]
         };
     }
 
     public async Task<bool> AddToLibraryAsync(Guid bookId, Guid userId)
     {
-        if(!await userRepository.IsExistAsync(userId))
-        {
-            throw new NotFoundException("User not found");
-        }
+        await entityValidationService.EnsureUserExistsAsync(userId);
 
-        if(!await bookRepository.IsExistAsync(bookId))
-        {
-            throw new NotFoundException("Book not found");
-        }
+        await entityValidationService.EnsureBookExistsAsync(bookId);
 
         if (await IsBookInLibraryAsync(userId, bookId))
         {
@@ -73,15 +67,9 @@ public class LibraryService(ILibraryRepository libraryRepository, IBookRepositor
 
     public async Task<bool> UpdateLibraryEntryStatusAsync(Guid userId, LibraryEntryRequest request)
     {
-        if (!await userRepository.IsExistAsync(userId))
-        {
-            throw new NotFoundException("User not found");
-        }
+        await entityValidationService.EnsureUserExistsAsync(userId);
 
-        if (!await bookRepository.IsExistAsync(request.BookId))
-        {
-            throw new NotFoundException("Book not found");
-        }
+        await entityValidationService.EnsureBookExistsAsync(request.BookId);
 
         if (!await IsBookInLibraryAsync(userId, request.BookId))
         {

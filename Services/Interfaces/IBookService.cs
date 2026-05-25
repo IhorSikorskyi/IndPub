@@ -9,13 +9,4 @@ public interface IBookService
     Task<BookResponse> UpdateBookAsync(BookUpdateRequest request, Guid bookId, Guid userId);
     Task<bool> DeleteBookAsync(Guid bookId, Guid userId);
     Task<BookResponse> GetBookByIdAsync(Guid bookId);
-
-    // Отримання
-    //TODO: Make Requests for pagination and filtering
-    //TODO: Move to SearchService, StatisticsService, BookInteractionService
-    Task<IList<BookShortResponse>> GetAllBooksAsync();
-    Task<IList<BookShortResponse>> GetBooksByAuthorIdAsync(Guid authorId);
-    Task<IList<BookShortResponse>> GetBooksByGenreAsync(Guid genreId);
-    Task<IList<BookShortResponse>> GetBooksByTagsAsync(Guid tagId);
-    Task<IList<BookShortResponse>> SearchBooksAsync(string query);
 }

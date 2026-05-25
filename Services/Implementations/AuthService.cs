@@ -68,12 +68,7 @@ public class AuthService(
     public async Task<UserResponse> LoginAsync(LoginRequest request)
     {
         var user = await userRepository.GetByLoginAsync(request.LoginOrEmail)
-                   ?? await userRepository.GetByEmailAsync(request.LoginOrEmail);
-
-        if (user == null)
-        {
-            throw new InvalidCredentialsException("Invalid user or password.");
-        }
+                   ?? await userRepository.GetByEmailAsync(request.LoginOrEmail) ?? throw new InvalidCredentialsException("Invalid user or password.");
 
         var verificationResult = new PasswordHasher<User>()
             .VerifyHashedPassword(user, user.PasswordHash, request.Password);
@@ -95,12 +90,7 @@ public class AuthService(
 
     public async Task<bool> LogoutAsync(Guid userId, string refreshToken)
     {
-        var user = await userRepository.GetByIdAsync(userId);
-
-        if (user == null)
-        {
-            throw new UnauthorizedException(Check);
-        }
+        var user = await userRepository.GetByIdAsync(userId) ?? throw new UnauthorizedException(Check);
 
         if (!ValidateRefreshToken(user, refreshToken))
         {
@@ -119,11 +109,7 @@ public class AuthService(
 
     public async Task<UserResponse> UpdateAccessTokenAsync(Guid userId, string refreshToken)
     {
-        var user = await userRepository.GetByIdAsync(userId);
-        if (user == null)
-        {
-            throw new UnauthorizedException(Check);
-        }
+        var user = await userRepository.GetByIdAsync(userId) ?? throw new UnauthorizedException(Check);
 
         if (!ValidateRefreshToken(user, refreshToken))
         {

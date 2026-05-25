@@ -13,6 +13,7 @@ namespace IndPubBack.Controllers
     [Route("api/book")]
     public class BookController(IBookService bookService) : ControllerBase
     {
+        private const string MessageStatus500 = "An error occurred while processing your request.";
         [HttpPost("create")]
         public async Task<ActionResult<BookResponse>> CreateBookAsync(
             [FromBody] BookCreateRequest request)
@@ -28,7 +29,7 @@ namespace IndPubBack.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = "An error occurred while processing your request." });
+                return StatusCode(500, new { message = MessageStatus500 });
             }
         }
 
@@ -56,7 +57,7 @@ namespace IndPubBack.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = "An error occurred while processing your request." });
+                return StatusCode(500, new { message = MessageStatus500 });
             }
         }
 
@@ -83,7 +84,7 @@ namespace IndPubBack.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = "An error occurred while processing your request." });
+                return StatusCode(500, new { message = MessageStatus500 });
             }
         }
 

@@ -1,17 +1,19 @@
-version: "3.9"
-
 services:
   backend:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    command: dotnet watch run --urls=http://0.0.0.0:5000
+    command: dotnet watch run
     ports:
       - "${port_number_1}:${port_number_1}"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=${ASPNETCORE_URL_HTTP}
       - ConnectionStrings__IndPubConnection=Host=${DB_Host};Database=${DB_Name};Username=${DB_User};Password=${DB_Password}
+      - AzureStorage__ConnectionString=UseDevelopmentStorage=true
+      - AzureStorage__ContainerName=${AzureStorage__ContainerName}
+      - AzureStorage__BookCoversFolder=${AzureStorage__BookCoversFolder}
+      - AzureStorage__ProfilePicturesFolder=${AzureStorage__ProfilePicturesFolder}
     volumes:
       - .:/app
       - /app/bin
@@ -19,3 +21,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      azurite:
+        condition: service_started
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    ports:
+      - "10000:10000"
+    volumes:
+      - azurite-data:/data
+
+volumes:
+  azurite-data:

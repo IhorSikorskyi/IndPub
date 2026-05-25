@@ -1,44 +1,45 @@
 ﻿using IndPubBack.Exceptions;
+using IndPubBack.Infrastructure.Interfaces;
+using IndPubBack.Models;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 
 namespace IndPubBack.Services.Implementations;
 
-public class BookInteractionService(IBookRepository bookRepository, IUserRepository userRepository) : IBookInteractionService
+public class BookInteractionService(IEntityValidationService entityValidationService, IBookLikeRepository bookLikeRepository) : IBookInteractionService
 {
-    #region Interaction
-
-    //TODO: Add possibility to like only published books and prevent authors from liking their own books
     public async Task<bool> LikeBookAsync(Guid bookId, Guid userId)
     {
-        if (!await userRepository.IsExistAsync(userId))
+        await entityValidationService.EnsureUserExistsAsync(userId);
+        await entityValidationService.EnsureBookExistsAsync(bookId);
+
+        if (await bookLikeRepository.IsLikedAsync(bookId, userId))
         {
-            throw new NotFoundException("User not found");
+            throw new ConflictException("Book is already liked.");
         }
 
-        if (!await bookRepository.IsExistAsync(bookId))
+        await bookLikeRepository.AddAsync(new BookLike
         {
-            throw new NotFoundException("Book not found");
-        }
+            BookId = bookId,
+            UserId = userId
+        });
 
-        throw new NotImplementedException();
+        return true;
     }
 
-    //TODO: Add possibility to unlike only published books and prevent authors from unliking their own books
     public async Task<bool> UnlikeBookAsync(Guid bookId, Guid userId)
     {
-        if (!await userRepository.IsExistAsync(userId))
+        await entityValidationService.EnsureUserExistsAsync(userId);
+
+        await entityValidationService.EnsureBookExistsAsync(bookId);
+
+        if (!await bookLikeRepository.IsLikedAsync(bookId, userId))
         {
-            throw new NotFoundException("User not found");
+            throw new ConflictException("Book is not liked.");
         }
 
-        if (!await bookRepository.IsExistAsync(bookId))
-        {
-            throw new NotFoundException("Book not found");
-        }
-
-        throw new NotImplementedException();
+        await bookLikeRepository.UnlikeBookAsync(bookId, userId);
+        
+        return true;
     }
-
-    #endregion
 }

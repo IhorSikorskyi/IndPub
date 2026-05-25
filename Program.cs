@@ -61,6 +61,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<ILibraryService, LibraryService>();
 builder.Services.AddScoped<IBookInteractionService, BookInteractionService>();
+builder.Services.AddScoped<ISearchService, SearchService>();
 
 // Azure Blob Storage configuration
 builder.Services.AddSingleton(_ => new BlobServiceClient(

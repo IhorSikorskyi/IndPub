@@ -11,12 +11,16 @@ public class EntityValidationService(
     public async Task EnsureUserExistsAsync(Guid userId)
     {
         if (!await userRepository.IsExistAsync(userId))
+        {
             throw new NotFoundException("User not found");
+        }
     }
 
     public async Task EnsureBookExistsAsync(Guid bookId)
     {
         if (!await bookRepository.IsExistAsync(bookId))
+        {
             throw new NotFoundException("Book not found");
+        }
     }
 }

@@ -18,7 +18,7 @@ public class BookService(
     IBlobService blobService) : IBookService
 {
 
-    const long MaxFileSize = 5 * 1024 * 1024;
+    private const long MaxFileSize = 5 * 1024 * 1024;
 
     #region CRUD
     public async Task<BookResponse> CreateBookAsync(BookCreateRequest request)
@@ -67,21 +67,21 @@ public class BookService(
             book.CoverImageUrl = await blobService.UploadBlobAsync(folder, request.CoverImage, book.Id);
         }
 
-        book.Chapters = request.Chapters.Select((c, index) => new Chapter
+        book.Chapters = [..request.Chapters.Select((c, index) => new Chapter
         {
             Title = c.Title,
             Content = c.Content,
             ChapterNumber = index + 1,
             BookId = book.Id
-        }).ToList();
+        })];
 
         await CheckAuthorsExistenceAsync(request.AuthorIds);
 
-        book.BookAuthors = request.AuthorIds.Select(authorId => new BookAuthor
+        book.BookAuthors = [..request.AuthorIds.Select(authorId => new BookAuthor
         {
             BookId = book.Id,
             UserId = authorId
-        }).ToList();
+        })];
 
         if (request.Tags is not null && request.Tags.Count > 0)
         {
@@ -135,11 +135,11 @@ public class BookService(
         if (request.AuthorIds is not null)
         {
             await CheckAuthorsExistenceAsync(request.AuthorIds);
-            book.BookAuthors = request.AuthorIds.Select(authorId => new BookAuthor
+            book.BookAuthors = [..request.AuthorIds.Select(authorId => new BookAuthor
             {
                 BookId = book.Id,
                 UserId = authorId
-            }).ToList();
+            })];
         }
 
         if (request.Tags is not null && request.Tags.Count > 0)
@@ -184,40 +184,6 @@ public class BookService(
 
     #endregion
 
-    #region Receiving
-
-    //TODO: Add pagination and filtering
-    public async Task<IList<BookShortResponse>> GetAllBooksAsync()
-    {
-        throw new NotImplementedException();
-    }
-
-    //TODO: Add pagination and filtering
-    public async Task<IList<BookShortResponse>> GetBooksByAuthorIdAsync(Guid authorId)
-    {
-        throw new NotImplementedException();
-    }
-
-    //TODO: Add pagination and filtering
-    public async Task<IList<BookShortResponse>> GetBooksByGenreAsync(Guid genreId)
-    {
-        throw new NotImplementedException();
-    }
-
-    //TODO: Add pagination and filtering
-    public async Task<IList<BookShortResponse>> GetBooksByTagsAsync(Guid tagId)
-    {
-        throw new NotImplementedException();
-    }
-
-    //TODO: Add pagination and filtering
-    public async Task<IList<BookShortResponse>> SearchBooksAsync(string query)
-    {
-        throw new NotImplementedException();
-    }
-
-    #endregion
-
     #region Helpers
     private async Task<bool> IsTitleExistAsync(string title)
     {
@@ -250,19 +216,19 @@ public class BookService(
             CategoryName = book.Category.Name,
             SubcategoryName = book.Subcategory.Name,
             ChapterCount = book.Chapters.Count,
-            Authors = book.BookAuthors.Select(ba => new AuthorResponse
+            Authors = [..book.BookAuthors.Select(ba => new AuthorResponse
             {
                 Id = ba.UserId,
                 Login = ba.User.Login,
                 ProfilePictureUrl = ba.User?.ProfilePictureUrl
-            }).ToList(),
-            Tags = book.BookTags.Select(bt => bt.Tag.Name).ToList(),
-            Chapters = book.Chapters.Select(c => new ChapterShortResponse
+            })],
+            Tags = [..book.BookTags.Select(bt => bt.Tag.Name)],
+            Chapters = [..book.Chapters.Select(c => new ChapterShortResponse
             {
                 Id = c.Id,
                 Title = c.Title,
                 ChapterNumber = c.ChapterNumber
-            }).ToList()
+            })]
         };
     }
 

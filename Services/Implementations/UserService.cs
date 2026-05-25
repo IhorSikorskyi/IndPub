@@ -1,8 +1,6 @@
-﻿using Azure.Core;
-using IndPubBack.DTO.Requests;
+﻿using IndPubBack.DTO.Requests;
 using IndPubBack.DTO.Responses;
 using IndPubBack.Exceptions;
-using IndPubBack.Infrastructure.Implementations;
 using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Models;
 using IndPubBack.Repositories.Interfaces;
@@ -20,7 +18,7 @@ public class UserService(
     : IUserService
 {
     private static readonly string Check = "Invalid access token.";
-    const long MaxFileSize = 2 * 1024 * 1024;
+    private const long MaxFileSize = 2 * 1024 * 1024;
 
     #region Profile
 

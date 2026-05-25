@@ -1,13 +1,14 @@
 ﻿using IndPubBack.DTO.Requests;
 using IndPubBack.DTO.Responses;
 using IndPubBack.Exceptions;
+using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Models;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 
 namespace IndPubBack.Services.Implementations;
 
-public class SubscriptionService(ISubscriptionRepository subscriptionRepository, IUserRepository userRepository) : ISubscriptionService
+public class SubscriptionService(ISubscriptionRepository subscriptionRepository, IEntityValidationService entityValidationService) : ISubscriptionService
 {
     public async Task<UserActivitiesResponse> GetSubscriptionListAsync(Guid userId, SubscriptionListRequest request)
     {
@@ -16,26 +17,20 @@ public class SubscriptionService(ISubscriptionRepository subscriptionRepository,
 
         return new UserActivitiesResponse
         {
-            Subscriptions = data.Select(s => new SubscriptionShortResponse
+            Subscriptions = [..data.Select(s => new SubscriptionShortResponse
             {
                 AuthorId = s.AuthorId,
                 AuthorLogin = s.Author.Login,
                 AuthorProfilePictureUrl = s.Author.ProfilePictureUrl,
-            }).ToList()
+            })]
         };
     }
 
     public async Task<bool> SubscribeAsync(Guid authorId, Guid userId)
     {
-        if (!await userRepository.IsExistAsync(userId))
-        {
-            throw new NotFoundException("User not found");
-        }
+        await entityValidationService.EnsureUserExistsAsync(userId);
 
-        if (!await userRepository.IsExistAsync(authorId))
-        {
-            throw new NotFoundException("Author not found");
-        }
+        await entityValidationService.EnsureUserExistsAsync(authorId);
 
         if (await IsSubscribedAsync(userId, authorId))
         {
@@ -55,15 +50,9 @@ public class SubscriptionService(ISubscriptionRepository subscriptionRepository,
 
     public async Task<bool> UnsubscribeAsync(Guid authorId, Guid userId)
     {
-        if (!await userRepository.IsExistAsync(userId))
-        {
-            throw new NotFoundException("User not found");
-        }
+        await entityValidationService.EnsureUserExistsAsync(userId);
 
-        if (!await userRepository.IsExistAsync(authorId))
-        {
-            throw new NotFoundException("Author not found");
-        }
+        await entityValidationService.EnsureUserExistsAsync(authorId);
 
         if (!await IsSubscribedAsync(userId, authorId))
         {

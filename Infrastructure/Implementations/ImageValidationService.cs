@@ -6,15 +6,15 @@ public class ImageValidationService : IImageValidationService
 {
     public bool ValidateImage(IFormFile image, long maxSizeBytes)
     {
-        if (image.Length == 0)
+        if (image.Length == 0 || image.Length > maxSizeBytes)
         {
             return false;
         }
 
-        if (image.Length > maxSizeBytes)
-        {
-            return false;
-        }
+        //if (image.Length > maxSizeBytes)
+        //{
+        //    return false;
+        //}
 
         var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
