@@ -29,8 +29,8 @@ public class User : BaseEntity
     public DateTime RefreshTokenExpiry { get; set; } = DateTime.UtcNow.AddDays(7);
     public Roles Role { get; set; } = Roles.User;
 
-    // Exist optional to use virtual collections for lazy loading, but in current implementation we will use eager loading
-    // , because of better performance in most cases and requests is not so complex to cause performance issues with eager loading.
+    // Exist optional to use virtual collections for lazy loading, but in current implementation we will use eager loading,
+    // because of better performance in most cases and requests is not so complex to cause performance issues with eager loading.
     // So, we will use non-virtual collections and initialize them to avoid null reference exceptions.
     public ICollection<LibraryEntry> Entries { get; set; } = new List<LibraryEntry>();
     public ICollection<BookAuthor> BookAuthors { get; set; } = new List<BookAuthor>();

@@ -1,12 +1,7 @@
-﻿using Azure.Core;
-using IndPubBack.DTO.Requests;
-using IndPubBack.DTO.Responses;
-using IndPubBack.Exceptions;
-using IndPubBack.Services.Implementations;
+﻿using IndPubBack.Exceptions;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace IndPubBack.Controllers;
 
