@@ -26,7 +26,7 @@ This project is a strong resume piece because it demonstrates real-world backend
 - JWT Bearer Authentication
 - Azure Blob Storage
 - Swashbuckle (Swagger)
-- SignalR - in proggress for real-time notifications
+- SignalR - in progress for real-time notifications
 - ImageSharp
 
 ## Architecture
@@ -79,7 +79,12 @@ For local development, Azure Blob Storage is configured with:
 2. Start PostgreSQL and create the database used by `IndPubConnection`.
 3. Start Azurite if you want to use local blob storage.
 4. Update configuration values in `appsettings.json` and `appsettings.Development.json` as needed.
-5. Run database migrations.
+5. Run database migrations:
+
+```bash
+dotnet ef database update
+```
+
 6. Start the API:
 
 ```bash
@@ -88,19 +93,22 @@ dotnet run
 
 7. Open Swagger UI in development mode to test endpoints.
 
-## Why this project is valuable for a resume
+## Docker Setup
 
-IndPubBack shows that the author can build a production-style backend, not just a demo app. It combines authentication, storage, relational data modeling, and structured business logic in a clean layered design. The project is especially useful to show:
+You can also run the project using Docker Compose without installing PostgreSQL or .NET SDK locally.
 
-- backend API design skills
-- work with authentication and authorization
-- PostgreSQL and EF Core experience
-- cloud storage integration
-- maintainable architecture
-- practical social/content-platform features
+1. Make sure Docker and Docker Compose are installed.
+2. Update configuration values in `appsettings.json` as needed.
+3. Start all services:
 
-## Notes
+```bash
+docker-compose up
+```
 
-- The repository is configured for CORS and JWT-protected endpoints.
-- Some endpoints require an authenticated user.
-- Swagger is enabled in development.
+4. The API will be available at `http://localhost:5000` for HTTP and `https://localhost:5001` for HTTPS.
+5. Azurite (Azure Storage Emulator) is included in the Docker Compose configuration for local blob storage.
+
+For development with hot reload, use:
+```bash
+docker-compose -f docker-compose.yaml -f docker-compose.override.yaml up
+```
