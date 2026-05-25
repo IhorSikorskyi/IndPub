@@ -13,23 +13,21 @@ namespace IndPubBack.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/book-interaction")]
-public class BookInteractionController(IBookInteractionService bookInteractionService) : ControllerBase
+public class BookInteractionController(IBookInteractionService bookInteractionService) : BaseController
 {
-    [HttpPost("bookId")]
+    [HttpPost("{bookId}")]
     public async Task<ActionResult<bool>> LikeBookAsync(
         [FromRoute(Name = "bookId")] Guid bookId)
     {
         try
         {
-            var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                              ?? User.FindFirst("sub")?.Value;
-
-            if (!Guid.TryParse(userIdValue, out var userId))
+            var userId = GetCurrentUserId();
+            if (userId is null)
             {
-                return Unauthorized(new { message = "Invalid user id in token." });
+                return Unauthorized(new { message = InvalidMessage });
             }
 
-            var result = await bookInteractionService.LikeBookAsync(bookId, userId);
+            var result = await bookInteractionService.LikeBookAsync(bookId, userId.Value);
             return Ok(result);
         }
         catch (ValidationException ex)
@@ -42,21 +40,19 @@ public class BookInteractionController(IBookInteractionService bookInteractionSe
         }
     }
 
-    [HttpDelete("bookId")]
+    [HttpDelete("{bookId}")]
     public async Task<ActionResult<bool>> UnlikeBookAsync(
         [FromRoute(Name = "bookId")] Guid bookId)
     {
         try
         {
-            var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                              ?? User.FindFirst("sub")?.Value;
-
-            if (!Guid.TryParse(userIdValue, out var userId))
+            var userId = GetCurrentUserId();
+            if (userId is null)
             {
-                return Unauthorized(new { message = "Invalid user id in token." });
+                return Unauthorized(new { message = InvalidMessage });
             }
 
-            var result = await bookInteractionService.UnlikeBookAsync(bookId, userId);
+            var result = await bookInteractionService.UnlikeBookAsync(bookId, userId.Value);
             return Ok(result);
         }
         catch (ValidationException ex)

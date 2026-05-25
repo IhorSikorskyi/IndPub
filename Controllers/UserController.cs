@@ -12,29 +12,27 @@ namespace IndPubBack.Controllers
     [Authorize]
     [Route("api/user")]
     [ApiController]
-    public class UserController(IUserService userService) : ControllerBase
+    public class UserController(IUserService userService) : BaseController
     {
         private const string GenericErrorMessage = "An error occurred while processing your request.";
-        
+
         [AllowAnonymous]
         [HttpGet("{userId}")]
         public async Task<ActionResult<UserInfoResponse>> GetProfileAsync(
-            [FromRoute(Name = "userId")] Guid userId)
+            [FromRoute] Guid userId)
         {
             try
             {
-                UserInfoResponse response;
-
-                var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                                  ?? User.FindFirst("sub")?.Value;
-
-                if (!Guid.TryParse(userIdValue, out var yourUserId))
+                var currentUserId = GetCurrentUserId();
+                if (currentUserId is null)
                 {
-                    response = await userService.GetUserInfoAsync(userId);
-                    return Ok(response);
+                    return Unauthorized(new { message = InvalidMessage });
                 }
 
-                response = await userService.GetUserInfoAsync(yourUserId);
+                var profileId = currentUserId ?? userId;
+
+                var response = await userService.GetUserInfoAsync(profileId);
+
                 return Ok(response);
             }
             catch (NotFoundException ex)
@@ -51,23 +49,19 @@ namespace IndPubBack.Controllers
             }
         }
 
-        [Authorize]
         [HttpPut("update")]
         public async Task<ActionResult<UserInfoResponse>> UpdateProfileAsync(
-            [FromBody] UpdateProfileRequest request,
-            [FromHeader(Name = "Authorization")] string authorization)
+            [FromBody] UpdateProfileRequest request)
         {
             try
             {
-                var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                                  ?? User.FindFirst("sub")?.Value;
-
-                if (!Guid.TryParse(userIdValue, out var userId))
+                var userId = GetCurrentUserId();
+                if (userId is null)
                 {
-                    return Unauthorized(new { message = "Invalid user id in token." });
+                    return Unauthorized(new { message = InvalidMessage });
                 }
 
-                var result = await userService.UpdateUserInfoAsync(userId, request);
+                var result = await userService.UpdateUserInfoAsync(userId.Value, request);
                 return Ok(result);
             }
             catch (ValidationException ex)
@@ -88,23 +82,19 @@ namespace IndPubBack.Controllers
             }
         }
 
-        [Authorize]
-        [HttpDelete("delete")]
         [HttpDelete("delete/{userId}")]
         public async Task<ActionResult<bool>> DeleteProfileAsync(
             [FromRoute(Name = "userId")] Guid? targetUserId)
         {
             try
             {
-                var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                                  ?? User.FindFirst("sub")?.Value;
-
-                if (!Guid.TryParse(userIdValue, out var userId))
+                var userId = GetCurrentUserId();
+                if (userId is null)
                 {
-                    return Unauthorized(new { message = "Invalid user id in token." });
+                    return Unauthorized(new { message = InvalidMessage });
                 }
 
-                var result = await userService.DeleteAccountAsync(userId, targetUserId);
+                var result = await userService.DeleteAccountAsync(userId.Value, targetUserId);
                 return Ok(result);
             }
             catch (ValidationException ex)

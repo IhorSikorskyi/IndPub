@@ -216,6 +216,7 @@ public class BookService(
             CategoryName = book.Category.Name,
             SubcategoryName = book.Subcategory.Name,
             ChapterCount = book.Chapters.Count,
+            Rating = book.Rating,
             Authors = [..book.BookAuthors.Select(ba => new AuthorResponse
             {
                 Id = ba.UserId,

@@ -10,14 +10,18 @@ public class Book : BaseEntity
 
     }
 
-    [MinLength(1)]
+    [StringLength(255, MinimumLength = 1)]
     public required string Title { get; set; }
-    [MinLength(1)]
+    [StringLength(5000, MinimumLength = 3)]
     public string? Description { get; set; }
+    [MaxLength(2048)]
     public string? CoverImageUrl { get; set; }
     public required DateTime PublishedDate { get; set; }
     public required DateTime UpdatedDate { get; set; }
-    public required string Language { get; set; } = "en";
+
+    public double Rating { get; set; } = 0;
+    
+    public required LanguageCode Language { get; set; } = LanguageCode.En;
     public required Status Status { get; set; } = Status.Ongoing;
 
     public Guid GenreId { get; set; }
@@ -73,4 +77,17 @@ public enum Status
     Ongoing,
     Completed,
     Dropped
+}
+
+public enum LanguageCode
+{
+    En,
+    Es,
+    Fr,
+    De,
+    It,
+    Pt,
+    Ru,
+    Ja,
+    Zh
 }

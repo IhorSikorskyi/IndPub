@@ -2,7 +2,6 @@
 
 namespace IndPubBack.DTO.Responses;
 
-//TODO: Add Category and Subcategory to BookResponse and BookShortResponse
 public class BookResponse
 {
     public Guid BookId { get; set; }
@@ -11,11 +10,12 @@ public class BookResponse
     public string? CoverImageUrl { get; set; }
     public DateTime PublishedDate { get; set; }
     public DateTime UpdatedDate { get; set; }
-    public string Language { get; set; } = null!;
+    public LanguageCode Language { get; set; } = LanguageCode.En;
     public Status Status { get; set; }
     public string GenreName { get; set; } = null!;
     public string CategoryName { get; set; } = null!;
     public string SubcategoryName { get; set; } = null!;
+    public double Rating { get; set; }
     public int ChapterCount { get; set; }
     public List<string> Tags { get; set; } = [];
     public List<AuthorResponse> Authors { get; set; } = [];
@@ -28,11 +28,15 @@ public class BookShortResponse
     public string Title { get; set; } = null!;
     public string? CoverImageUrl { get; set; }
     public DateTime? UpdatedDate { get; set; }
-    public string? Language { get; set; }
+    public LanguageCode? Language { get; set; }
     public Status Status { get; set; }
     public int ChapterCount { get; set; }
     public string? GenreName { get; set; }
+    public string? CategoryName { get; set; }
+    public string? SubcategoryName { get; set; }
+    public double? Rating { get; set; }
     public List<AuthorResponse>? Authors { get; set; } = [];
+    public List<string>? Tags { get; set; } = [];
 }
 
 

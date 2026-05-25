@@ -114,6 +114,11 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
             .HasDefaultValue(Status.Ongoing);
 
         modelBuilder.Entity<Book>()
+            .Property(b => b.Language)
+            .HasConversion<string>()
+            .HasDefaultValue(LanguageCode.En);
+
+        modelBuilder.Entity<Book>()
             .HasMany(b => b.BookLikes)
             .WithOne(bl => bl.Book)
             .HasForeignKey(bl => bl.BookId)

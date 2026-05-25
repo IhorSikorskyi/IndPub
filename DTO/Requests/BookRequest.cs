@@ -14,7 +14,7 @@ public class BookCreateRequest
     public DateTime PublishedDate { get; set; } = DateTime.Now;
     public DateTime? UpdateDate { get; set; } = DateTime.Now;
 
-    public required string Language { get; set; }
+    public required LanguageCode Language { get; set; } = LanguageCode.En;
 
     public required Status Status { get; set; } = Status.Ongoing;
 

@@ -13,6 +13,7 @@ public class Review : BaseEntity
     [Range(0.5, 5.0)]
     public required double Rating { get; set; }
     [MinLength(1)]
+    [MaxLength(10000)]
     public required string Text { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

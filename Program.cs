@@ -47,6 +47,7 @@ builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<ILibraryRepository, LibraryRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+builder.Services.AddScoped<IBookLikeRepository, BookLikeRepository>();
 
 // DI Container registrations for infrastructure services
 builder.Services.AddScoped<IBlobService, BlobService>();

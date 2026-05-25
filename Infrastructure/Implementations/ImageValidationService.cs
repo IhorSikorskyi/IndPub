@@ -11,11 +11,6 @@ public class ImageValidationService : IImageValidationService
             return false;
         }
 
-        //if (image.Length > maxSizeBytes)
-        //{
-        //    return false;
-        //}
-
         var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             ".jpg", ".jpeg", ".png"

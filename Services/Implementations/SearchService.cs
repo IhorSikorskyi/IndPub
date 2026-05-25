@@ -1,37 +1,45 @@
-﻿using IndPubBack.DTO.Responses;
+﻿using IndPubBack.DTO.Requests;
+using IndPubBack.DTO.Responses;
+using IndPubBack.Exceptions;
+using IndPubBack.Models;
+using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 
 namespace IndPubBack.Services.Implementations;
 
-public class SearchService : ISearchService
+public class SearchService(IBookRepository bookRepository) : ISearchService
 {
-    //TODO: Add pagination and filtering
     public async Task<IList<BookShortResponse>> GetAllBooksAsync()
     {
-        throw new NotImplementedException();
+        var books = await bookRepository.GetAllAsync();
+        return books.Select(MapToBookShortResponse).ToList();
     }
 
-    //TODO: Add pagination and filtering
-    public async Task<IList<BookShortResponse>> GetBooksByAuthorIdAsync(Guid authorId)
+    public async Task<IList<BookShortResponse>> GetBooksByFiltersAsync(BookSearchRequest request)
     {
-        throw new NotImplementedException();
+        var books = await bookRepository.SearchAsync(request);
+        return books.Select(MapToBookShortResponse).ToList();
     }
 
-    //TODO: Add pagination and filtering
-    public async Task<IList<BookShortResponse>> GetBooksByGenreAsync(Guid genreId)
+    private static BookShortResponse MapToBookShortResponse(Book book)
     {
-        throw new NotImplementedException();
-    }
-
-    //TODO: Add pagination and filtering
-    public async Task<IList<BookShortResponse>> GetBooksByTagsAsync(Guid tagId)
-    {
-        throw new NotImplementedException();
-    }
-
-    //TODO: Add pagination and filtering
-    public async Task<IList<BookShortResponse>> SearchBooksAsync(string query)
-    {
-        throw new NotImplementedException();
+        return new BookShortResponse
+        {
+            BookId = book.Id,
+            Title = book.Title,
+            CoverImageUrl = book.CoverImageUrl,
+            UpdatedDate = book.UpdatedDate,
+            Language = book.Language,
+            Status = book.Status,
+            ChapterCount = book.Chapters.Count,
+            GenreName = book.Genre.Name,
+            Authors = [..book.BookAuthors.Select(ba => new AuthorResponse
+            {
+                Id = ba.User.Id,
+                Login = ba.User.Login,
+                ProfilePictureUrl = ba.User.ProfilePictureUrl
+            })],
+            Rating = book.Reviews.Count > 0 ? book.Reviews.Average(r => r.Rating) : 0
+        };
     }
 }

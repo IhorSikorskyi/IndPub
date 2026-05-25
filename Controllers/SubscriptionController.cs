@@ -13,24 +13,23 @@ namespace IndPubBack.Controllers
     [Authorize]
     [Route("api/subscriptions")]
     [ApiController]
-    public class SubscriptionController(ISubscriptionService subscriptionService) : ControllerBase
+    public class SubscriptionController(ISubscriptionService subscriptionService) : BaseController
     {
         private const string GenericErrorMessage = "An error occurred while processing your request.";
 
         [HttpGet]
-        public async Task<ActionResult<UserActivitiesResponse>> GetSubscriptionListAsync([FromBody]SubscriptionListRequest request)
+        public async Task<ActionResult<UserActivitiesResponse>> GetSubscriptionListAsync(
+            [FromQuery] SubscriptionListRequest request)
         {
             try
             {
-                var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                                  ?? User.FindFirst("sub")?.Value;
-
-                if (!Guid.TryParse(userIdValue, out var userId))
+                var userId = GetCurrentUserId();
+                if (userId is null)
                 {
-                    return Unauthorized(new { message = "Invalid user id in token." });
+                    return Unauthorized(new { message = InvalidMessage });
                 }
 
-                var result = await subscriptionService.GetSubscriptionListAsync(userId, request);
+                var result = await subscriptionService.GetSubscriptionListAsync(userId.Value, request);
                 return Ok(result);
             }
             catch (ValidationException ex)
@@ -53,15 +52,13 @@ namespace IndPubBack.Controllers
         {
             try
             {
-                var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                                  ?? User.FindFirst("sub")?.Value;
-
-                if (!Guid.TryParse(userIdValue, out var userId))
+                var userId = GetCurrentUserId();
+                if (userId is null)
                 {
-                    return Unauthorized(new { message = "Invalid user id in token." });
+                    return Unauthorized(new { message = InvalidMessage });
                 }
 
-                var result = await subscriptionService.SubscribeAsync(authorId, userId);
+                var result = await subscriptionService.SubscribeAsync(authorId, userId.Value);
                 return Ok(result);
             }
             catch (ValidationException ex)
@@ -84,15 +81,13 @@ namespace IndPubBack.Controllers
         {
             try
             {
-                var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                                  ?? User.FindFirst("sub")?.Value;
-
-                if (!Guid.TryParse(userIdValue, out var userId))
+                var userId = GetCurrentUserId();
+                if (userId is null)
                 {
-                    return Unauthorized(new { message = "Invalid user id in token." });
+                    return Unauthorized(new { message = InvalidMessage });
                 }
 
-                var result = await subscriptionService.UnsubscribeAsync(authorId, userId);
+                var result = await subscriptionService.UnsubscribeAsync(authorId, userId.Value);
                 return Ok(result);
             }
             catch (ValidationException ex)
@@ -115,14 +110,13 @@ namespace IndPubBack.Controllers
         {
             try
             {
-                var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                                  ?? User.FindFirst("sub")?.Value;
-                if (!Guid.TryParse(userIdValue, out var userId))
+                var userId = GetCurrentUserId();
+                if (userId is null)
                 {
-                    return Unauthorized(new { message = "Invalid user id in token." });
+                    return Unauthorized(new { message = InvalidMessage });
                 }
 
-                var result = await subscriptionService.IsSubscribedAsync(userId, authorId);
+                var result = await subscriptionService.IsSubscribedAsync(userId.Value, authorId);
                 return Ok(result);
             }
             catch (ValidationException ex)
@@ -140,3 +134,5 @@ namespace IndPubBack.Controllers
         }
     }
 }
+
+

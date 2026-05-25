@@ -13,16 +13,21 @@ public class User : BaseEntity
     public required string Login { get; set; }
 
     [EmailAddress]
+    [MaxLength(254)]
     public required string Email { get; set; }
 
+    [MaxLength(256)]
     public required string PasswordHash { get; set; }
 
+    [MaxLength(1000)]
     public string? Bio { get; set; }
+    [MaxLength(2048)]
     public string? ProfilePictureUrl { get; set; }
     public DateTime JoiningDate { get; set; } = DateTime.UtcNow;
+    [MaxLength(512)]
     public required string RefreshToken { get; set; }
     public DateTime RefreshTokenExpiry { get; set; } = DateTime.UtcNow.AddDays(7);
-    public Roles Role = Roles.User;
+    public Roles Role { get; set; } = Roles.User;
 
     // Exist optional to use virtual collections for lazy loading, but in current implementation we will use eager loading
     // , because of better performance in most cases and requests is not so complex to cause performance issues with eager loading.

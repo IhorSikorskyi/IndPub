@@ -10,12 +10,10 @@ namespace IndPubBack.Controllers;
 
 [ApiController]
 [Route("api")]
-public class AuthController(IAuthService authService) : ControllerBase
+public class AuthController(IAuthService authService) : BaseController
 {
     private const string GenericErrorMessage = "An error occurred while processing your request.";
     private const string RefreshTokenCookieName = "refreshToken";
-
-    #region Authorization
 
     [HttpPost("register")]
     public async Task<ActionResult<UserResponse>> RegisterAsync(
@@ -82,12 +80,10 @@ public class AuthController(IAuthService authService) : ControllerBase
     {
         try
         {
-            var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                              ?? User.FindFirst("sub")?.Value;
-
-            if (!Guid.TryParse(userIdValue, out var userId))
+            var userId = GetCurrentUserId();
+            if (userId is null)
             {
-                return Unauthorized(new { message = "Invalid user id in token." });
+                return Unauthorized(new { message = InvalidMessage });
             }
 
             var refreshToken = Request.Cookies[$"{RefreshTokenCookieName}"];
@@ -96,7 +92,7 @@ public class AuthController(IAuthService authService) : ControllerBase
                 return BadRequest(new { message = "Refresh token cookie is missing." });
             }
 
-            var result = await authService.UpdateAccessTokenAsync(userId, refreshToken);
+            var result = await authService.UpdateAccessTokenAsync(userId.Value, refreshToken);
             return Ok(new { accessToken = result.AccessToken });
         }
         catch (ValidationException ex)
@@ -119,21 +115,19 @@ public class AuthController(IAuthService authService) : ControllerBase
     {
         try
         {
-            var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                              ?? User.FindFirst("sub")?.Value;
-
-            if (!Guid.TryParse(userIdValue, out var userId))
+            var userId = GetCurrentUserId();
+            if (userId is null)
             {
-                return Unauthorized(new { message = "Invalid user id in token." });
+                return Unauthorized(new { message = InvalidMessage });
             }
 
-            var refreshToken = Request.Cookies["refreshToken"];
+            var refreshToken = Request.Cookies[$"{RefreshTokenCookieName}"];
             if (string.IsNullOrEmpty(refreshToken))
             {
                 return BadRequest(new { message = "Refresh token cookie is missing." });
             }
 
-            var result = await authService.LogoutAsync(userId, refreshToken);
+            var result = await authService.LogoutAsync(userId.Value, refreshToken);
             return Ok(new { success = result });
         }
         catch (ValidationException ex)
@@ -150,5 +144,4 @@ public class AuthController(IAuthService authService) : ControllerBase
         }
     }
 
-    #endregion
 }

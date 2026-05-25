@@ -11,9 +11,10 @@ namespace IndPubBack.Controllers
     [Authorize]
     [ApiController]
     [Route("api/book")]
-    public class BookController(IBookService bookService) : ControllerBase
+    public class BookController(IBookService bookService) : BaseController
     {
         private const string MessageStatus500 = "An error occurred while processing your request.";
+
         [HttpPost("create")]
         public async Task<ActionResult<BookResponse>> CreateBookAsync(
             [FromBody] BookCreateRequest request)
@@ -40,15 +41,13 @@ namespace IndPubBack.Controllers
         {
             try
             {
-                var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                                  ?? User.FindFirst("sub")?.Value;
-
-                if (!Guid.TryParse(userIdValue, out var userId))
+                var userId = GetCurrentUserId();
+                if (userId is null)
                 {
-                    return Unauthorized(new { message = "Invalid user id in token." });
+                    return Unauthorized(new { message = InvalidMessage });
                 }
 
-                var result = await bookService.UpdateBookAsync(request, bookId, userId);
+                var result = await bookService.UpdateBookAsync(request, bookId, userId.Value);
                 return Ok(result);
             }
             catch (ValidationException ex)
@@ -67,15 +66,14 @@ namespace IndPubBack.Controllers
         {
             try
             {
-                var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                                  ?? User.FindFirst("sub")?.Value;
 
-                if (!Guid.TryParse(userIdValue, out var userId))
+                var userId = GetCurrentUserId();
+                if (userId is null)
                 {
-                    return Unauthorized(new { message = "Invalid user id in token." });
+                    return Unauthorized(new { message = InvalidMessage });
                 }
 
-                var result = await bookService.DeleteBookAsync(bookId, userId);
+                var result = await bookService.DeleteBookAsync(bookId, userId.Value);
                 return Ok(result);
             }
             catch (ValidationException ex)

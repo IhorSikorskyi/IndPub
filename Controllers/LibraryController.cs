@@ -3,7 +3,6 @@ using IndPubBack.DTO.Responses;
 using IndPubBack.Exceptions;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -12,25 +11,22 @@ namespace IndPubBack.Controllers;
 [Authorize]
 [Route("api/library")]
 [ApiController]
-public class LibraryController(ILibraryService libraryService) : ControllerBase
+public class LibraryController(ILibraryService libraryService) : BaseController
 {
     private const string GenericErrorMessage = "An error occurred while processing your request.";
-    private const string TokenInvalidMessage = "Invalid user id in token.";
 
     [HttpGet]
-    public async Task<ActionResult<IList<UserActivitiesResponse>>> GetLibraryAsync(LibraryListRequest request)
+    public async Task<ActionResult<IList<UserActivitiesResponse>>> GetLibraryAsync([FromQuery] LibraryListRequest request)
     {
         try
         {
-            var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                              ?? User.FindFirst("sub")?.Value;
-
-            if (!Guid.TryParse(userIdValue, out var userId))
+            var userId = GetCurrentUserId();
+            if (userId is null)
             {
-                return Unauthorized(new { message = $"{TokenInvalidMessage}" });
+                return Unauthorized(new { message = InvalidMessage });
             }
 
-            var result = await libraryService.GetLibraryAsync(userId, request);
+            var result = await libraryService.GetLibraryAsync(userId.Value, request);
 
             return Ok(result);
         }
@@ -54,15 +50,13 @@ public class LibraryController(ILibraryService libraryService) : ControllerBase
     {
         try
         {
-            var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                              ?? User.FindFirst("sub")?.Value;
-
-            if (!Guid.TryParse(userIdValue, out var userId))
+            var userId = GetCurrentUserId();
+            if (userId is null)
             {
-                return Unauthorized(new { message = $"{TokenInvalidMessage}" });
+                return Unauthorized(new { message = InvalidMessage });
             }
 
-            var result = await libraryService.AddToLibraryAsync(bookId, userId);
+            var result = await libraryService.AddToLibraryAsync(bookId, userId.Value);
 
             return Ok(result);
         }
@@ -86,15 +80,13 @@ public class LibraryController(ILibraryService libraryService) : ControllerBase
     {
         try
         {
-            var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                              ?? User.FindFirst("sub")?.Value;
-
-            if (!Guid.TryParse(userIdValue, out var userId))
+            var userId = GetCurrentUserId();
+            if (userId is null)
             {
-                return Unauthorized(new { message = $"{TokenInvalidMessage}" });
+                return Unauthorized(new { message = InvalidMessage });
             }
 
-            var result = await libraryService.RemoveFromLibraryAsync(bookId, userId);
+            var result = await libraryService.RemoveFromLibraryAsync(bookId, userId.Value);
 
             return Ok(result);
         }
@@ -118,14 +110,13 @@ public class LibraryController(ILibraryService libraryService) : ControllerBase
     {
         try
         {
-            var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                              ?? User.FindFirst("sub")?.Value;
-            if (!Guid.TryParse(userIdValue, out var userId))
+            var userId = GetCurrentUserId();
+            if (userId is null)
             {
-                return Unauthorized(new { message = "Invalid user id in token." });
+                return Unauthorized(new { message = InvalidMessage });
             }
 
-            var result = await libraryService.IsBookInLibraryAsync(userId, bookId);
+            var result = await libraryService.IsBookInLibraryAsync(userId.Value, bookId);
             return Ok(result);
         }
         catch (ValidationException ex)
@@ -142,20 +133,18 @@ public class LibraryController(ILibraryService libraryService) : ControllerBase
         }
     }
 
-    [HttpPost]
-    public async Task<ActionResult<bool>> UpdateLibraryEntryStatusAsync([FromBody] LibraryEntryRequest request)
+    [HttpPut]
+    public async Task<ActionResult<bool>> UpdateLibraryEntryStatusAsync([FromQuery] LibraryEntryRequest request)
     {
         try
         {
-            var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                              ?? User.FindFirst("sub")?.Value;
-
-            if (!Guid.TryParse(userIdValue, out var userId))
+            var userId = GetCurrentUserId();
+            if (userId is null)
             {
-                return Unauthorized(new { message = $"{TokenInvalidMessage}" });
+                return Unauthorized(new { message = InvalidMessage });
             }
 
-            var result = await libraryService.UpdateLibraryEntryStatusAsync(userId, request);
+            var result = await libraryService.UpdateLibraryEntryStatusAsync(userId.Value, request);
 
             return Ok(result);
         }

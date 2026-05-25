@@ -1,10 +1,11 @@
-﻿using IndPubBack.Models;
+﻿using IndPubBack.DTO.Requests;
+using IndPubBack.Models;
 
 namespace IndPubBack.Repositories.Interfaces;
 
 public interface IBookRepository : IRepository<Book>
 {
-    Task<Book?> GetByTitleAsync(string title);
     Task<bool> HasTitleAsync(string title);
-    Task<List<Book>> GetBooksByAuthorIdAsync(List<Guid> authorId);
+
+    Task<IList<Book>> SearchAsync(BookSearchRequest request);
 }
