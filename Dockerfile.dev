@@ -1,5 +1,0 @@
-FROM mcr.microsoft.com/dotnet/sdk:10.0
-WORKDIR /app
-COPY ["IndPubBack.csproj", "."]
-RUN dotnet restore "IndPubBack.csproj"
-CMD ["dotnet", "watch", "run", "--urls", "http://0.0.0.0:5000"]
