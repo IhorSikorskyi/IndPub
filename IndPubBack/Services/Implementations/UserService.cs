@@ -14,7 +14,8 @@ public class UserService(
     IUserRepository userRepository,
     IBlobService blobService,
     IPasswordValidationService passwordValidationService,
-    IImageValidationService imageValidationService)
+    IImageValidationService imageValidationService,
+    IAccessValidationService accessValidationService)
     : IUserService
 {
     private static readonly string Check = "Invalid access token.";
@@ -57,11 +58,7 @@ public class UserService(
 
         if (idToDelete != userId)
         {
-            var role = await userRepository.GetUserRoleAsync(userId);
-            if (role != "Admin")
-            {
-                throw new UnauthorizedException("You are not allowed to delete this user.");
-            }
+            await accessValidationService.EnsureUserIsModeratorAsync(userId);
         }
 
         await userRepository.DeleteAsync(idToDelete);

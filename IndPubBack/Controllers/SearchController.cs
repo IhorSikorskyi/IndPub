@@ -10,8 +10,6 @@ namespace IndPubBack.Controllers;
 [ApiController]
 public class SearchController(ISearchService searchService) : BaseController
 {
-    private const string GenericErrorMessage = "An error occurred while processing your request.";
-
     [HttpGet]
     public async Task<ActionResult<IList<BookShortResponse>>> GetBooksByFiltersAsync(
         [FromQuery] BookSearchRequest request)
@@ -27,7 +25,7 @@ public class SearchController(ISearchService searchService) : BaseController
         }
         catch (Exception)
         {
-            return StatusCode(500, new { message = GenericErrorMessage });
+            return StatusCode(500, new { message = MessageStatus500 });
         }
     }
 }

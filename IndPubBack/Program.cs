@@ -27,7 +27,6 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
 // Add Swagger for API documentation
 builder.Services.AddSwaggerGen();
 
@@ -48,12 +47,14 @@ builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<ILibraryRepository, LibraryRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<IBookLikeRepository, BookLikeRepository>();
+builder.Services.AddScoped<IChapterRepository, ChapterRepository>();
 
 // DI Container registrations for infrastructure services
 builder.Services.AddScoped<IBlobService, BlobService>();
 builder.Services.AddScoped<IEntityValidationService, EntityValidationService>();
 builder.Services.AddScoped<IImageValidationService, ImageValidationService>();
 builder.Services.AddScoped<IPasswordValidationService, PasswordValidationService>();
+builder.Services.AddScoped<IAccessValidationService, AccessValidationService>();
 
 // DI Container registrations for services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -63,6 +64,7 @@ builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<ILibraryService, LibraryService>();
 builder.Services.AddScoped<IBookInteractionService, BookInteractionService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
+builder.Services.AddScoped<IChapterService, ChapterService>();
 
 // Azure Blob Storage configuration
 builder.Services.AddSingleton(_ => new BlobServiceClient(

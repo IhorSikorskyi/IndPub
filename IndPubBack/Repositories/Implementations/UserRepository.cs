@@ -54,5 +54,9 @@ namespace IndPubBack.Repositories.Implementations
             return data;
         }
 
+        public async Task<bool> IsExistByLoginOrEmailAsync(string loginOrEmail)
+        {
+            return await dbContext.Users.AnyAsync(u => u.Login == loginOrEmail || u.Email == loginOrEmail);
+        }
     }
 }

@@ -11,7 +11,6 @@ namespace IndPubBack.Controllers;
 [Route("api")]
 public class AuthController(IAuthService authService) : BaseController
 {
-    private const string GenericErrorMessage = "An error occurred while processing your request.";
     private const string RefreshTokenCookieName = "refreshToken";
 
     [HttpPost("register")]
@@ -42,7 +41,7 @@ public class AuthController(IAuthService authService) : BaseController
         }
         catch (Exception)
         {
-            return StatusCode(500, new { message = GenericErrorMessage });
+            return StatusCode(500, new { message = MessageStatus500 });
         }
     }
 
@@ -70,7 +69,7 @@ public class AuthController(IAuthService authService) : BaseController
         }
         catch (Exception)
         {
-            return StatusCode(500, new { message = GenericErrorMessage });
+            return StatusCode(500, new { message = MessageStatus500 });
         }
     }
 
@@ -104,7 +103,7 @@ public class AuthController(IAuthService authService) : BaseController
         }
         catch (Exception)
         {
-            return StatusCode(500, new { message = GenericErrorMessage });
+            return StatusCode(500, new { message = MessageStatus500 });
         }
     }
 
@@ -139,7 +138,7 @@ public class AuthController(IAuthService authService) : BaseController
         }
         catch (Exception)
         {
-            return StatusCode(500, new { message = GenericErrorMessage });
+            return StatusCode(500, new { message = MessageStatus500 });
         }
     }
 

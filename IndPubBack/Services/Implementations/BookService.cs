@@ -12,9 +12,10 @@ namespace IndPubBack.Services.Implementations;
 public class BookService(
     IConfiguration configuration,
     IBookRepository bookRepository,
-    IUserRepository userRepository,
     ITagRepository tagRepository,
     IImageValidationService imageValidationService,
+    IEntityValidationService entityValidationService,
+    IAccessValidationService accessValidationService,
     IBlobService blobService) : IBookService
 {
 
@@ -28,10 +29,7 @@ public class BookService(
             throw new ValidationException("Title is required");
         }
 
-        if (request.AuthorIds is null || request.AuthorIds.Count == 0)
-        {
-            throw new ValidationException("At least one author is required");
-        }
+        ValidateAuthorsNumbers(request.AuthorIds);
 
         if (request.Chapters is null || request.Chapters.Count == 0)
         {
@@ -75,7 +73,7 @@ public class BookService(
             BookId = book.Id
         })];
 
-        await CheckAuthorsExistenceAsync(request.AuthorIds);
+        await Task.WhenAll(request.AuthorIds.Select(entityValidationService.EnsureUserExistsAsync));
 
         book.BookAuthors = [..request.AuthorIds.Select(authorId => new BookAuthor
         {
@@ -102,8 +100,11 @@ public class BookService(
 
     public async Task<BookResponse> UpdateBookAsync(BookUpdateRequest request, Guid bookId, Guid userId)
     {
+        await accessValidationService.EnsureUserIsAuthorOrModeratorAsync(userId, bookId);
         var book = await bookRepository.GetByIdAsync(bookId)
                    ?? throw new NotFoundException("Book not found");
+
+        book.UpdatedDate = DateTime.UtcNow;
 
         if (!string.IsNullOrWhiteSpace(request.Title) && request.Title != book.Title)
         {
@@ -116,7 +117,9 @@ public class BookService(
         }
 
         if (!string.IsNullOrWhiteSpace(request.Description))
+        {
             book.Description = request.Description;
+        }
 
         if (request.CoverImage is not null)
         {
@@ -129,12 +132,12 @@ public class BookService(
             book.CoverImageUrl = await blobService.UploadBlobAsync(folder, request.CoverImage, book.Id);
         }
 
-        book.UpdatedDate = DateTime.UtcNow;
         book.Status = request.Status;
 
         if (request.AuthorIds is not null)
         {
-            await CheckAuthorsExistenceAsync(request.AuthorIds);
+            ValidateAuthorsNumbers(request.AuthorIds);
+            await Task.WhenAll(request.AuthorIds.Select(entityValidationService.EnsureUserExistsAsync));
             book.BookAuthors = [..request.AuthorIds.Select(authorId => new BookAuthor
             {
                 BookId = book.Id,
@@ -161,14 +164,7 @@ public class BookService(
 
     public async Task<bool> DeleteBookAsync(Guid bookId, Guid userId)
     {
-        var role = await userRepository.GetUserRoleAsync(userId);
-        var book = await bookRepository.GetByIdAsync(bookId) 
-                   ?? throw new NotFoundException("Book not found.");
-
-        if (!(role == "Admin" || book.BookAuthors.Any(ba => ba.UserId == userId)))
-        {
-            throw new UnauthorizedException("You are not allowed to delete this book");
-        }
+        await accessValidationService.EnsureUserIsAuthorOrModeratorAsync(userId, bookId);
 
         await bookRepository.DeleteAsync(bookId);
 
@@ -190,14 +186,11 @@ public class BookService(
         return await bookRepository.HasTitleAsync(title);
     }
 
-    private async Task CheckAuthorsExistenceAsync(List<Guid> authorIds)
+    private static void ValidateAuthorsNumbers(List<Guid> authorIds)
     {
-        var existingUserIds = await userRepository.GetExistingIdsAsync(authorIds);
-        var missingIds = authorIds.Except(existingUserIds).ToList();
-
-        if (missingIds.Count > 0)
+        if (authorIds is null || authorIds.Count == 0 || authorIds.Count > 4)
         {
-            throw new NotFoundException($"Users not found: {string.Join(", ", missingIds)}");
+            throw new ValidationException("A book must have at least one author and no more than four authors.");
         }
     }
 
@@ -226,7 +219,7 @@ public class BookService(
             Tags = [..book.BookTags.Select(bt => bt.Tag.Name)],
             Chapters = [..book.Chapters.Select(c => new ChapterShortResponse
             {
-                Id = c.Id,
+                ChapterId = c.Id,
                 Title = c.Title,
                 ChapterNumber = c.ChapterNumber
             })]

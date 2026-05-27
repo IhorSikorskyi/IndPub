@@ -31,7 +31,7 @@ public class BookInteractionController(IBookInteractionService bookInteractionSe
         }
         catch (Exception)
         {
-            return StatusCode(500, new { message = "An error occurred while processing your request." });
+            return StatusCode(500, new { message = MessageStatus500 });
         }
     }
 
@@ -56,7 +56,7 @@ public class BookInteractionController(IBookInteractionService bookInteractionSe
         }
         catch (Exception)
         {
-            return StatusCode(500, new { message = "An error occurred while processing your request." });
+            return StatusCode(500, new { message = MessageStatus500 });
         }
     }
 }

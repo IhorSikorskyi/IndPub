@@ -9,5 +9,6 @@ namespace IndPubBack.Repositories.Interfaces
         Task<bool> ExpireRefreshTokenAsync(Guid userId);
         Task<string> GetUserRoleAsync(Guid userId);
         Task<List<Guid>> GetExistingIdsAsync(List<Guid> ids);
+        Task<bool> IsExistByLoginOrEmailAsync(string loginOrEmail);
     }
 }

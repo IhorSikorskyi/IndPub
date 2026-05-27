@@ -12,24 +12,14 @@ namespace IndPubBack.Controllers
     [ApiController]
     public class UserController(IUserService userService) : BaseController
     {
-        private const string GenericErrorMessage = "An error occurred while processing your request.";
-
         [AllowAnonymous]
-        [HttpGet("{userId}")]
+        [HttpGet("{userId:guid}")]
         public async Task<ActionResult<UserInfoResponse>> GetProfileAsync(
             [FromRoute] Guid userId)
         {
             try
             {
-                var currentUserId = GetCurrentUserId();
-                if (currentUserId is null)
-                {
-                    return Unauthorized(new { message = InvalidMessage });
-                }
-
-                var profileId = currentUserId ?? userId;
-
-                var response = await userService.GetUserInfoAsync(profileId);
+                var response = await userService.GetUserInfoAsync(userId);
 
                 return Ok(response);
             }
@@ -43,7 +33,36 @@ namespace IndPubBack.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = GenericErrorMessage });
+                return StatusCode(500, new { message = MessageStatus500 });
+            }
+        }
+
+        [HttpGet("profile")]
+        public async Task<ActionResult<UserInfoResponse>> GetUserProfileAsync()
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (userId is null)
+                {
+                    return Unauthorized(new { message = InvalidMessage });
+                }
+
+                var response = await userService.GetUserInfoAsync(userId.Value);
+
+                return Ok(response);
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = MessageStatus500 });
             }
         }
 
@@ -76,7 +95,7 @@ namespace IndPubBack.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = GenericErrorMessage });
+                return StatusCode(500, new { message = MessageStatus500 });
             }
         }
 
@@ -105,7 +124,7 @@ namespace IndPubBack.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = GenericErrorMessage });
+                return StatusCode(500, new { message = MessageStatus500 });
             }
         }
     }

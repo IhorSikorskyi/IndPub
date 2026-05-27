@@ -12,8 +12,6 @@ namespace IndPubBack.Controllers
     [ApiController]
     public class SubscriptionController(ISubscriptionService subscriptionService) : BaseController
     {
-        private const string GenericErrorMessage = "An error occurred while processing your request.";
-
         [HttpGet]
         public async Task<ActionResult<UserActivitiesResponse>> GetSubscriptionListAsync(
             [FromQuery] SubscriptionListRequest request)
@@ -39,7 +37,7 @@ namespace IndPubBack.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = GenericErrorMessage });
+                return StatusCode(500, new { message = MessageStatus500 });
             }
         }
 
@@ -68,7 +66,7 @@ namespace IndPubBack.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = GenericErrorMessage });
+                return StatusCode(500, new { message = MessageStatus500 });
             }
         }
 
@@ -97,7 +95,7 @@ namespace IndPubBack.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = GenericErrorMessage });
+                return StatusCode(500, new { message = MessageStatus500 });
             }
         }
 
@@ -126,7 +124,7 @@ namespace IndPubBack.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { message = GenericErrorMessage });
+                return StatusCode(500, new { message = MessageStatus500 });
             }
         }
     }

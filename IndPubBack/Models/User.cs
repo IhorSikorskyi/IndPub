@@ -54,6 +54,5 @@ public class User : BaseEntity
 public enum Roles
 {
     User,
-    Moderator,
-    Admin
+    Moderator
 }

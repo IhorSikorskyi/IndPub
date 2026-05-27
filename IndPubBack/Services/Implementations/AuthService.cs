@@ -17,7 +17,8 @@ namespace IndPubBack.Services.Implementations;
 public class AuthService(
     IConfiguration configuration, 
     IUserRepository userRepository,
-    IPasswordValidationService passwordValidationService)
+    IPasswordValidationService passwordValidationService,
+    IEntityValidationService entityValidationService)
     : IAuthService
 {
     private static readonly string Check = "Invalid access token.";
@@ -33,10 +34,10 @@ public class AuthService(
             throw new ValidationException("Invalid login or email.");
         }
 
-        var existingUser = await userRepository.GetByLoginAsync(request.Login)
-                           ?? await userRepository.GetByEmailAsync(request.Email);
-
-        if (existingUser != null)
+        var userWithLoginExists = await entityValidationService.IsUserExistsAsync(request.Login);
+        var userWithEmailExists = await entityValidationService.IsUserExistsAsync(request.Email);
+        
+        if (userWithLoginExists || userWithEmailExists)
         {
             throw new ConflictException("User with the same username or email already exists.");
         }

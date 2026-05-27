@@ -12,8 +12,6 @@ namespace IndPubBack.Controllers;
 [ApiController]
 public class LibraryController(ILibraryService libraryService) : BaseController
 {
-    private const string GenericErrorMessage = "An error occurred while processing your request.";
-
     [HttpGet]
     public async Task<ActionResult<IList<UserActivitiesResponse>>> GetLibraryAsync([FromQuery] LibraryListRequest request)
     {
@@ -39,7 +37,7 @@ public class LibraryController(ILibraryService libraryService) : BaseController
         }
         catch (Exception)
         {
-            return StatusCode(500, new { message = GenericErrorMessage });
+            return StatusCode(500, new { message = MessageStatus500 });
         }
     }
 
@@ -69,7 +67,7 @@ public class LibraryController(ILibraryService libraryService) : BaseController
         }
         catch (Exception)
         {
-            return StatusCode(500, new { message = GenericErrorMessage });
+            return StatusCode(500, new { message = MessageStatus500 });
         }
     }
 
@@ -99,7 +97,7 @@ public class LibraryController(ILibraryService libraryService) : BaseController
         }
         catch (Exception)
         {
-            return StatusCode(500, new { message = GenericErrorMessage });
+            return StatusCode(500, new { message = MessageStatus500 });
         }
     }
 
@@ -128,7 +126,7 @@ public class LibraryController(ILibraryService libraryService) : BaseController
         }
         catch (Exception)
         {
-            return StatusCode(500, new { message = GenericErrorMessage });
+            return StatusCode(500, new { message = MessageStatus500 });
         }
     }
 
@@ -157,7 +155,7 @@ public class LibraryController(ILibraryService libraryService) : BaseController
         }
         catch (Exception)
         {
-            return StatusCode(500, new { message = GenericErrorMessage });
+            return StatusCode(500, new { message = MessageStatus500 });
         }
     }
 }

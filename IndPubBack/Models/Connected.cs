@@ -339,6 +339,14 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
             .HasForeignKey(c => c.ChapterId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<Chapter>()
+            .Property(c => c.Content)
+            .HasColumnType("text");
+
+        modelBuilder.Entity<Chapter>()
+            .HasIndex(c => c.ChapterNumber)
+            .IsUnique();
+
         #endregion
 
         #region Subscriptions
@@ -515,11 +523,6 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
 
                     case Chapter chapter when entry.State == EntityState.Added:
                         chapter.CreatedAt = now;
-
-                        var cBook = chapter.Book;
-
-                        cBook.UpdatedDate = now;
-
                         break;
 
                     case LibraryEntry libraryEntry when entry.State == EntityState.Added:

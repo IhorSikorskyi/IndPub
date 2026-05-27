@@ -19,4 +19,8 @@ namespace IndPubBack.Exceptions
     public class InvalidCredentialsException(string message) : Exception(message)
     {
     }
+
+    public class ForbiddenException(string message) : Exception(message)
+    {
+    }
 }

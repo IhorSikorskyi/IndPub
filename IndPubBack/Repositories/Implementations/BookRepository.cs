@@ -53,6 +53,12 @@ public class BookRepository(Connected dbContext) : Repository<Book>(dbContext), 
         return await query.Take(request.PageSize).ToListAsync();
     }
 
+    public async Task<bool> IsUserAuthorAsync(Guid userId, Guid bookId)
+    {
+        return await dbContext.Books
+            .AnyAsync(b => b.Id == bookId && b.BookAuthors.Any(ba => ba.UserId == userId));
+    }
+
     private static IQueryable<Book> ApplyFilters(IQueryable<Book> query, BookSearchRequest request)
     {
         if (!string.IsNullOrEmpty(request.Title))

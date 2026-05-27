@@ -11,6 +11,7 @@ public class Chapter : BaseEntity
     }
 
     [MinLength(1)]
+    [MaxLength(200)]
     public required string Title { get; set; }
     [MinLength(100)]
     public required string Content { get; set; }

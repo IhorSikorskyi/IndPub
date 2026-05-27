@@ -12,8 +12,6 @@ namespace IndPubBack.Controllers
     [Route("api/book")]
     public class BookController(IBookService bookService) : BaseController
     {
-        private const string MessageStatus500 = "An error occurred while processing your request.";
-
         [HttpPost("create")]
         public async Task<ActionResult<BookResponse>> CreateBookAsync(
             [FromBody] BookCreateRequest request)

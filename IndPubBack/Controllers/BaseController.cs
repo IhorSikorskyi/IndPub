@@ -6,6 +6,7 @@ namespace IndPubBack.Controllers;
 public abstract class BaseController : ControllerBase
 {
     protected const string InvalidMessage = "Invalid user id in token.";
+    protected const string MessageStatus500 = "An error occurred while processing your request.";
 
     protected Guid? GetCurrentUserId()
     {

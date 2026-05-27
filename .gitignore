@@ -392,4 +392,14 @@ __azurite_db_queue_extent__.json
 __azurite_db_table__.json
 AzuriteConfig
 
+# Temporary exclude for test projects
 Tests/
+
+# Visual Studio Code extensions
+.vscode/
+
+# Angular CLI
+.angular/
+IndPubFront/.angular/
+IndPubFront/node_modules/
+IndPubFront/dist/

@@ -39,8 +39,6 @@ public class BookShortResponse
     public List<string>? Tags { get; set; } = [];
 }
 
-
-
 public class BookmarkShortResponse
 {
     // UserId from ClaimsPrincipal, so we don't need it here
