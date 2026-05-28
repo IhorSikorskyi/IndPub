@@ -1,7 +1,6 @@
 using IndPubBack.Models;
 using IndPubBack.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Net.NetworkInformation;
 
 namespace IndPubBack.Repositories.Implementations
 {
@@ -15,15 +14,6 @@ namespace IndPubBack.Repositories.Implementations
         public Task<User?> GetByLoginAsync(string login)
         {
             return dbContext.Users.FirstOrDefaultAsync(u => u.Login == login);
-        }
-
-        public async Task<bool> ExpireRefreshTokenAsync(Guid userId)
-        {
-            var affectedRows = await dbContext.Users
-                .Where(u => u.Id == userId)
-                .ExecuteUpdateAsync(s => s.SetProperty(u => u.RefreshTokenExpiry, DateTime.UtcNow));
-
-            return affectedRows > 0;
         }
 
         public async Task<string> GetUserRoleAsync(Guid userId)

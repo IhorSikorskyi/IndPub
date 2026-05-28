@@ -23,10 +23,8 @@ public class User : BaseEntity
     public string? Bio { get; set; }
     [MaxLength(2048)]
     public string? ProfilePictureUrl { get; set; }
-    public DateTime JoiningDate { get; set; } = DateTime.UtcNow;
+    public DateTime JoiningDate { get; set; }
     [MaxLength(512)]
-    public required string RefreshToken { get; set; }
-    public DateTime RefreshTokenExpiry { get; set; } = DateTime.UtcNow.AddDays(7);
     public Roles Role { get; set; } = Roles.User;
 
     // Exist optional to use virtual collections for lazy loading, but in current implementation we will use eager loading,
@@ -49,6 +47,8 @@ public class User : BaseEntity
     public ICollection<Bookmark> Bookmarks { get; set; } = new List<Bookmark>();
 
     public ICollection<BookView> BookViews { get; set; } = new List<BookView>();
+
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }
 
 public enum Roles

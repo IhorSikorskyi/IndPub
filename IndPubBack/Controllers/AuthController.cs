@@ -19,17 +19,17 @@ public class AuthController(IAuthService authService) : BaseController
     {
         try
         {
-            var result = await authService.RegisterAsync(request);
+            var result  = await authService.RegisterAsync(request);
 
-            Response.Cookies.Append($"{RefreshTokenCookieName}", result.RefreshToken, new CookieOptions
+            Response.Cookies.Append(RefreshTokenCookieName, result.refreshToken, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict, // Change to None, if you need cross-site cookies
-                Expires = result.RefreshTokenExpiry
+                Expires = result.refreshTokenExpiry
             });
 
-            return Ok(new { accessToken = result.AccessToken });
+            return Ok(new { accessToken = result.response });
         }
         catch (ValidationException ex)
         {
@@ -53,15 +53,15 @@ public class AuthController(IAuthService authService) : BaseController
         {
             var result = await authService.LoginAsync(request);
 
-            Response.Cookies.Append($"{RefreshTokenCookieName}", result.RefreshToken, new CookieOptions
+            Response.Cookies.Append(RefreshTokenCookieName, result.refreshToken, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.Strict, // Change to None, if you need cross-site cookies
-                Expires = result.RefreshTokenExpiry
+                Expires = result.refreshTokenExpiry
             });
 
-            return Ok(new { accessToken = result.AccessToken });
+            return Ok(new { accessToken = result.response });
         }
         catch (InvalidCredentialsException ex)
         {
@@ -74,30 +74,50 @@ public class AuthController(IAuthService authService) : BaseController
     }
 
     [HttpPost("refresh")]
-    public async Task<ActionResult<UserResponse>> Refresh()
+    public async Task<ActionResult<UserResponse>> Refresh(
+        [FromHeader(Name = "Authorization")] string? authorization)
     {
         try
         {
-            var userId = GetCurrentUserId();
-            if (userId is null)
+            if (string.IsNullOrEmpty(authorization))
             {
                 return Unauthorized(new { message = InvalidMessage });
             }
 
-            var refreshToken = Request.Cookies[$"{RefreshTokenCookieName}"];
+            var accessToken = authorization.Replace("Bearer ", "");
+
+            var refreshToken = Request.Cookies[RefreshTokenCookieName];
+
             if (string.IsNullOrEmpty(refreshToken))
             {
                 return BadRequest(new { message = "Refresh token cookie is missing." });
             }
 
-            var result = await authService.UpdateAccessTokenAsync(userId.Value, refreshToken);
-            return Ok(new { accessToken = result.AccessToken });
+            var result = await authService.UpdateAccessTokenAsync(accessToken, refreshToken);
+
+            Response.Cookies.Append(RefreshTokenCookieName, result.refreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict, // Change to None, if you need cross-site cookies
+                Expires = result.refreshTokenExpiry
+            });
+
+            return Ok(new { accessToken = result.response });
         }
         catch (ValidationException ex)
         {
             return BadRequest(new { message = ex.Message });
         }
         catch (UnauthorizedException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (NotFoundException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (SecurityException ex)
         {
             return Unauthorized(new { message = ex.Message });
         }
@@ -113,20 +133,18 @@ public class AuthController(IAuthService authService) : BaseController
     {
         try
         {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
-
             var refreshToken = Request.Cookies[$"{RefreshTokenCookieName}"];
+
             if (string.IsNullOrEmpty(refreshToken))
             {
                 return BadRequest(new { message = "Refresh token cookie is missing." });
             }
 
-            var result = await authService.LogoutAsync(userId.Value, refreshToken);
-            return Ok(new { success = result });
+            await authService.LogoutAsync(refreshToken);
+
+            Response.Cookies.Delete(RefreshTokenCookieName);
+
+            return Ok();
         }
         catch (ValidationException ex)
         {
@@ -136,10 +154,17 @@ public class AuthController(IAuthService authService) : BaseController
         {
             return Unauthorized(new { message = ex.Message });
         }
+        catch (NotFoundException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (SecurityException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
         catch (Exception)
         {
             return StatusCode(500, new { message = MessageStatus500 });
         }
     }
-
 }

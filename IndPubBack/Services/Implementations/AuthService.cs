@@ -11,12 +11,14 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using IndPubBack.Infrastructure.Interfaces;
+using SecurityException = IndPubBack.Exceptions.SecurityException;
 
 namespace IndPubBack.Services.Implementations;
 
 public class AuthService(
     IConfiguration configuration, 
     IUserRepository userRepository,
+    IRefreshTokenRepository refreshTokenRepository,
     IPasswordValidationService passwordValidationService,
     IEntityValidationService entityValidationService)
     : IAuthService
@@ -25,7 +27,8 @@ public class AuthService(
 
     #region Authorization
 
-    public async Task<UserResponse> RegisterAsync(RegisterRequest request)
+    public async Task<(UserResponse response, string refreshToken, DateTime refreshTokenExpiry)> 
+        RegisterAsync(RegisterRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Login) || request.Login.Length < 3
                                                      || string.IsNullOrWhiteSpace(request.Email) ||
@@ -53,20 +56,31 @@ public class AuthService(
         {
             Login = request.Login,
             Email = request.Email,
-            PasswordHash = null!, // Will be set after hashing
-            RefreshToken = null! // Will be set after generation
+            PasswordHash = null! // Will be set after generation
         };
 
         user.PasswordHash = HashPassword(user, request.Password);
-        user.RefreshToken = GenerateRefreshToken();
-        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+
+        string rawToken = GenerateRefreshToken();
+        string hashedRefreshToken = HashRefreshToken(rawToken);
+
+        var refreshToken = new RefreshToken
+        {
+            UserId = user.Id,
+            RefreshTokenHash = hashedRefreshToken,
+            RefreshTokenExpiry = DateTime.UtcNow.AddDays(15)
+        };
 
         await userRepository.AddAsync(user);
+        await refreshTokenRepository.AddAsync(refreshToken);
 
-        return await CreateAccessTokenResponseAsync(user);
+        var accessToken = await CreateAccessTokenResponseAsync(user, rawToken, refreshToken.RefreshTokenExpiry);
+
+        return (accessToken, rawToken, refreshToken.RefreshTokenExpiry);
     }
 
-    public async Task<UserResponse> LoginAsync(LoginRequest request)
+    public async Task<(UserResponse response, string refreshToken, DateTime refreshTokenExpiry)> 
+        LoginAsync(LoginRequest request)
     {
         var user = await userRepository.GetByLoginAsync(request.LoginOrEmail)
                    ?? await userRepository.GetByEmailAsync(request.LoginOrEmail) ?? throw new InvalidCredentialsException("Invalid user or password.");
@@ -79,58 +93,71 @@ public class AuthService(
             throw new InvalidCredentialsException("Invalid user or password.");
         }
 
-        if (!ValidateRefreshToken(user, user.RefreshToken))
-        {
-            user.RefreshToken = GenerateRefreshToken();
-            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-            await userRepository.UpdateAsync(user);
-        }
+        string rawToken = GenerateRefreshToken();
+        string hashedRefreshToken = HashRefreshToken(rawToken);
 
-        return await CreateAccessTokenResponseAsync(user);
+        var refreshToken = new RefreshToken
+        {
+            UserId = user.Id,
+            RefreshTokenHash = hashedRefreshToken,
+            RefreshTokenExpiry = DateTime.UtcNow.AddDays(15)
+        };
+
+        await refreshTokenRepository.AddAsync(refreshToken);
+
+        var accessToken = await CreateAccessTokenResponseAsync(user, rawToken, refreshToken.RefreshTokenExpiry);
+
+        return (accessToken, rawToken, refreshToken.RefreshTokenExpiry);
     }
 
-    public async Task<bool> LogoutAsync(Guid userId, string refreshToken)
+    public async Task LogoutAsync(string refreshToken)
     {
-        var user = await userRepository.GetByIdAsync(userId) ?? throw new UnauthorizedException(Check);
+        var token = await ValidateUserRefreshTokenAsync(refreshToken);
 
-        if (!ValidateRefreshToken(user, refreshToken))
-        {
-            throw new UnauthorizedException("Invalid refresh token. Please log in again.");
-        }
-
-        var tokenExpiredSuccessfully = await userRepository.ExpireRefreshTokenAsync(user.Id);
-
-        if (!tokenExpiredSuccessfully)
-        {
-            throw new UnauthorizedException("Failed to expire refresh token. User may have been deleted.");
-        }
-
-        return true;
+        await refreshTokenRepository.RevokeTokenForUserAsync(token.Id);
     }
 
-    public async Task<UserResponse> UpdateAccessTokenAsync(Guid userId, string refreshToken)
+    public async Task<(UserResponse response, string refreshToken, DateTime refreshTokenExpiry)> UpdateAccessTokenAsync(
+        string accessToken, string refreshToken)
     {
-        var user = await userRepository.GetByIdAsync(userId) ?? throw new UnauthorizedException(Check);
+        var userId = GetUserIdFromExpiredToken(accessToken)
+                     ?? throw new UnauthorizedException(Check);
 
-        if (!ValidateRefreshToken(user, refreshToken))
+        var user = await userRepository.GetByIdAsync(userId)
+                   ?? throw new UnauthorizedException(Check);
+
+        var oldRefreshToken = await ValidateUserRefreshTokenAsync(refreshToken);
+
+        await refreshTokenRepository.RevokeTokenForUserAsync(oldRefreshToken.Id);
+
+        string rawToken = GenerateRefreshToken();
+        string hashedRefreshToken = HashRefreshToken(rawToken);
+
+        var newRefreshToken = new RefreshToken
         {
-            throw new UnauthorizedException("Invalid refresh token. Please log in again.");
-        }
+            UserId = user.Id,
+            RefreshTokenHash = hashedRefreshToken,
+            RefreshTokenExpiry = DateTime.UtcNow.AddDays(15),
+            ReplacedByTokenId = oldRefreshToken.Id
+        };
 
-        return await CreateAccessTokenResponseAsync(user);
+        var newAccessToken = await CreateAccessTokenResponseAsync(user, rawToken, newRefreshToken.RefreshTokenExpiry);
+
+        await refreshTokenRepository.AddAsync(newRefreshToken);
+
+        return (newAccessToken, rawToken, newRefreshToken.RefreshTokenExpiry);
     }
 
     #endregion
     
     #region Helpers
 
-    private async Task<UserResponse> CreateAccessTokenResponseAsync(User user)
+    private async Task<UserResponse> CreateAccessTokenResponseAsync(User user, string rawToken, DateTime refreshTokenExpiry)
     {
-
         return new UserResponse
         {
-            RefreshToken = user.RefreshToken,
-            RefreshTokenExpiry = user.RefreshTokenExpiry,
+            RefreshToken = rawToken,
+            RefreshTokenExpiry = refreshTokenExpiry,
             AccessToken = await CreateTokenAsync(user)
         };
     }
@@ -162,6 +189,49 @@ public class AuthService(
         return new JwtSecurityTokenHandler().WriteToken(accessToken);
     }
 
+    private async Task<RefreshToken> ValidateUserRefreshTokenAsync(string rawRefreshToken)
+    {
+        var hashRefreshToken = HashRefreshToken(rawRefreshToken);
+
+        var token = await refreshTokenRepository.GetByHashAsync(hashRefreshToken)
+                    ?? throw new NotFoundException("Invalid refresh token");
+
+        if (token.RevokedAt is not null)
+        {
+            await refreshTokenRepository.RevokeAllTokensForUserAsync(token.UserId);
+            throw new SecurityException("Suspicious activity. Please try logging in again.");
+        }
+
+        if (token.RefreshTokenExpiry < DateTime.UtcNow)
+        {
+            throw new ValidationException("Refresh token expired.");
+        }
+
+        return token;
+    }
+
+    private Guid? GetUserIdFromExpiredToken(string accessToken)
+    {
+        var tokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(configuration.GetValue<string>("AppSettings:AccessToken")!)),
+            ValidateIssuer = true,
+            ValidIssuer = configuration.GetValue<string>("AppSettings:Issuer"),
+            ValidateAudience = true,
+            ValidAudience = configuration.GetValue<string>("AppSettings:Audience"),
+            ValidateLifetime = false
+        };
+
+        var principal = new JwtSecurityTokenHandler()
+            .ValidateToken(accessToken, tokenValidationParameters, out _);
+
+        var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        return Guid.TryParse(userIdClaim, out var userId) ? userId : null;
+    }
+
     private static string GenerateRefreshToken()
     {
         var randomNumber = new byte[32];
@@ -174,18 +244,12 @@ public class AuthService(
     {
         return new PasswordHasher<User>().HashPassword(user, password);
     }
-
-    private static bool ValidateRefreshToken(User? user, string refreshToken)
-    {
-        if (user == null 
-            || user.RefreshToken != refreshToken 
-            || user.RefreshTokenExpiry <= DateTime.UtcNow)
-        {
-            return false;
-        }
-
-        return true;
-    }
     
+    private static string HashRefreshToken(string refreshToken)
+    {
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(refreshToken));
+        return Convert.ToBase64String(hashBytes);
+    }
+
     #endregion
 }

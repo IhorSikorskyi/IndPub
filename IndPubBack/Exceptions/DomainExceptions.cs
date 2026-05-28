@@ -23,4 +23,8 @@ namespace IndPubBack.Exceptions
     public class ForbiddenException(string message) : Exception(message)
     {
     }
+
+    public class SecurityException(string message) : Exception(message)
+    {
+    }
 }

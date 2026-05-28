@@ -7,7 +7,7 @@ public class PasswordValidationService : IPasswordValidationService
 {
     public void EnsurePasswordComplex(string password)
     {
-        if (IsPasswordComplex(password))
+        if (!IsPasswordComplex(password))
         {
             throw new ValidationException(
                 "Password must be at least 8 characters long, " +

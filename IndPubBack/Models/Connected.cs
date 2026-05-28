@@ -24,6 +24,7 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
     public DbSet<BookView> BookViews { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<Subcategory> Subcategories { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     #endregion
 
@@ -478,6 +479,20 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
             .WithOne(b => b.Subcategory)
             .HasForeignKey(b => b.SubcategoryId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        #endregion
+
+        #region RefreshToken
+
+        modelBuilder.Entity<RefreshToken>()
+            .HasOne(rt => rt.User)
+            .WithMany(u => u.RefreshTokens)
+            .HasForeignKey(rt => rt.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<RefreshToken>()
+            .HasIndex(rt => rt.RefreshTokenHash)
+            .IsUnique();
 
         #endregion
     }
