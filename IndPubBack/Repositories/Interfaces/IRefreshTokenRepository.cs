@@ -6,6 +6,6 @@ public interface IRefreshTokenRepository : IRepository<RefreshToken>
 {
     Task RevokeAllTokensForUserAsync(Guid userId);
     Task RevokeTokenForUserAsync(Guid tokenId);
-    Task RemoveOldTokensAsync();
+    Task RemoveOldTokensAsync(CancellationToken cancellationToken = default);
     Task<RefreshToken?> GetByHashAsync(string hash);
 }

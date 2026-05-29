@@ -42,7 +42,7 @@ The solution uses a layered backend structure:
 
 ## Main API Areas
 
-- `api/register`, `api/login`, `api/refresh`, `api/logout`
+- `api/auth`
 - `api/user`
 - `api/book`
 - `api/book-interaction`

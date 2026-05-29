@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace IndPubBack.Controllers;
 
 [ApiController]
-[Route("api")]
+[Route("api/auth")]
 public class AuthController(IAuthService authService) : BaseController
 {
     private const string RefreshTokenCookieName = "refreshToken";
