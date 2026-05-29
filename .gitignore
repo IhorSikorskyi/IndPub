@@ -392,9 +392,6 @@ __azurite_db_queue_extent__.json
 __azurite_db_table__.json
 AzuriteConfig
 
-# Temporary exclude for test projects
-Tests/
-
 # Visual Studio Code extensions
 .vscode/
 

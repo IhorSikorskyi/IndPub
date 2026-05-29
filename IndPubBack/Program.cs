@@ -67,9 +67,19 @@ builder.Services.AddScoped<IBookInteractionService, BookInteractionService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IChapterService, ChapterService>();
 
+// Register the background service for cleaning up old refresh tokens
+builder.Services.AddHostedService<RefreshTokenCleanupService>();
+
 // Azure Blob Storage configuration
 builder.Services.AddSingleton(_ => new BlobServiceClient(
     builder.Configuration.GetValue<string>("AzureStorage:ConnectionString")));
+
+// Configure host options for concurrent service start and stop
+builder.Services.Configure<HostOptions>(options =>
+{
+    options.ServicesStartConcurrently = true;
+    options.ServicesStopConcurrently = true;
+});
 
 // Configure JWT Authentication and Authorization
 builder.Services.AddAuthorization();

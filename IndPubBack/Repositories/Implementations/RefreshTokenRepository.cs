@@ -7,6 +7,7 @@ namespace IndPubBack.Repositories.Implementations;
 
 public class RefreshTokenRepository(Connected dbContext) : Repository<RefreshToken>(dbContext), IRefreshTokenRepository
 {
+    private readonly DateTime _tokenExpiryThreshold = DateTime.UtcNow.AddDays(-5);
     public async Task RevokeAllTokensForUserAsync(Guid userId)
     {
         var tokens = await dbContext.RefreshTokens
@@ -29,14 +30,14 @@ public class RefreshTokenRepository(Connected dbContext) : Repository<RefreshTok
         token.RevokedAt = DateTime.UtcNow;
     }
 
-    public async Task RemoveOldTokensAsync()
+    public async Task RemoveOldTokensAsync(CancellationToken cancellationToken = default)
     {
         var oldTokens = await dbContext.RefreshTokens
-            .Where(rt => rt.RefreshTokenExpiry < DateTime.UtcNow.AddDays(-5))
-            .ToListAsync();
+            .Where(rt => rt.RefreshTokenExpiry < _tokenExpiryThreshold)
+            .ToListAsync(cancellationToken);
 
         dbContext.RefreshTokens.RemoveRange(oldTokens);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<RefreshToken?> GetByHashAsync(string hash)
