@@ -163,6 +163,7 @@ public class BookService(
 
     public async Task<bool> DeleteBookAsync(Guid bookId, Guid userId)
     {
+        await entityValidationService.EnsureBookExistsAsync(bookId);
         await accessValidationService.EnsureUserIsAuthorOrModeratorAsync(userId, bookId);
 
         await bookRepository.DeleteAsync(bookId);
