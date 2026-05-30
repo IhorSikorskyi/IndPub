@@ -7,7 +7,8 @@ namespace IndPubBack.Infrastructure.Implementations;
 public class EntityValidationService(
     IUserRepository userRepository,
     IBookRepository bookRepository,
-    IChapterRepository chapterRepository) : IEntityValidationService
+    IChapterRepository chapterRepository,
+    IReviewRepository reviewRepository) : IEntityValidationService
 {
     public async Task EnsureUserExistsAsync(Guid userId)
     {
@@ -44,6 +45,24 @@ public class EntityValidationService(
         if (chapter.BookId != bookId)
         {
             throw new NotFoundException("Chapter does not belong to the specified book");
+        }
+    }
+
+    public async Task EnsureReviewExistsAsync(Guid reviewId)
+    {
+        if (!await reviewRepository.IsExistAsync(reviewId))
+        {
+            throw new NotFoundException("Review not found");
+        }
+    }
+
+    public async Task EnsureReviewBelongToBookAsync(Guid reviewId, Guid bookId)
+    {
+        var review = await reviewRepository.GetByIdAsync(reviewId) 
+                     ?? throw new NotFoundException("Review not found");
+        if (review.BookId != bookId)
+        {
+            throw new NotFoundException("Review does not belong to the specified book");
         }
     }
 }

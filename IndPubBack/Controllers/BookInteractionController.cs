@@ -11,7 +11,7 @@ namespace IndPubBack.Controllers;
 public class BookInteractionController(IBookInteractionService bookInteractionService) : BaseController
 {
     [HttpPost("{bookId}")]
-    public async Task<ActionResult<bool>> LikeBookAsync(
+    public async Task<ActionResult<bool>> LikeBookInteractionAsync(
         [FromRoute(Name = "bookId")] Guid bookId)
     {
         try
@@ -22,32 +22,7 @@ public class BookInteractionController(IBookInteractionService bookInteractionSe
                 return Unauthorized(new { message = InvalidMessage });
             }
 
-            var result = await bookInteractionService.LikeBookAsync(bookId, userId.Value);
-            return Ok(result);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
-    }
-
-    [HttpDelete("{bookId}")]
-    public async Task<ActionResult<bool>> UnlikeBookAsync(
-        [FromRoute(Name = "bookId")] Guid bookId)
-    {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
-
-            var result = await bookInteractionService.UnlikeBookAsync(bookId, userId.Value);
+            var result = await bookInteractionService.LikeBookInteractionAsync(bookId, userId.Value);
             return Ok(result);
         }
         catch (ValidationException ex)

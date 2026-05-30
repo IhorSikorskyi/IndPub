@@ -32,20 +32,27 @@ public class BookLikeRepository(Connected dbContext) : Repository<BookLike>(dbCo
             .ToListAsync();
     }
 
-    public async Task<bool> IsLikedAsync(Guid bookId, Guid userId)
+    public async Task<bool> LikeInteractionAsync(Guid bookId, Guid userId)
     {
-        return await dbContext.BookLikes
-            .AnyAsync(bl => bl.UserId == userId && bl.BookId == bookId);
-    }
+        var like = await dbContext.BookLikes
+            .FirstOrDefaultAsync(bl => bl.UserId == userId && bl.BookId == bookId);
 
-    public async Task<bool> UnlikeBookAsync(Guid bookId, Guid userId)
-    {
-        var entity = await GetLikedAsync(bookId, userId) ??
-                     throw new NotFoundException("Book bot liked already.");
+        if (like is null)
+        {
+            like = new BookLike
+            {
+                UserId = userId,
+                BookId = bookId
+            };
+            await dbContext.BookLikes.AddAsync(like);
+            await dbContext.SaveChangesAsync();
 
-        dbContext.BookLikes.Remove(entity);
+            return true;
+        }
+
+        dbContext.BookLikes.Remove(like);
         await dbContext.SaveChangesAsync();
 
-        return true;
+        return false;
     }
 }

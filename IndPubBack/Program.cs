@@ -1,4 +1,5 @@
 using Azure.Storage.Blobs;
+using IndPubBack.BackgroundServices;
 using IndPubBack.Infrastructure.Implementations;
 using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Models;
@@ -49,6 +50,8 @@ builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<IBookLikeRepository, BookLikeRepository>();
 builder.Services.AddScoped<IChapterRepository, ChapterRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IReviewLikeRepository, ReviewLikeRepository>();
 
 // DI Container registrations for infrastructure services
 builder.Services.AddScoped<IBlobService, BlobService>();
@@ -66,9 +69,11 @@ builder.Services.AddScoped<ILibraryService, LibraryService>();
 builder.Services.AddScoped<IBookInteractionService, BookInteractionService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IChapterService, ChapterService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 // Register the background service for cleaning up old refresh tokens
 builder.Services.AddHostedService<RefreshTokenCleanupService>();
+builder.Services.AddHostedService<UpdateBookRatingService>();
 
 // Azure Blob Storage configuration
 builder.Services.AddSingleton(_ => new BlobServiceClient(

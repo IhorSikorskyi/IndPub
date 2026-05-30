@@ -7,6 +7,7 @@ namespace IndPubBack.Repositories.Implementations;
 
 public class ChapterRepository(Connected dbContext) : Repository<Chapter>(dbContext), IChapterRepository
 {
+    private readonly DateTime _utcNow = DateTime.UtcNow;
     public async Task<int> GetNextChapterNumberAsync(Guid bookId)
     {
         var lastChapter = await dbContext.Chapters
@@ -22,7 +23,7 @@ public class ChapterRepository(Connected dbContext) : Repository<Chapter>(dbCont
 
         var book = await dbContext.Books.FindAsync(entity.BookId) ?? throw new NotFoundException("Book not found");
 
-        book.UpdatedDate = DateTime.UtcNow;
+        book.UpdatedDate = _utcNow;
 
         await dbContext.SaveChangesAsync();
     }
@@ -33,7 +34,7 @@ public class ChapterRepository(Connected dbContext) : Repository<Chapter>(dbCont
 
         var book = await dbContext.Books.FindAsync(entity.BookId) ?? throw new NotFoundException("Book not found");
 
-        book.UpdatedDate = DateTime.UtcNow;
+        book.UpdatedDate = _utcNow;
 
         await dbContext.SaveChangesAsync();
     }
@@ -56,7 +57,7 @@ public class ChapterRepository(Connected dbContext) : Repository<Chapter>(dbCont
 
         dbContext.Chapters.Remove(chapter);
 
-        book.UpdatedDate = DateTime.UtcNow;
+        book.UpdatedDate = _utcNow;
 
         await dbContext.SaveChangesAsync();
     }

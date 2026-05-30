@@ -12,6 +12,7 @@ namespace IndPubBack.Services.Implementations;
 public class UserService(
     IConfiguration configuration,
     IUserRepository userRepository,
+    IReviewRepository reviewRepository,
     IBlobService blobService,
     IPasswordValidationService passwordValidationService,
     IImageValidationService imageValidationService,
@@ -64,6 +65,12 @@ public class UserService(
         await userRepository.DeleteAsync(idToDelete);
 
         return true;
+    }
+
+    public async Task<IEnumerable<ReviewResponse>> GetAllReviewsByUserAsync(Guid userId)
+    {
+        var reviews = await reviewRepository.GetAllReviewsByUserAsync(userId);
+        return reviews.Select(MapToReviewResponse);
     }
 
     #endregion
@@ -166,6 +173,22 @@ public class UserService(
             JoiningDate = user.JoiningDate,
             SubscribersCount = user.Subscribers.Count
         };
+    }
+
+    private static ReviewResponse MapToReviewResponse(Review review)
+    {
+        var response = new ReviewResponse
+        {
+            Id = review.Id,
+            BookId = review.BookId,
+            BookTitle = review.Book.Title,
+            UserId = review.UserId,
+            UserName = review.User.Login,
+            Rating = review.Rating,
+            Text = review.Text,
+            CreatedAt = review.CreatedAt
+        };
+        return response;
     }
 
     #endregion

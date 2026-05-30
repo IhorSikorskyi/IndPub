@@ -12,8 +12,8 @@ namespace IndPubBack.Controllers;
 [Route("api/book/{bookId}/chapter")]
 public class ChapterController(IChapterService chapterService) : BaseController
 {
-    [HttpPost("create")]
-    public async Task<ActionResult<ChapterResponse>> CreateChapter(
+    [HttpPost]
+    public async Task<ActionResult<ChapterResponse>> CreateChapterAsync(
         [FromBody] ChapterCreateRequest createRequest, [FromRoute(Name = "bookId")] Guid bookId)
     {
         try
@@ -41,8 +41,8 @@ public class ChapterController(IChapterService chapterService) : BaseController
         }
     }
 
-    [HttpPut("update/{chapterId}")]
-    public async Task<ActionResult<ChapterResponse>> UpdateChapter(
+    [HttpPut("{chapterId}")]
+    public async Task<ActionResult<ChapterResponse>> UpdateChapterAsync(
         [FromBody] ChapterUpdateRequest updateRequest,
         [FromRoute(Name = "bookId")] Guid bookId,
         [FromRoute(Name = "chapterId")] Guid chapterId)
@@ -71,7 +71,7 @@ public class ChapterController(IChapterService chapterService) : BaseController
         }
     }
 
-    [HttpDelete("delete/{chapterId}")]
+    [HttpDelete("{chapterId}")]
     public async Task<ActionResult> DeleteChapter(
         [FromRoute(Name = "bookId")] Guid bookId,
         [FromRoute(Name = "chapterId")] Guid chapterId)

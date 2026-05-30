@@ -1,26 +1,24 @@
 ﻿using IndPubBack.Repositories.Interfaces;
 
-namespace IndPubBack.Infrastructure.Implementations;
+namespace IndPubBack.BackgroundServices;
 
-public class RefreshTokenCleanupService(ILogger<RefreshTokenCleanupService> logger, IServiceScopeFactory scopeFactory, IConfiguration configuration) : BackgroundService
+public class RefreshTokenCleanupService(
+    ILogger<RefreshTokenCleanupService> logger, 
+    IServiceScopeFactory scopeFactory, 
+    IConfiguration configuration) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("RefreshTokenCleanupService is starting.");
 
+        await RunCleanupAsync(stoppingToken);
+
         var hours = configuration.GetValue<int>("TokenCleanup:IntervalHours");
         using var timer = new PeriodicTimer(TimeSpan.FromHours(hours));
-
-        try
+        
+        while (await timer.WaitForNextTickAsync(stoppingToken))
         {
-            while (await timer.WaitForNextTickAsync(stoppingToken))
-            {
-                await RunCleanupAsync(stoppingToken);
-            }
-        }
-        catch (OperationCanceledException ex) when (stoppingToken.IsCancellationRequested)
-        {
-            logger.LogInformation(ex, "RefreshTokenCleanupService is stopping.");
+            await RunCleanupAsync(stoppingToken);
         }
     }
 
@@ -36,6 +34,7 @@ public class RefreshTokenCleanupService(ILogger<RefreshTokenCleanupService> logg
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
+            logger.LogInformation("RefreshTokenCleanupService is stopping.");
             throw;
         }
         catch (Exception ex)

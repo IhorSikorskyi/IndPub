@@ -7,4 +7,5 @@ public interface IAccessValidationService
     Task EnsureUserIsModeratorAsync(Guid userId);
 
     Task EnsureUserIsAuthorOrModeratorAsync(Guid userId, Guid bookId);
+    Task EnsureUserIsReviewAuthorOrModeratorAsync(Guid userId, Guid reviewId);
 }

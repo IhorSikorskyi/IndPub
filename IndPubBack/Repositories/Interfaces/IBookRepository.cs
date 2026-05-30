@@ -9,4 +9,5 @@ public interface IBookRepository : IRepository<Book>
 
     Task<IList<Book>> SearchAsync(BookSearchRequest request);
     Task<bool> IsUserAuthorAsync(Guid userId, Guid bookId);
+    Task UpdateRatingAsync(CancellationToken cancellationToken = default);
 }
