@@ -6,7 +6,6 @@ using IndPubBack.Models;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 
-
 namespace IndPubBack.Services.Implementations;
 
 public class BookService(
@@ -214,7 +213,7 @@ public class BookService(
             {
                 Id = ba.UserId,
                 Login = ba.User.Login,
-                ProfilePictureUrl = ba.User?.ProfilePictureUrl
+                ProfilePictureUrl = ba.User.ProfilePictureUrl
             })],
             Tags = [..book.BookTags.Select(bt => bt.Tag.Name)],
             Chapters = [..book.Chapters.Select(c => new ChapterShortResponse

@@ -12,7 +12,7 @@ namespace IndPubBack.Controllers
     [Route("api/book")]
     public class BookController(IBookService bookService) : BaseController
     {
-        [HttpPost("create")]
+        [HttpPost]
         public async Task<ActionResult<BookResponse>> CreateBookAsync(
             [FromBody] BookCreateRequest request)
         {
@@ -31,7 +31,7 @@ namespace IndPubBack.Controllers
             }
         }
 
-        [HttpPut("update/{bookId}")]
+        [HttpPut("{bookId}")]
         public async Task<ActionResult<BookResponse>> UpdateBookAsync(
             [FromBody] BookUpdateRequest request,
             [FromRoute(Name = "bookId")] Guid bookId)
@@ -57,7 +57,7 @@ namespace IndPubBack.Controllers
             }
         }
 
-        [HttpDelete("delete/{bookId}")]
+        [HttpDelete("{bookId}")]
         public async Task<ActionResult<bool>> DeleteBookAsync(
             [FromRoute(Name = "bookId")] Guid bookId)
         {

@@ -133,7 +133,7 @@ public class AuthController(IAuthService authService) : BaseController
     {
         try
         {
-            var refreshToken = Request.Cookies[$"{RefreshTokenCookieName}"];
+            var refreshToken = Request.Cookies[RefreshTokenCookieName];
 
             if (string.IsNullOrEmpty(refreshToken))
             {

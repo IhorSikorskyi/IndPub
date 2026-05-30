@@ -7,4 +7,6 @@ public interface IEntityValidationService
     Task EnsureBookExistsAsync(Guid bookId);
     Task EnsureChapterExistsAsync(Guid chapterId);
     Task EnsureChapterBelongToBookAsync(Guid bookId, Guid chapterId);
+    Task EnsureReviewExistsAsync(Guid reviewId);
+    Task EnsureReviewBelongToBookAsync(Guid reviewId, Guid bookId);
 }

@@ -8,38 +8,11 @@ namespace IndPubBack.Services.Implementations;
 
 public class BookInteractionService(IEntityValidationService entityValidationService, IBookLikeRepository bookLikeRepository) : IBookInteractionService
 {
-    public async Task<bool> LikeBookAsync(Guid bookId, Guid userId)
+    public async Task<bool> LikeBookInteractionAsync(Guid bookId, Guid userId)
     {
         await entityValidationService.EnsureUserExistsAsync(userId);
         await entityValidationService.EnsureBookExistsAsync(bookId);
-
-        if (await bookLikeRepository.IsLikedAsync(bookId, userId))
-        {
-            throw new ConflictException("Book is already liked.");
-        }
-
-        await bookLikeRepository.AddAsync(new BookLike
-        {
-            BookId = bookId,
-            UserId = userId
-        });
-
-        return true;
-    }
-
-    public async Task<bool> UnlikeBookAsync(Guid bookId, Guid userId)
-    {
-        await entityValidationService.EnsureUserExistsAsync(userId);
-
-        await entityValidationService.EnsureBookExistsAsync(bookId);
-
-        if (!await bookLikeRepository.IsLikedAsync(bookId, userId))
-        {
-            throw new ConflictException("Book is not liked.");
-        }
-
-        await bookLikeRepository.UnlikeBookAsync(bookId, userId);
         
-        return true;
+        return await bookLikeRepository.LikeInteractionAsync(bookId, userId);
     }
 }

@@ -5,7 +5,7 @@ using IndPubBack.Repositories.Interfaces;
 
 namespace IndPubBack.Infrastructure.Implementations;
 
-public class AccessValidationService(IUserRepository userRepository, IBookRepository bookRepository) : IAccessValidationService
+public class AccessValidationService(IUserRepository userRepository, IBookRepository bookRepository, IReviewRepository reviewRepository) : IAccessValidationService
 {
     public async Task EnsureUserIsAuthorAsync(Guid userId, Guid bookId)
     {
@@ -33,6 +33,19 @@ public class AccessValidationService(IUserRepository userRepository, IBookReposi
         if(!isAuthor && role != nameof(Roles.Moderator))
         {
             throw new ForbiddenException("You are not an author or a moderator of this book");
+        }
+    }
+
+    public async Task EnsureUserIsReviewAuthorOrModeratorAsync(Guid userId, Guid reviewId)
+    {
+        var review = await reviewRepository.GetByIdAsync(reviewId)
+                     ?? throw new NotFoundException("Review not found");
+
+        var role = await userRepository.GetUserRoleAsync(userId);
+
+        if (review.UserId != userId && role != nameof(Roles.Moderator))
+        {
+            throw new ForbiddenException("You are not the author of this review.");
         }
     }
 }

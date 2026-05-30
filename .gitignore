@@ -381,6 +381,7 @@ migrations/
 *.migration.json
 
 appsettings.*
+!appsettings.example.json
 
 # Azure/ Azurite
 AzuriteData/

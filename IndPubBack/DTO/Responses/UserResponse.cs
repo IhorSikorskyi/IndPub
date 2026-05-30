@@ -31,7 +31,7 @@ public class UserActivitiesResponse
 {
     public IList<LibraryEntryResponse>? Library { get; set; } = [];
     public IList<BookShortResponse>? LikedBooks { get; set; } = [];
-    public IList<ReviewShortResponse>? Reviews { get; set; } = [];
+    public IList<ReviewResponse>? Reviews { get; set; } = [];
     public IList<LikeReviewResponse>? LikeReview { get; set; } = [];
     public IList<CommentShortResponse>? Comments { get; set; } = [];
     public IList<LikeCommentResponse>? LikeComment { get; set; } = [];

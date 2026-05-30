@@ -21,7 +21,7 @@ public class Review : BaseEntity
     public Book Book { get; set; } = null!;
 
     public Guid UserId { get; set; }
-    public required User User { get; set; } = null!;
+    public User User { get; set; } = null!;
 
     public ICollection<ReviewLike> ReviewLikes { get; set; } = new List<ReviewLike>();
     public ICollection<Comment> Comments { get; set; } = new List<Comment>();

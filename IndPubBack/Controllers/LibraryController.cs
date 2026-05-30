@@ -35,6 +35,10 @@ public class LibraryController(ILibraryService libraryService) : BaseController
         {
             return Unauthorized(new { message = ex.Message });
         }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
         catch (Exception)
         {
             return StatusCode(500, new { message = MessageStatus500 });
@@ -64,6 +68,10 @@ public class LibraryController(ILibraryService libraryService) : BaseController
         catch (UnauthorizedException ex)
         {
             return Unauthorized(new { message = ex.Message });
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
         }
         catch (Exception)
         {
@@ -95,6 +103,10 @@ public class LibraryController(ILibraryService libraryService) : BaseController
         {
             return Unauthorized(new { message = ex.Message });
         }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
         catch (Exception)
         {
             return StatusCode(500, new { message = MessageStatus500 });
@@ -124,6 +136,10 @@ public class LibraryController(ILibraryService libraryService) : BaseController
         {
             return Unauthorized(new { message = ex.Message });
         }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
         catch (Exception)
         {
             return StatusCode(500, new { message = MessageStatus500 });
@@ -152,6 +168,10 @@ public class LibraryController(ILibraryService libraryService) : BaseController
         catch (UnauthorizedException ex)
         {
             return Unauthorized(new { message = ex.Message });
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
         }
         catch (Exception)
         {

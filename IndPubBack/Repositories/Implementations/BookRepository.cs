@@ -16,7 +16,6 @@ public class BookRepository(Connected dbContext) : Repository<Book>(dbContext), 
             .Include(b => b.Reviews)
             .Include(b => b.Chapters)
             .ToListAsync();
-
     }
 
     public async Task<bool> HasTitleAsync(string title)
@@ -57,6 +56,21 @@ public class BookRepository(Connected dbContext) : Repository<Book>(dbContext), 
     {
         return await dbContext.Books
             .AnyAsync(b => b.Id == bookId && b.BookAuthors.Any(ba => ba.UserId == userId));
+    }
+
+    public async Task UpdateRatingAsync(CancellationToken cancellationToken = default)
+    {
+        var books = await dbContext.Books
+            .Include(b => b.Reviews)
+            .Where(b => b.Reviews.Count >= 5)
+            .ToListAsync(cancellationToken);
+
+        foreach (var book in books)
+        {
+            book.Rating = book.Reviews.Average(r => r.Rating);
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private static IQueryable<Book> ApplyFilters(IQueryable<Book> query, BookSearchRequest request)
