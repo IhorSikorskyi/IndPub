@@ -19,6 +19,7 @@ namespace Tests
         private readonly Mock<ITagRepository> _tagRepositoryMock;
         private readonly Mock<IReviewRepository> _reviewRepositoryMock;
         private readonly Mock<IChapterRepository> _chapterRepositoryMock;
+        private readonly Mock<INotificationRepository> _notificationRepositoryMock;
         private readonly Mock<IBlobService> _blobServiceMock;
         private readonly IConfiguration _configuration;
         private readonly BookService _bookService;
@@ -33,6 +34,7 @@ namespace Tests
             _tagRepositoryMock = new Mock<ITagRepository>();
             _reviewRepositoryMock = new Mock<IReviewRepository>();
             _chapterRepositoryMock = new Mock<IChapterRepository>();
+            _notificationRepositoryMock = new Mock<INotificationRepository>();
             _blobServiceMock = new Mock<IBlobService>();
             _imageValidationServiceMock = new Mock<IImageValidationService>();
             _imageValidationServiceMock.Setup(r => r.ValidateImage(It.IsAny<IFormFile>(), It.IsAny<long>()))
@@ -45,7 +47,8 @@ namespace Tests
             _accessValidationService = new AccessValidationService(
                 _userRepositoryMock.Object,
                 _bookRepositoryMock.Object,
-                _reviewRepositoryMock.Object);
+                _reviewRepositoryMock.Object,
+                _notificationRepositoryMock.Object);
             _configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {

@@ -43,6 +43,7 @@ public class User : BaseEntity
     public ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
     public ICollection<Subscription> Subscribers { get; set; } = new List<Subscription>();
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+    public ICollection<Notification> AuthoredNotifications { get; set; } = new List<Notification>();
 
     public ICollection<Bookmark> Bookmarks { get; set; } = new List<Bookmark>();
 

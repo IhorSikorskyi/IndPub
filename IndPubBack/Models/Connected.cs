@@ -374,12 +374,29 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
         modelBuilder.Entity<Notification>()
             .HasOne(n => n.User)
             .WithMany(u => u.Notifications)
-            .HasForeignKey(n => n.UserId);
+            .HasForeignKey(n => n.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Notification>()
             .HasOne(n => n.Book)
             .WithMany(b => b.Notifications)
             .HasForeignKey(n => n.BookId);
+
+        modelBuilder.Entity<Notification>()
+            .HasOne(n => n.Chapter)
+            .WithMany(c => c.Notifications)
+            .HasForeignKey(n => n.ChapterId);
+
+        modelBuilder.Entity<Notification>()
+            .HasOne(n => n.Author)
+            .WithMany(a => a.AuthoredNotifications)
+            .HasForeignKey(n => n.AuthorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Notification>()
+            .Property(n => n.Type)
+            .HasConversion<string>()
+            .HasDefaultValue(NotificationType.NewChapter);
 
         #endregion
 
@@ -443,6 +460,11 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
             .WithMany(b => b.LibraryEntries)
             .HasForeignKey(le => le.BookId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<LibraryEntry>()
+            .Property(le => le.Status)
+            .HasConversion<string>()
+            .HasDefaultValue(LibraryBookStatus.Reading);
 
         #endregion
 

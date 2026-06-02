@@ -23,4 +23,5 @@ public class Chapter : BaseEntity
 
     public ICollection<Bookmark> Bookmarks { get; set; } = new List<Bookmark>();
     public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+    public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }

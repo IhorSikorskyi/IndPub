@@ -21,8 +21,8 @@ public class Book : BaseEntity
 
     public double Rating { get; set; } = 0;
     
-    public required LanguageCode Language { get; set; } = LanguageCode.En;
-    public required Status Status { get; set; } = Status.Ongoing;
+    public LanguageCode Language { get; set; } = LanguageCode.En;
+    public Status Status { get; set; } = Status.Ongoing;
 
     public Guid GenreId { get; set; }
     public Genre Genre { get; set; } = null!;

@@ -5,7 +5,12 @@ using IndPubBack.Repositories.Interfaces;
 
 namespace IndPubBack.Infrastructure.Implementations;
 
-public class AccessValidationService(IUserRepository userRepository, IBookRepository bookRepository, IReviewRepository reviewRepository) : IAccessValidationService
+public class AccessValidationService(
+    IUserRepository userRepository, 
+    IBookRepository bookRepository, 
+    IReviewRepository reviewRepository,
+    INotificationRepository notificationRepository
+    ) : IAccessValidationService
 {
     public async Task EnsureUserIsAuthorAsync(Guid userId, Guid bookId)
     {
@@ -46,6 +51,19 @@ public class AccessValidationService(IUserRepository userRepository, IBookReposi
         if (review.UserId != userId && role != nameof(Roles.Moderator))
         {
             throw new ForbiddenException("You are not the author of this review.");
+        }
+    }
+
+    public async Task EnsureUserIsNotificationOwnerOrModeratorAsync(Guid userId, Guid notificationId)
+    {
+        var notification = await notificationRepository.GetByIdAsync(notificationId)
+                           ?? throw new NotFoundException("Notification not found");
+
+        var role = await userRepository.GetUserRoleAsync(userId);
+
+        if (notification.UserId != userId && role != nameof(Roles.Moderator))
+        {
+            throw new ForbiddenException("You are not the owner of this notification.");
         }
     }
 }

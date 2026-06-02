@@ -52,6 +52,7 @@ builder.Services.AddScoped<IChapterRepository, ChapterRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IReviewLikeRepository, ReviewLikeRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
 // DI Container registrations for infrastructure services
 builder.Services.AddScoped<IBlobService, BlobService>();
@@ -70,14 +71,11 @@ builder.Services.AddScoped<IBookInteractionService, BookInteractionService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IChapterService, ChapterService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Register the background service for cleaning up old refresh tokens
 builder.Services.AddHostedService<RefreshTokenCleanupService>();
 builder.Services.AddHostedService<UpdateBookRatingService>();
-
-// Azure Blob Storage configuration
-builder.Services.AddSingleton(_ => new BlobServiceClient(
-    builder.Configuration.GetValue<string>("AzureStorage:ConnectionString")));
 
 // Configure host options for concurrent service start and stop
 builder.Services.Configure<HostOptions>(options =>
@@ -85,6 +83,10 @@ builder.Services.Configure<HostOptions>(options =>
     options.ServicesStartConcurrently = true;
     options.ServicesStopConcurrently = true;
 });
+
+// Azure Blob Storage configuration
+builder.Services.AddSingleton(_ => new BlobServiceClient(
+    builder.Configuration.GetValue<string>("AzureStorage:ConnectionString")));
 
 // Configure JWT Authentication and Authorization
 builder.Services.AddAuthorization();
