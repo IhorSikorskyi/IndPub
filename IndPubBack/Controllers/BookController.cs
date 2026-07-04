@@ -63,7 +63,6 @@ namespace IndPubBack.Controllers
         {
             try
             {
-
                 var userId = GetCurrentUserId();
                 if (userId is null)
                 {

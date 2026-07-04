@@ -12,5 +12,6 @@ public interface IReviewService
 
     Task<IEnumerable<ReviewResponse>> GetAllReviewsForBookAsync(Guid bookId);
     Task<ReviewResponse> GetUserReviewAsync(Guid bookId, Guid userId);
-    Task<bool> LikeReviewInteractionAsync(Guid reviewId, Guid userId);
+    Task<bool> LikeReviewAsync(Guid reviewId, Guid userId);
+    Task<bool> UnLikeReviewAsync(Guid reviewId, Guid userId);
 }

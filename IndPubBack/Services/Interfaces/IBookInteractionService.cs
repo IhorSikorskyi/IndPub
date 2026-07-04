@@ -2,6 +2,8 @@
 
 public interface IBookInteractionService
 {
-    Task<bool> LikeBookInteractionAsync(Guid bookId, Guid userId);
+    Task<bool> LikeBookAsync(Guid bookId, Guid userId);
+    Task<bool> UnLikeBookAsync(Guid bookId, Guid userId);
+
     //TODO: Add methods to manage book views
 }

@@ -1,7 +1,6 @@
 ﻿using IndPubBack.DTO.Requests;
 using IndPubBack.DTO.Responses;
 using IndPubBack.Exceptions;
-using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -124,7 +123,39 @@ public class ReviewController(IReviewService reviewService) : BaseController
                 return Unauthorized(new { message = InvalidMessage });
             }
 
-            bool liked = await reviewService.LikeReviewInteractionAsync(reviewId, userId.Value);
+            bool liked = await reviewService.LikeReviewAsync(reviewId, userId.Value);
+            return Ok(new { liked });
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ForbiddenException ex)
+        {
+            return StatusCode(403, new { message = ex.Message });
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = MessageStatus500 });
+        }
+    }
+
+    [HttpDelete("{reviewId}/like")]
+    public async Task<ActionResult> UnLikeReviewAsync([FromRoute(Name = "reviewId")] Guid reviewId)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            if (userId is null)
+            {
+                return Unauthorized(new { message = InvalidMessage });
+            }
+
+            bool liked = await reviewService.UnLikeReviewAsync(reviewId, userId.Value);
             return Ok(new { liked });
         }
         catch (NotFoundException ex)

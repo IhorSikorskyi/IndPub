@@ -110,37 +110,4 @@ public class SubscriptionController(ISubscriptionService subscriptionService) : 
             return StatusCode(500, new { message = MessageStatus500 });
         }
     }
-
-    [HttpGet("isSubscribed/{authorId}")]
-    public async Task<ActionResult<bool>> IsSubscribedAsync(
-        [FromRoute(Name = "authorId")] Guid authorId)
-    {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
-
-            var result = await subscriptionService.IsSubscribedAsync(userId.Value, authorId);
-            return Ok(result);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (UnauthorizedException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
-    }
 }

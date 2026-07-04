@@ -15,12 +15,6 @@ public class SubscriptionRepository(Connected dbContext) : Repository<Subscripti
             .FirstOrDefaultAsync();
     }
 
-    public async Task<bool> IsSubscribedAsync(Guid userId, Guid authorId)
-    {
-        return await dbContext.Subscriptions
-            .AnyAsync(s => s.UserId == userId && s.AuthorId == authorId);
-    }
-
     public async Task<IList<Subscription>> GetSubscriptionListAsync(Guid userId, bool isSubscribers, DateTime? cursor, int pageSize)
     {
         IQueryable<Subscription> query = isSubscribers
@@ -38,14 +32,15 @@ public class SubscriptionRepository(Connected dbContext) : Repository<Subscripti
             .ToListAsync();
     }
 
-    public async Task<bool> UnSubscribedAsync(Guid userId, Guid authorId)
+    public async Task UnSubscribedAsync(Subscription sub)
     {
-        var entity = await GetSubscriptionAsync(userId, authorId) ??
-                     throw new NotFoundException("Subscription not found");
-
-        dbContext.Subscriptions.Remove(entity);
+        dbContext.Subscriptions.Remove(sub);
         await dbContext.SaveChangesAsync();
+    }
 
-        return true;
+    public async Task<bool> IsSubscribedAsync(Guid userId, Guid authorId)
+    {
+        return await dbContext.Subscriptions
+            .AnyAsync(s => s.UserId == userId && s.AuthorId == authorId);
     }
 }

@@ -109,15 +109,46 @@ public class ReviewService(
         return MapToReviewResponse(review);
     }
 
-    public async Task<bool> LikeReviewInteractionAsync(Guid reviewId, Guid userId)
+    public async Task<bool> LikeReviewAsync(Guid reviewId, Guid userId)
     {
         await entityValidationService.EnsureReviewExistsAsync(reviewId);
         await entityValidationService.EnsureUserExistsAsync(userId);
 
-        return await reviewLikeRepository.LikeInteractionAsync(reviewId, userId);
+        if (await IsReviewLiked(reviewId, userId))
+        {
+            throw new ConflictException("Review is liked");
+        }
+
+        var like = new ReviewLike
+        {
+            ReviewId = reviewId,
+            UserId = userId
+        };
+
+        await reviewLikeRepository.AddAsync(like);
+
+        return true;
+    }
+
+    public async Task<bool> UnLikeReviewAsync(Guid reviewId, Guid userId)
+    {
+        await entityValidationService.EnsureReviewExistsAsync(reviewId);
+        await entityValidationService.EnsureUserExistsAsync(userId);
+
+        var like = await reviewLikeRepository.GetByIdAsync(reviewId) 
+                   ?? throw new ConflictException("Review is not liked");
+
+        await reviewLikeRepository.UnLikeReviewAsync(like);
+
+        return true;
     }
 
     #endregion
+
+    private async Task<bool> IsReviewLiked(Guid reviewId, Guid userId)
+    {
+        return await reviewLikeRepository.IsReviewLikedAsync(reviewId, userId);
+    }
 
     private static ReviewResponse MapToReviewResponse(Review review)
     {

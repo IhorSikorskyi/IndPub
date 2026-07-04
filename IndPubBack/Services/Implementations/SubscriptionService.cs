@@ -5,6 +5,7 @@ using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Models;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
+using Microsoft.AspNetCore.SignalR;
 
 namespace IndPubBack.Services.Implementations;
 
@@ -34,7 +35,7 @@ public class SubscriptionService(ISubscriptionRepository subscriptionRepository,
 
         if (await IsSubscribedAsync(userId, authorId))
         {
-            throw new ConflictException("You already subscribe");
+            throw new ConflictException("You subscribe");
         }
 
         var sub = new Subscription
@@ -53,18 +54,16 @@ public class SubscriptionService(ISubscriptionRepository subscriptionRepository,
         await entityValidationService.EnsureUserExistsAsync(userId);
 
         await entityValidationService.EnsureUserExistsAsync(authorId);
+        
+        var sub = await subscriptionRepository.GetSubscriptionAsync(userId, authorId) ??
+                  throw new ConflictException("You not subscribe");
 
-        if (!await IsSubscribedAsync(userId, authorId))
-        {
-            throw new ConflictException("You already not subscribe");
-        }
-
-        await subscriptionRepository.UnSubscribedAsync(userId, authorId);
+        await subscriptionRepository.UnSubscribedAsync(sub);
 
         return true;
     }
 
-    public async Task<bool> IsSubscribedAsync(Guid userId, Guid authorId)
+    private async Task<bool> IsSubscribedAsync(Guid userId, Guid authorId)
     {
         return await subscriptionRepository.IsSubscribedAsync(userId, authorId);
     }

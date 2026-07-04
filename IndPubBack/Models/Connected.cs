@@ -574,6 +574,10 @@ public class Connected(DbContextOptions<Connected> options) : DbContext(options)
                     case BookLike bookLike when entry.State == EntityState.Added:
                         bookLike.LikedAt = now;
                         break;
+
+                    case ReviewLike reviewLike when entry.State == EntityState.Added:
+                        reviewLike.LikedAt = now;
+                        break;
                 }
             }
         }

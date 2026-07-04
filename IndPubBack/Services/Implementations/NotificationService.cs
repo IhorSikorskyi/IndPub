@@ -32,10 +32,27 @@ public class NotificationService(INotificationRepository notificationRepository,
         return notifications.Select(MapToNotificationResponse);
     }
 
-    public async Task<NotificationResponse> CreateNotificationAsync(BookNotificationRequest request,
-        Guid userId)
+    public async Task<NotificationResponse> CreateNotificationAsync(NotificationRequest request, Guid userId)
     {
         await entityValidationService.EnsureUserExistsAsync(userId);
+
+        string message;
+        NotificationType type;
+
+        if (request.ChapterName is not null)
+        {
+            message = NewChapterTemplate(request.ChapterName, request.Title);
+            type = NotificationType.NewChapter;
+        }
+        else if (request.AuthorName is not null)
+        {
+            message = NewAuthorTemplate(request.AuthorName, request.Title);
+            type = NotificationType.NewBook;
+        }
+        else
+        {
+            throw new NotFoundException(Exception);
+        }
 
         var notification = new Notification
         {
@@ -43,28 +60,8 @@ public class NotificationService(INotificationRepository notificationRepository,
             UserId = userId,
             BookId = request.BookId,
             ChapterId = request.ChapterId,
-            Type = NotificationType.NewChapter,
-            Message = NewChapterTemplate(request.ChapterName ?? throw new NotFoundException(Exception), request.Title)
-        };
-
-        await notificationRepository.AddAsync(notification);
-
-        return MapToNotificationResponse(notification);
-    }
-
-    public async Task<NotificationResponse> CreateNotificationAsync(AuthorNotificationRequest request,
-        Guid userId)
-    {
-        await entityValidationService.EnsureUserExistsAsync(userId);
-
-        var notification = new Notification
-        {
-            Id = Guid.NewGuid(),
-            UserId = userId,
-            AuthorId = request.AuthorId,
-            BookId = request.BookNotification.BookId,
-            Type = NotificationType.NewBook,
-            Message = NewAuthorTemplate(request.AuthorName ?? throw new NotFoundException(Exception), request.BookNotification.Title)
+            Type = type,
+            Message = message
         };
 
         await notificationRepository.AddAsync(notification);

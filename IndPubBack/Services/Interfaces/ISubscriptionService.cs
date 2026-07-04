@@ -8,5 +8,4 @@ public interface ISubscriptionService
     Task<UserActivitiesResponse> GetSubscriptionListAsync(Guid userId, SubscriptionListRequest request);
     Task<bool> SubscribeAsync(Guid authorId, Guid userId);
     Task<bool> UnsubscribeAsync(Guid authorId, Guid userId);
-    Task<bool> IsSubscribedAsync(Guid userId, Guid authorId);
 }

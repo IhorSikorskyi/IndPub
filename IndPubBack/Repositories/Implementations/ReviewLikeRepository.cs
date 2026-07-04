@@ -6,26 +6,32 @@ namespace IndPubBack.Repositories.Implementations;
 
 public class ReviewLikeRepository(Connected dbContext) : Repository<ReviewLike>(dbContext), IReviewLikeRepository
 {
-    public async Task<bool> LikeInteractionAsync(Guid reviewId, Guid userId)
+    public async Task<IList<ReviewLike>> GetLikesAsync(Guid userId, DateTime? cursor, int pageSize)
     {
-        var like = await dbContext.ReviewLikes
-            .FirstOrDefaultAsync(l => l.ReviewId == reviewId && l.UserId == userId);
+        IQueryable<ReviewLike> query = dbContext.ReviewLikes
+            .Where(rl => rl.UserId == userId)
+            .Include(rl => rl.Review);
 
-        if (like is null)
+        if (cursor != null)
         {
-            like = new ReviewLike
-            {
-                ReviewId = reviewId,
-                UserId = userId
-            };
-            await dbContext.ReviewLikes.AddAsync(like);
-            await dbContext.SaveChangesAsync();
-
-            return true;
+            query = query.Where(rl => rl.Review.CreatedAt < cursor);
         }
 
+        return await query
+            .OrderByDescending(rl => rl.LikedAt)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
+    public async Task UnLikeReviewAsync(ReviewLike like)
+    {
         dbContext.ReviewLikes.Remove(like);
         await dbContext.SaveChangesAsync();
-        return false;
+    }
+
+    public async Task<bool> IsReviewLikedAsync(Guid reviewId, Guid userId)
+    {
+        return await dbContext.ReviewLikes
+            .AnyAsync(rl => rl.ReviewId == reviewId && rl.UserId == userId);
     }
 }

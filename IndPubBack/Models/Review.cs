@@ -33,4 +33,6 @@ public class ReviewLike
     public Review Review { get; set; } = null!;
     public Guid UserId { get; set; }
     public User User { get; set; } = null!;
+
+    public DateTime LikedAt { get; set; }
 }
