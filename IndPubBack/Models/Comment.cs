@@ -13,7 +13,7 @@ public class Comment : BaseEntity
     [Required]
     [MinLength(1)]
     public required string Text { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
 
     public Guid? ChapterId { get; set; }
     public Chapter? Chapter { get; set; }

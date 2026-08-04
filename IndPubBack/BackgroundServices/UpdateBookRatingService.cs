@@ -8,7 +8,7 @@ public class UpdateBookRatingService(
     IConfiguration configuration) : BackgroundService
 {
     private readonly TimeSpan _updateInterval = TimeSpan.FromHours(
-        configuration.GetValue<int>("UpdateBookRating:IntervalHours", 1));
+        configuration.GetValue("UpdateBookRating:IntervalHours", 1));
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -24,9 +24,9 @@ public class UpdateBookRatingService(
                 await RunRatingUpdate(stoppingToken);
             }
         }
-        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        catch (OperationCanceledException ex) when (stoppingToken.IsCancellationRequested)
         {
-            logger.LogInformation("UpdateBookRatingService is stopping.");
+            logger.LogInformation(ex, "UpdateBookRatingService is stopping.");
         }
     }
 

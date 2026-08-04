@@ -8,5 +8,5 @@ public class Subscription
     public Guid AuthorId { get; set; }
     public User Author { get; set; } = null!;
 
-    public DateTime SubscribedAt { get; set; } = DateTime.UtcNow;
+    public DateTime SubscribedAt { get; set; }
 }

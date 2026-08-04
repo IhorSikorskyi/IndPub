@@ -13,7 +13,7 @@ public class Notification : BaseEntity
     [MinLength(1)]
     [MaxLength(255)]
     public required string Message { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
     public NotificationType Type { get; set; } = NotificationType.NewChapter;
 
     public Guid UserId { get; set; }

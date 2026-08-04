@@ -15,7 +15,7 @@ public class Review : BaseEntity
     [MinLength(1)]
     [MaxLength(10000)]
     public required string Text { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
 
     public Guid BookId { get; set; }
     public Book Book { get; set; } = null!;

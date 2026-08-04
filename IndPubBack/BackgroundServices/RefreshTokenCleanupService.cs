@@ -34,7 +34,7 @@ public class RefreshTokenCleanupService(
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            logger.LogInformation("RefreshTokenCleanupService is stopping.");
+            // Expected during shutdown — rethrow without re-logging, let the host handle it.
             throw;
         }
         catch (Exception ex)
