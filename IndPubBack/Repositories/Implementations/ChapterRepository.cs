@@ -1,11 +1,12 @@
-﻿using IndPubBack.Exceptions;
-using IndPubBack.Models;
+﻿using IndPubBack.Data;
+using IndPubBack.Entities;
+using IndPubBack.Exceptions;
 using IndPubBack.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Repositories.Implementations;
 
-public class ChapterRepository(Connected dbContext) : Repository<Chapter>(dbContext), IChapterRepository
+public class ChapterRepository(IndPubDbContext dbContext) : Repository<Chapter>(dbContext), IChapterRepository
 {
     private readonly DateTime _utcNow = DateTime.UtcNow;
     public async Task<int> GetNextChapterNumberAsync(Guid bookId)

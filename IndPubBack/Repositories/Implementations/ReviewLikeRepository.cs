@@ -1,10 +1,11 @@
-﻿using IndPubBack.Models;
+﻿using IndPubBack.Data;
+using IndPubBack.Entities;
 using IndPubBack.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Repositories.Implementations;
 
-public class ReviewLikeRepository(Connected dbContext) : Repository<ReviewLike>(dbContext), IReviewLikeRepository
+public class ReviewLikeRepository(IndPubDbContext dbContext) : Repository<ReviewLike>(dbContext), IReviewLikeRepository
 {
     public async Task<IList<ReviewLike>> GetLikesAsync(Guid userId, DateTime? cursor, int pageSize)
     {

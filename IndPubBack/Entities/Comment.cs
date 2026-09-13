@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace IndPubBack.Models;
+namespace IndPubBack.Entities;
 
 public class Comment : BaseEntity
 {

@@ -1,5 +1,5 @@
 ﻿using IndPubBack.DTO.Requests;
-using IndPubBack.Models;
+using IndPubBack.Entities;
 
 namespace IndPubBack.Repositories.Interfaces;
 

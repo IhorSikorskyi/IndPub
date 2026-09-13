@@ -1,11 +1,12 @@
-﻿using IndPubBack.Exceptions;
-using IndPubBack.Models;
+﻿using IndPubBack.Data;
+using IndPubBack.Entities;
+using IndPubBack.Exceptions;
 using IndPubBack.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Repositories.Implementations;
 
-public class ReviewRepository(Connected dbContext) : Repository<Review>(dbContext), IReviewRepository
+public class ReviewRepository(IndPubDbContext dbContext) : Repository<Review>(dbContext), IReviewRepository
 {
     public async Task<IEnumerable<Review>> GetAllReviewsForBookAsync(Guid bookId)
     {

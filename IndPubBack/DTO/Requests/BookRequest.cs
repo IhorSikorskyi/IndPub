@@ -1,4 +1,4 @@
-﻿using IndPubBack.Models;
+﻿using IndPubBack.Entities;
 using System.ComponentModel.DataAnnotations;
 
 namespace IndPubBack.DTO.Requests;

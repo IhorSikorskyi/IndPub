@@ -1,6 +1,6 @@
-﻿using IndPubBack.Exceptions;
+﻿using IndPubBack.Entities;
+using IndPubBack.Exceptions;
 using IndPubBack.Infrastructure.Interfaces;
-using IndPubBack.Models;
 using IndPubBack.Repositories.Interfaces;
 
 namespace IndPubBack.Infrastructure.Implementations;

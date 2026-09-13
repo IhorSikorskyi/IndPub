@@ -1,7 +1,6 @@
 using IndPubBack.DTO.Requests;
 using IndPubBack.DTO.Responses;
 using IndPubBack.Exceptions;
-using IndPubBack.Models;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
@@ -11,7 +10,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using IndPubBack.Infrastructure.Interfaces;
-using SecurityException = IndPubBack.Exceptions.SecurityException;
+using IndPubBack.Entities;
 
 namespace IndPubBack.Services.Implementations;
 

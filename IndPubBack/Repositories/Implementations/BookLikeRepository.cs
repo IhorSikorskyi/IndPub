@@ -1,11 +1,12 @@
-﻿using IndPubBack.Exceptions;
-using IndPubBack.Models;
+﻿using IndPubBack.Data;
+using IndPubBack.Entities;
+using IndPubBack.Exceptions;
 using IndPubBack.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Repositories.Implementations;
 
-public class BookLikeRepository(Connected dbContext) : Repository<BookLike>(dbContext), IBookLikeRepository
+public class BookLikeRepository(IndPubDbContext dbContext) : Repository<BookLike>(dbContext), IBookLikeRepository
 {
     public async Task<BookLike?> GetLikedAsync(Guid bookId, Guid userId)
     {

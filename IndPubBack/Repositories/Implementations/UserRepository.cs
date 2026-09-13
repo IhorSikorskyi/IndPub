@@ -1,10 +1,11 @@
-using IndPubBack.Models;
+using IndPubBack.Data;
+using IndPubBack.Entities;
 using IndPubBack.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Repositories.Implementations
 {
-    public class UserRepository(Connected dbContext) : Repository<User>(dbContext), IUserRepository
+    public class UserRepository(IndPubDbContext dbContext) : Repository<User>(dbContext), IUserRepository
     {
         public Task<User?> GetByEmailAsync(string email)
         {

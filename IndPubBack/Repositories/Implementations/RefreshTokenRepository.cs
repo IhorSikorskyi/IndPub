@@ -1,11 +1,12 @@
-﻿using IndPubBack.Exceptions;
-using IndPubBack.Models;
+﻿using IndPubBack.Data;
+using IndPubBack.Entities;
+using IndPubBack.Exceptions;
 using IndPubBack.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Repositories.Implementations;
 
-public class RefreshTokenRepository(Connected dbContext) : Repository<RefreshToken>(dbContext), IRefreshTokenRepository
+public class RefreshTokenRepository(IndPubDbContext dbContext) : Repository<RefreshToken>(dbContext), IRefreshTokenRepository
 {
     private readonly DateTime _tokenExpiryThreshold = DateTime.UtcNow.AddDays(-5);
     public async Task RevokeAllTokensForUserAsync(Guid userId)

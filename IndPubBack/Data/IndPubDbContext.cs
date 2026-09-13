@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using IndPubBack.Entities;
+using Microsoft.EntityFrameworkCore;
 
-namespace IndPubBack.Models;
+namespace IndPubBack.Data;
 
-public class Connected(DbContextOptions<Connected> options) : DbContext(options)
+public class IndPubDbContext(DbContextOptions<IndPubDbContext> options) : DbContext(options)
 {
     #region DbSets
     public DbSet<User> Users { get; set; }

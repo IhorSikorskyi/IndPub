@@ -1,14 +1,15 @@
 ﻿using IndPubBack.DTO.Requests;
 using IndPubBack.DTO.Responses;
+using IndPubBack.Entities;
 using IndPubBack.Exceptions;
 using IndPubBack.Infrastructure.Interfaces;
-using IndPubBack.Models;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
 namespace IndPubBack.Services.Implementations;
 
+//TODO: Refactor this class to follow SRP and clean code principles. Consider splitting it into smaller services or using helper classes for specific functionalities.
 public class UserService(
     IConfiguration configuration,
     IUserRepository userRepository,

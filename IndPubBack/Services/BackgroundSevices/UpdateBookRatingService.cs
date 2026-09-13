@@ -1,6 +1,6 @@
 ﻿using IndPubBack.Repositories.Interfaces;
 
-namespace IndPubBack.BackgroundServices;
+namespace IndPubBack.Services.BackgroundSevices;
 
 public class UpdateBookRatingService(
     ILogger<UpdateBookRatingService> logger,

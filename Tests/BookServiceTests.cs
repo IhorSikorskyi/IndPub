@@ -1,8 +1,8 @@
 ﻿using IndPubBack.DTO.Requests;
+using IndPubBack.Entities;
 using IndPubBack.Exceptions;
 using IndPubBack.Infrastructure.Implementations;
 using IndPubBack.Infrastructure.Interfaces;
-using IndPubBack.Models;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Implementations;
 using Microsoft.AspNetCore.Http;
@@ -17,39 +17,31 @@ namespace Tests
         private readonly Mock<IBookRepository> _bookRepositoryMock;
         private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly Mock<ITagRepository> _tagRepositoryMock;
-        private readonly Mock<IReviewRepository> _reviewRepositoryMock;
-        private readonly Mock<IChapterRepository> _chapterRepositoryMock;
-        private readonly Mock<INotificationRepository> _notificationRepositoryMock;
-        private readonly Mock<IBlobService> _blobServiceMock;
-        private readonly IConfiguration _configuration;
         private readonly BookService _bookService;
-        private readonly Mock<IImageValidationService> _imageValidationServiceMock;
-        private readonly IEntityValidationService _entityValidationService;
-        private readonly IAccessValidationService _accessValidationService;
 
         public BookServiceTests()
         {
             _bookRepositoryMock = new Mock<IBookRepository>();
             _userRepositoryMock = new Mock<IUserRepository>();
             _tagRepositoryMock = new Mock<ITagRepository>();
-            _reviewRepositoryMock = new Mock<IReviewRepository>();
-            _chapterRepositoryMock = new Mock<IChapterRepository>();
-            _notificationRepositoryMock = new Mock<INotificationRepository>();
-            _blobServiceMock = new Mock<IBlobService>();
-            _imageValidationServiceMock = new Mock<IImageValidationService>();
-            _imageValidationServiceMock.Setup(r => r.ValidateImage(It.IsAny<IFormFile>(), It.IsAny<long>()))
+            var reviewRepositoryMock = new Mock<IReviewRepository>();
+            var chapterRepositoryMock = new Mock<IChapterRepository>();
+            var notificationRepositoryMock = new Mock<INotificationRepository>();
+            var blobServiceMock = new Mock<IBlobService>();
+            var imageValidationServiceMock = new Mock<IImageValidationService>();
+            imageValidationServiceMock.Setup(r => r.ValidateImage(It.IsAny<IFormFile>(), It.IsAny<long>()))
                 .Returns(true);
-            _entityValidationService = new EntityValidationService(
+            IEntityValidationService entityValidationService = new EntityValidationService(
                 _userRepositoryMock.Object,
                 _bookRepositoryMock.Object,
-                _chapterRepositoryMock.Object,
-                _reviewRepositoryMock.Object);
-            _accessValidationService = new AccessValidationService(
+                chapterRepositoryMock.Object,
+                reviewRepositoryMock.Object);
+            IAccessValidationService accessValidationService = new AccessValidationService(
                 _userRepositoryMock.Object,
                 _bookRepositoryMock.Object,
-                _reviewRepositoryMock.Object,
-                _notificationRepositoryMock.Object);
-            _configuration = new ConfigurationBuilder()
+                reviewRepositoryMock.Object,
+                notificationRepositoryMock.Object);
+            IConfiguration configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
                     ["AppSettings:AccessToken"] = "ThisIsAVerySecretKeyForJWTTokenGenerationWithAtLeast32Characters!",
@@ -58,13 +50,13 @@ namespace Tests
                 })
                 .Build();
             _bookService = new BookService(
-                _configuration,
+                configuration,
                 _bookRepositoryMock.Object,
                 _tagRepositoryMock.Object,
-                _imageValidationServiceMock.Object,
-                _entityValidationService,
-                _accessValidationService,
-                _blobServiceMock.Object);
+                imageValidationServiceMock.Object,
+                entityValidationService,
+                accessValidationService,
+                blobServiceMock.Object);
         }
 
         #region CreateBookAsync Tests

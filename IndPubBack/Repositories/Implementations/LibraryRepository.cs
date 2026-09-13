@@ -1,11 +1,12 @@
-﻿using IndPubBack.Exceptions;
-using IndPubBack.Models;
+﻿using IndPubBack.Data;
+using IndPubBack.Entities;
+using IndPubBack.Exceptions;
 using IndPubBack.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Repositories.Implementations;
 
-public class LibraryRepository(Connected dbContext) : Repository<LibraryEntry>(dbContext), ILibraryRepository
+public class LibraryRepository(IndPubDbContext dbContext) : Repository<LibraryEntry>(dbContext), ILibraryRepository
 {
     public async Task<LibraryEntry?> GetByIdAsync(Guid userId, Guid bookId)
     {

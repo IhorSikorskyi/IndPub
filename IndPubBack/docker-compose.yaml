@@ -8,10 +8,10 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=${ASPNETCORE_URL_HTTP};${ASPNETCORE_URL_HTTPS}
-      - ConnectionStrings__IndPubConnection=Host=${DB_Host};Database=${DB_Name};Username=${DB_User};Password=${DB_Password}
-      - AppSettings__AccessToken=${AppSettings_AccessToken}
-      - AppSettings__Issuer=${AppSettings_Issuer}
-      - AppSettings__Audience=${AppSettings_Audience}
+      - ConnectionStrings__IndPubConnection=Host=${DB__Host};Database=${DB__Name};Username=${DB__User};Password=${DB__Password}
+      - AppSettings__AccessToken=${AppSettings__AccessToken}
+      - AppSettings__Issuer=${AppSettings__Issuer}
+      - AppSettings__Audience=${AppSettings__Audience}
     ports:
       - "${port_number_1}:${port_number_1}"
       - "${port_number_2}:${port_number_2}"
@@ -22,15 +22,15 @@ services:
   db:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: ${DB_Name}
-      POSTGRES_USER: ${DB_User}
-      POSTGRES_PASSWORD: ${DB_Password}
+      POSTGRES_DB: ${DB__Name}
+      POSTGRES_USER: ${DB__User}
+      POSTGRES_PASSWORD: ${DB__Password}
     ports:
-      - "${DB_Port}:5432"
+      - "${DB__Port}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_User} -d ${DB_Name}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB__User} -d ${DB__Name}"]
       interval: 10s
       timeout: 5s
       retries: 10

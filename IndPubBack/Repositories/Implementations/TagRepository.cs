@@ -1,10 +1,11 @@
-﻿using IndPubBack.Models;
+﻿using IndPubBack.Data;
+using IndPubBack.Entities;
 using IndPubBack.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Repositories.Implementations;
 
-public class TagRepository(Connected dbContext) : Repository<Tag>(dbContext), ITagRepository
+public class TagRepository(IndPubDbContext dbContext) : Repository<Tag>(dbContext), ITagRepository
 {
     public Task<Tag?> GetByNameAsync(string name)
     {

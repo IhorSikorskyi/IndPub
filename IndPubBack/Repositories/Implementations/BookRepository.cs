@@ -1,11 +1,12 @@
-﻿using IndPubBack.DTO.Requests;
-using IndPubBack.Models;
+﻿using IndPubBack.Data;
+using IndPubBack.DTO.Requests;
+using IndPubBack.Entities;
 using IndPubBack.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Repositories.Implementations;
 
-public class BookRepository(Connected dbContext) : Repository<Book>(dbContext), IBookRepository
+public class BookRepository(IndPubDbContext dbContext) : Repository<Book>(dbContext), IBookRepository
 {
     public override async Task<IEnumerable<Book>> GetAllAsync()
     {

@@ -1,9 +1,10 @@
-﻿using IndPubBack.Models;
+﻿using IndPubBack.Data;
+using IndPubBack.Entities;
 using IndPubBack.Repositories.Interfaces;
 
 namespace IndPubBack.Repositories.Implementations;
 
-public class GenreRepository(Connected dbContext) : Repository<Genre>(dbContext), IGenreRepository
+public class GenreRepository(IndPubDbContext dbContext) : Repository<Genre>(dbContext), IGenreRepository
 {
 
 }

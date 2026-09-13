@@ -1,10 +1,11 @@
-﻿using IndPubBack.Models;
+﻿using IndPubBack.Data;
+using IndPubBack.Entities;
 using IndPubBack.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Repositories.Implementations;
 
-public class NotificationRepository(Connected dbContext) : Repository<Notification>(dbContext), INotificationRepository
+public class NotificationRepository(IndPubDbContext dbContext) : Repository<Notification>(dbContext), INotificationRepository
 {
     private readonly DateTime _lastNotificationDate = DateTime.UtcNow.AddMonths(-2);
 

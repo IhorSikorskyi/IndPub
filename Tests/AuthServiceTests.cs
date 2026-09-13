@@ -1,11 +1,10 @@
 ﻿using IndPubBack.DTO.Requests;
+using IndPubBack.Entities;
 using IndPubBack.Exceptions;
 using IndPubBack.Infrastructure.Implementations;
 using IndPubBack.Infrastructure.Interfaces;
-using IndPubBack.Models;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Implementations;
-using IndPubBack.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Moq;
 
@@ -14,30 +13,24 @@ namespace Tests
     public class AuthServiceTests
     {
         private readonly Mock<IUserRepository> _userRepositoryMock;
-        private readonly Mock<IBookRepository> _bookRepositoryMock;
-        private readonly Mock<IChapterRepository> _chapterRepositoryMock;
-        private readonly Mock<IReviewRepository> _reviewRepositoryMock;
         private readonly Mock<IRefreshTokenRepository> _refreshTokenRepositoryMock;
-        private readonly IConfiguration _configuration;
         private readonly AuthService _authService;
-        private readonly IPasswordValidationService _passwordValidationService;
-        private readonly IEntityValidationService _entityValidationService;
 
         public AuthServiceTests()
         {
             _userRepositoryMock = new Mock<IUserRepository>();
-            _bookRepositoryMock = new Mock<IBookRepository>();
-            _chapterRepositoryMock = new Mock<IChapterRepository>();
-            _reviewRepositoryMock = new Mock<IReviewRepository>();
+            var bookRepositoryMock = new Mock<IBookRepository>();
+            var chapterRepositoryMock = new Mock<IChapterRepository>();
+            var reviewRepositoryMock = new Mock<IReviewRepository>();
             _refreshTokenRepositoryMock = new Mock<IRefreshTokenRepository>();
-            _passwordValidationService = new PasswordValidationService();
-            _entityValidationService = new EntityValidationService(
+            IPasswordValidationService passwordValidationService = new PasswordValidationService();
+            IEntityValidationService entityValidationService = new EntityValidationService(
                 _userRepositoryMock.Object,
-                _bookRepositoryMock.Object,
-                _chapterRepositoryMock.Object,
-                _reviewRepositoryMock.Object);
+                bookRepositoryMock.Object,
+                chapterRepositoryMock.Object,
+                reviewRepositoryMock.Object);
 
-            _configuration = new ConfigurationBuilder()
+            IConfiguration configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
                     ["AppSettings:AccessToken"] = "ThisIsAVerySecretKeyForJWTTokenGenerationWithAtLeast32Characters!",
@@ -55,11 +48,11 @@ namespace Tests
                 .Returns(Task.CompletedTask);
 
             _authService = new AuthService(
-                _configuration,
+                configuration,
                 _userRepositoryMock.Object,
                 _refreshTokenRepositoryMock.Object,
-                _passwordValidationService,
-                _entityValidationService);
+                passwordValidationService,
+                entityValidationService);
         }
 
         #region RegisterAsync Tests

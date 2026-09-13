@@ -1,4 +1,4 @@
-﻿namespace IndPubBack.Models;
+﻿namespace IndPubBack.Entities;
 
 public class Category : BaseEntity
 {
