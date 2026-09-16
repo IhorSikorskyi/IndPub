@@ -1,7 +1,7 @@
 ﻿using IndPubBack.DTO.Requests;
 using IndPubBack.DTO.Responses;
 using IndPubBack.Exceptions;
-using IndPubBack.Models;
+using IndPubBack.Entities;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 using IndPubBack.Infrastructure.Interfaces;

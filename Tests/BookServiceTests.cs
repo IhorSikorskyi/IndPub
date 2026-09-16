@@ -386,7 +386,7 @@ namespace Tests
                 Title = title,
                 Description = "Existing description",
                 CoverImageUrl = "https://example.com/cover.jpg",
-                PublishedDate = DateTime.UtcNow.AddDays(-7),
+                CreatedAt = DateTime.UtcNow.AddDays(-7),
                 UpdatedDate = DateTime.UtcNow.AddDays(-1),
                 Language = LanguageCode.En,
                 Status = Status.Ongoing,

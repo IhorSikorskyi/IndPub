@@ -4,22 +4,14 @@ namespace IndPubBack.Entities;
 
 public class Book : BaseEntity
 {
-    public Book()
-        : base()
-    {
-
-    }
-
-    [StringLength(255, MinimumLength = 1)]
+    [MinLength(1)]
     public required string Title { get; set; }
-    [StringLength(5000, MinimumLength = 3)]
+    [MinLength(3)]
     public string? Description { get; set; }
-    [MaxLength(2048)]
     public string? CoverImageUrl { get; set; }
-    public required DateTime PublishedDate { get; set; }
     public required DateTime UpdatedDate { get; set; }
 
-    public double Rating { get; set; } = 0;
+    public double Rating { get; set; }
     
     public LanguageCode Language { get; set; } = LanguageCode.En;
     public Status Status { get; set; } = Status.Ongoing;
@@ -41,35 +33,6 @@ public class Book : BaseEntity
     public ICollection<BookTag> BookTags { get; set; } = new List<BookTag>();
     public ICollection<LibraryEntry> LibraryEntries { get; set; } = new List<LibraryEntry>();
     public ICollection<BookView> BookViews { get; set; } = new List<BookView>();
-}
-
-public class BookAuthor
-{
-    public Guid BookId { get; set; }
-    public Book Book { get; set; } = null!;
-
-    public Guid UserId { get; set; }
-    public User User { get; set; } = null!;
-}
-
-public class BookLike
-{
-    public Guid BookId { get; set; }
-    public Book Book { get; set; } = null!;
-
-    public Guid UserId { get; set; }
-    public User User { get; set; } = null!;
-
-    public DateTime LikedAt { get; set; } = DateTime.UtcNow;
-}
-
-public class Bookmark
-{
-    public Guid UserId { get; set; }
-    public User User { get; set; } = null!;
-
-    public Guid ChapterId { get; set; }
-    public Chapter Chapter { get; set; } = null!;
 }
 
 public enum Status

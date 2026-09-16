@@ -88,12 +88,12 @@ public class BookRepository(IndPubDbContext dbContext) : Repository<Book>(dbCont
 
         if (request.PublishDateFrom.HasValue)
         {
-            query = query.Where(b => b.PublishedDate >= request.PublishDateFrom.Value);
+            query = query.Where(b => b.CreatedAt >= request.PublishDateFrom.Value);
         }
 
         if (request.PublishDateTo.HasValue)
         {
-            query = query.Where(b => b.PublishedDate <= request.PublishDateTo.Value);
+            query = query.Where(b => b.CreatedAt <= request.PublishDateTo.Value);
         }
 
         if (request.UpdatedDateFrom.HasValue)
@@ -159,7 +159,7 @@ public class BookRepository(IndPubDbContext dbContext) : Repository<Book>(dbCont
         return request.SortingBy switch
         {
             BookSortingBy.Title => request.Descending ? query.OrderByDescending(b => b.Title) : query.OrderBy(b => b.Title),
-            BookSortingBy.PublishDate => request.Descending ? query.OrderByDescending(b => b.PublishedDate) : query.OrderBy(b => b.PublishedDate),
+            BookSortingBy.PublishDate => request.Descending ? query.OrderByDescending(b => b.CreatedAt) : query.OrderBy(b => b.CreatedAt),
             BookSortingBy.UpdatedDate => request.Descending ? query.OrderByDescending(b => b.UpdatedDate) : query.OrderBy(b => b.UpdatedDate),
             BookSortingBy.LikesNumber => request.Descending ? query.OrderByDescending(b => b.BookLikes.Count) : query.OrderBy(b => b.BookLikes.Count),
             BookSortingBy.ChaptersNumber => request.Descending ? query.OrderByDescending(b => b.Chapters.Count) : query.OrderBy(b => b.Chapters.Count),

@@ -2,15 +2,7 @@
 
 public class BaseEntity
 {
-    protected BaseEntity(Guid id)
-    {
-        this.Id = id;
-    }
+    public Guid Id { get; set; } = Guid.NewGuid();
 
-    protected BaseEntity()
-    {
-        this.Id = Guid.Empty;
-    }
-
-    public Guid Id { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

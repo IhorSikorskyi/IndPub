@@ -4,12 +4,6 @@ namespace IndPubBack.Entities;
 
 public class Genre : BaseEntity
 {
-    public Genre()
-        : base()
-    {
-
-    }
-
     [MinLength(1)]
     public required string Name { get; set; }
     [MinLength(1)]

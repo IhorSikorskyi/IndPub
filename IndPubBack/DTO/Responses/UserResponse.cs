@@ -1,4 +1,4 @@
-using IndPubBack.Models;
+using IndPubBack.Entities;
 
 namespace IndPubBack.DTO.Responses;
 

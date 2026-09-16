@@ -1,7 +1,5 @@
 using Azure.Storage.Blobs;
 using IndPubBack.Data;
-using IndPubBack.Infrastructure.Implementations;
-using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Services.BackgroundSevices;
 using Microsoft.EntityFrameworkCore;
 using IndPubBack.Extensions;
@@ -26,14 +24,6 @@ builder.Services.AddSignalR();
 
 // DI Container registrations for repositories
 builder.Services.AddRepositoryServices();
-
-// TODO: Review this services and consider to delete them if they are not best practices to use in the project or maybe replace them with better alternatives
-// DI Container registrations for infrastructure services
-builder.Services.AddScoped<IBlobService, BlobService>();
-builder.Services.AddScoped<IEntityValidationService, EntityValidationService>();
-builder.Services.AddScoped<IImageValidationService, ImageValidationService>();
-builder.Services.AddScoped<IPasswordValidationService, PasswordValidationService>();
-builder.Services.AddScoped<IAccessValidationService, AccessValidationService>();
 
 // DI Container registrations for services
 builder.Services.AddApplicationServices();

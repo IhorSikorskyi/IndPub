@@ -171,7 +171,7 @@ public class UserService(
             Email = user.Email,
             Bio = user.Bio,
             ProfilePictureUrl = user.ProfilePictureUrl,
-            JoiningDate = user.JoiningDate,
+            JoiningDate = user.CreatedAt,
             SubscribersCount = user.Subscribers.Count
         };
     }

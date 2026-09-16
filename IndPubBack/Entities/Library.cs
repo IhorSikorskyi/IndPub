@@ -10,7 +10,7 @@ public class LibraryEntry
 
     public DateTime DateAdded { get; set; }
 
-    public LibraryBookStatus Status { get; set; } = LibraryBookStatus.Planned;
+    public LibraryBookStatus Status { get; set; }
 }
 
 public enum LibraryBookStatus

@@ -44,7 +44,7 @@ public class BookService(
         {
             Title = request.Title,
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description,
-            PublishedDate = request.PublishedDate,
+            CreatedAt = request.PublishedDate,
             UpdatedDate = request.PublishedDate,
             Language = request.Language,
             Status = request.Status,

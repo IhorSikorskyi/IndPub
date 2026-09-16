@@ -2,7 +2,7 @@
 using IndPubBack.DTO.Responses;
 using IndPubBack.Exceptions;
 using IndPubBack.Infrastructure.Interfaces;
-using IndPubBack.Models;
+using IndPubBack.Entities;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.SignalR;
