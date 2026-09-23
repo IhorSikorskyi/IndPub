@@ -1,3 +1,18 @@
-﻿namespace IndPubBack.DTOs.Responses;
+﻿using System.Text.Json.Serialization;
 
-public record ErrorResponse();
+namespace IndPubBack.DTOs.Responses;
+
+public record ErrorResponse
+{
+    [JsonPropertyName("status")]
+    public required int Status { get; init; }
+
+    [JsonPropertyName("title")]
+    public required string Title { get; init; }
+
+    [JsonPropertyName("detail")]
+    public required string Detail { get; init; }
+
+    [JsonPropertyName("traceId")]
+    public required string TraceId { get; init; }
+}

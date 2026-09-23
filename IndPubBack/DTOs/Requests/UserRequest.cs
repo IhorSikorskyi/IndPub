@@ -1,41 +1,40 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace IndPubBack.DTOs.Requests
+namespace IndPubBack.DTOs.Requests;
+
+public record RegisterRequest
 {
-    public class RegisterRequest
-    {
-        public required string Login { get; set; }
+    public required string Login { get; init; }
 
-        public required string Email { get; set; }
+    public required string Email { get; init; }
 
-        [MinLength(1)]
-        public required string Password { get; set; }
+    [MinLength(1)]
+    public required string Password { get; init; }
 
-        public required string ConfirmPassword { get; set; }
-    }
+    public required string ConfirmPassword { get; init; }
+}
 
-    public class LoginRequest
-    {
-        public required string LoginOrEmail { get; set; }
+public record LoginRequest
+{
+    public required string LoginOrEmail { get; init; }
 
-        public required string Password { get; set; }
-    }
+    public required string Password { get; init; }
+}
 
-    public class UpdateProfileRequest
-    {
-        public string? Login { get; set; }
+public record UpdateProfileRequest
+{
+    public string? Login { get; init; }
 
-        public string? Email { get; set; }
+    public string? Email { get; init; }
 
-        public string? CurrentPassword { get; set; }
+    public string? CurrentPassword { get; init; }
 
-        [MinLength(1)]
-        public string? NewPassword { get; set; }
+    [MinLength(1)]
+    public string? NewPassword { get; init; }
 
-        public string? ConfirmNewPassword { get; set; }
+    public string? ConfirmNewPassword { get; init; }
 
-        public string? Bio { get; set; }
+    public string? Bio { get; init; }
 
-        public IFormFile? ProfilePicture { get; set; }
-    }
+    public IFormFile? ProfilePicture { get; init; }
 }

@@ -1,4 +1,6 @@
-﻿namespace IndPubBack.Entities;
+﻿using IndPubBack.Enums;
+
+namespace IndPubBack.Entities;
 
 public class LibraryEntry
 {
@@ -11,13 +13,4 @@ public class LibraryEntry
     public DateTime DateAdded { get; set; }
 
     public LibraryBookStatus Status { get; set; }
-}
-
-public enum LibraryBookStatus
-{
-    Reading,
-    Completed,
-    Planned,
-    OnHold,
-    Dropped
 }

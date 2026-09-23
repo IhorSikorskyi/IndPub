@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using IndPubBack.Enums;
 
 namespace IndPubBack.Entities;
 
@@ -36,10 +37,4 @@ public class User : BaseEntity
     public ICollection<BookView> BookViews { get; set; } = new List<BookView>();
 
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
-}
-
-public enum Roles
-{
-    User,
-    Moderator
 }

@@ -14,9 +14,9 @@ public class UserController(IUserService userService) : BaseController
     [AllowAnonymous]
     [HttpGet("{userId:guid}")]
     [ProducesResponseType(typeof(UserInfoResponse), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 404)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 404)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult<UserInfoResponse>> GetProfileAsync(
         [FromRoute(Name = "userId")] Guid userId)
     {
@@ -27,10 +27,10 @@ public class UserController(IUserService userService) : BaseController
 
     [HttpGet("profile")]
     [ProducesResponseType(typeof(UserInfoResponse), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 401)]
-    [ProducesResponseType(typeof(object), 404)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 401)]
+    [ProducesResponseType(typeof(ErrorResponse), 404)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult<UserInfoResponse>> GetUserProfileAsync()
     {
         var userId = GetCurrentUserId();
@@ -42,11 +42,11 @@ public class UserController(IUserService userService) : BaseController
 
     [HttpPut]
     [ProducesResponseType(typeof(UserInfoResponse), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 401)]
-    [ProducesResponseType(typeof(object), 404)]
-    [ProducesResponseType(typeof(object), 409)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 401)]
+    [ProducesResponseType(typeof(ErrorResponse), 404)]
+    [ProducesResponseType(typeof(ErrorResponse), 409)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult<UserInfoResponse>> UpdateProfileAsync(
         UpdateProfileRequest request)
     {
@@ -59,10 +59,10 @@ public class UserController(IUserService userService) : BaseController
 
     [HttpDelete("{userId:guid}")]
     [ProducesResponseType(typeof(bool), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 401)]
-    [ProducesResponseType(typeof(object), 404)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 401)]
+    [ProducesResponseType(typeof(ErrorResponse), 404)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult<bool>> DeleteProfileAsync(
         [FromRoute(Name = "userId")] Guid? targetUserId)
     {
@@ -76,9 +76,9 @@ public class UserController(IUserService userService) : BaseController
     [AllowAnonymous]
     [HttpGet("{userId:guid}/reviews")]
     [ProducesResponseType(typeof(IEnumerable<ReviewResponse>), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 404)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 404)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult<IEnumerable<ReviewResponse>>> GetUserReviewsAsync(
         [FromRoute(Name = "userId")] Guid userId)
     {

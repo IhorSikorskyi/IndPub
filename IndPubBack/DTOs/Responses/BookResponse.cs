@@ -1,64 +1,64 @@
-﻿using IndPubBack.Entities;
+﻿using IndPubBack.Enums;
 
 namespace IndPubBack.DTOs.Responses;
 
-public class BookResponse
+public record BookResponse
 {
-    public Guid BookId { get; set; }
-    public string Title { get; set; } = null!;
-    public string? Description { get; set; }
-    public string? CoverImageUrl { get; set; }
-    public DateTime PublishedDate { get; set; }
-    public DateTime UpdatedDate { get; set; }
-    public LanguageCode Language { get; set; } = LanguageCode.En;
-    public Status Status { get; set; }
-    public string GenreName { get; set; } = null!;
-    public string CategoryName { get; set; } = null!;
-    public string SubcategoryName { get; set; } = null!;
-    public double Rating { get; set; }
-    public int ChapterCount { get; set; }
-    public List<string> Tags { get; set; } = [];
-    public List<AuthorResponse> Authors { get; set; } = [];
-    public List<ChapterShortResponse> Chapters { get; set; } = [];
+    public Guid BookId { get; init; }
+    public required string Title { get; init; }
+    public string? Description { get; init; }
+    public string? CoverImageUrl { get; init; }
+    public DateTime PublishedDate { get; init; }
+    public DateTime UpdatedDate { get; init; }
+    public LanguageCode Language { get; init; } = LanguageCode.En;
+    public Status Status { get; init; }
+    public required string GenreName { get; init; }
+    public required string CategoryName { get; init; }
+    public required string SubcategoryName { get; init; }
+    public double Rating { get; init; }
+    public int ChapterCount { get; init; }
+    public List<string> Tags { get; init; } = [];
+    public List<AuthorResponse> Authors { get; init; } = [];
+    public List<ChapterShortResponse> Chapters { get; init; } = [];
 }
 
-public class BookShortResponse
+public record BookShortResponse
 {
-    public Guid BookId { get; set; }
-    public string Title { get; set; } = null!;
-    public string? CoverImageUrl { get; set; }
-    public DateTime? UpdatedDate { get; set; }
-    public LanguageCode? Language { get; set; }
-    public Status Status { get; set; }
-    public int ChapterCount { get; set; }
-    public string? GenreName { get; set; }
-    public string? CategoryName { get; set; }
-    public string? SubcategoryName { get; set; }
-    public double? Rating { get; set; }
-    public List<AuthorResponse>? Authors { get; set; } = [];
-    public List<string>? Tags { get; set; } = [];
+    public Guid BookId { get; init; }
+    public required string Title { get; init; }
+    public string? CoverImageUrl { get; init; }
+    public DateTime? UpdatedDate { get; init; }
+    public LanguageCode? Language { get; init; }
+    public Status Status { get; init; }
+    public int ChapterCount { get; init; }
+    public string? GenreName { get; init; }
+    public string? CategoryName { get; init; }
+    public string? SubcategoryName { get; init; }
+    public double? Rating { get; init; }
+    public List<AuthorResponse>? Authors { get; init; } = [];
+    public List<string>? Tags { get; init; } = [];
 }
 
-public class BookmarkShortResponse
+public record BookmarkShortResponse
 {
     // UserId from ClaimsPrincipal, so we don't need it here
-    public Guid ChapterId { get; set; }
-    public string ChapterTitle { get; set; } = string.Empty;
-    public int ChapterNumber { get; set; }
-    public Guid BookId { get; set; }
-    public string BookTitle { get; set; } = string.Empty;
-    public string? BookCoverImageUrl { get; set; }
+    public Guid ChapterId { get; init; }
+    public string ChapterTitle { get; init; } = string.Empty;
+    public int ChapterNumber { get; init; }
+    public Guid BookId { get; init; }
+    public string BookTitle { get; init; } = string.Empty;
+    public string? BookCoverImageUrl { get; init; }
 }
 
-public class GenreResponse
+public record GenreResponse
 {
-    public required string GenreName { get; set; }
-    public required string GenreDescription { get; set; }
+    public required string GenreName { get; init; }
+    public required string GenreDescription { get; init; }
 }
 
-public class AddTagResponse
+public record AddTagResponse
 {
-    public Guid BookId { get; set; }
-    public string TagName { get; set; } = null!;
-    public bool IsAdded { get; set; }
+    public Guid BookId { get; init; }
+    public required string TagName { get; init; }
+    public bool IsAdded { get; init; }
 }

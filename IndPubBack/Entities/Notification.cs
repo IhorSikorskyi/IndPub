@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using IndPubBack.Enums;
 
 namespace IndPubBack.Entities;
 
@@ -19,10 +20,4 @@ public class Notification : BaseEntity
 
     public Guid? ChapterId { get; set; }
     public Chapter? Chapter { get; set; }
-}
-
-public enum NotificationType
-{
-    NewChapter,
-    NewBook
 }

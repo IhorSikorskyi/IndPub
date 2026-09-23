@@ -13,10 +13,10 @@ public class SubscriptionController(ISubscriptionService subscriptionService) : 
 {
     [HttpGet]
     [ProducesResponseType(typeof(UserActivitiesResponse), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 401)]
-    [ProducesResponseType(typeof(object), 404)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 401)]
+    [ProducesResponseType(typeof(ErrorResponse), 404)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult<UserActivitiesResponse>> GetSubscriptionListAsync(
         SubscriptionListRequest request)
     {
@@ -28,10 +28,10 @@ public class SubscriptionController(ISubscriptionService subscriptionService) : 
 
     [HttpPost("{authorId:guid}")]
     [ProducesResponseType(typeof(bool), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 401)]
-    [ProducesResponseType(typeof(object), 404)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 401)]
+    [ProducesResponseType(typeof(ErrorResponse), 404)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult<bool>> SubscribeAsync(
         [FromRoute(Name = "authorId")] Guid authorId)
     {
@@ -43,10 +43,10 @@ public class SubscriptionController(ISubscriptionService subscriptionService) : 
 
     [HttpDelete("{authorId:guid}")]
     [ProducesResponseType(typeof(bool), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 401)]
-    [ProducesResponseType(typeof(object), 404)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 401)]
+    [ProducesResponseType(typeof(ErrorResponse), 404)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult<bool>> UnsubscribeAsync(
         [FromRoute(Name = "authorId")] Guid authorId)
     {

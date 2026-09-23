@@ -14,9 +14,9 @@ public class AuthController(IAuthService authService) : BaseController
 
     [HttpPost("register")]
     [ProducesResponseType(typeof(AccessTokenResponse), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 409)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 409)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult<AccessTokenResponse>> RegisterAsync(
         RegisterRequest request)
     {
@@ -31,9 +31,9 @@ public class AuthController(IAuthService authService) : BaseController
 
     [HttpPost("login")]
     [ProducesResponseType(typeof(AccessTokenResponse), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 401)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 401)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult<AccessTokenResponse>> LoginAsync(
         LoginRequest request)
     {
@@ -50,9 +50,9 @@ public class AuthController(IAuthService authService) : BaseController
 
     [HttpPost("refresh")]
     [ProducesResponseType(typeof(AccessTokenResponse), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 401)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 401)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult<AccessTokenResponse>> Refresh(
         [FromHeader(Name = "Authorization")] string? authorization)
     {
@@ -80,9 +80,9 @@ public class AuthController(IAuthService authService) : BaseController
 
     [HttpPost("logout")]
     [ProducesResponseType(204)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 401)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 401)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<IActionResult> LogoutAsync()
     {
         var refreshToken = Request.Cookies[RefreshTokenCookieName];

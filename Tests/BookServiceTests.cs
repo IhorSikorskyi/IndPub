@@ -8,6 +8,7 @@ using IndPubBack.Services.Implementations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Moq;
+using IndPubBack.Enums;
 using System.Text;
 
 namespace Tests
@@ -66,6 +67,7 @@ namespace Tests
         {
             // Arrange
             var request = CreateValidBookCreateRequest();
+            var currentUserId = request.AuthorIds[0];
             Book? savedBook = null;
 
             _bookRepositoryMock.Setup(r => r.HasTitleAsync(request.Title))
@@ -94,7 +96,7 @@ namespace Tests
                 .Returns(Task.CompletedTask);
 
             // Act
-            var result = await _bookService.CreateBookAsync(request);
+            var result = await _bookService.CreateBookAsync(request, currentUserId);
 
             // Assert
             Assert.NotNull(result);
@@ -116,12 +118,13 @@ namespace Tests
         {
             // Arrange
             var request = CreateValidBookCreateRequest();
+            var currentUserId = request.AuthorIds[0];
 
             _bookRepositoryMock.Setup(r => r.HasTitleAsync(request.Title))
                 .ReturnsAsync(true);
 
             // Act & Assert
-            await Assert.ThrowsAsync<ConflictException>(() => _bookService.CreateBookAsync(request));
+            await Assert.ThrowsAsync<ConflictException>(() => _bookService.CreateBookAsync(request, currentUserId));
             _bookRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Book>()), Times.Never);
         }
 
@@ -129,11 +132,11 @@ namespace Tests
         public async Task CreateBookAsync_EmptyTitle_ThrowsValidationException()
         {
             // Arrange
-            var request = CreateValidBookCreateRequest();
-            request.Title = "   ";
+            var request = CreateValidBookCreateRequest() with { Title = "   " };
+            var currentUserId = request.AuthorIds[0];
 
             // Act & Assert
-            await Assert.ThrowsAsync<ValidationException>(() => _bookService.CreateBookAsync(request));
+            await Assert.ThrowsAsync<ValidationException>(() => _bookService.CreateBookAsync(request, currentUserId));
             _bookRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Book>()), Times.Never);
         }
 
@@ -141,11 +144,11 @@ namespace Tests
         public async Task CreateBookAsync_EmptyAuthors_ThrowsValidationException()
         {
             // Arrange
-            var request = CreateValidBookCreateRequest();
-            request.AuthorIds = [];
+            var request = CreateValidBookCreateRequest() with { AuthorIds = [] };
+            var currentUserId = request.AuthorIds[0];
 
             // Act & Assert
-            await Assert.ThrowsAsync<ValidationException>(() => _bookService.CreateBookAsync(request));
+            await Assert.ThrowsAsync<ValidationException>(() => _bookService.CreateBookAsync(request, currentUserId));
             _bookRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Book>()), Times.Never);
         }
 
@@ -153,11 +156,11 @@ namespace Tests
         public async Task CreateBookAsync_EmptyChapters_ThrowsValidationException()
         {
             // Arrange
-            var request = CreateValidBookCreateRequest();
-            request.Chapters = [];
+            var request = CreateValidBookCreateRequest() with { Chapters = [] };
+            var currentUserId = request.AuthorIds[0];
 
             // Act & Assert
-            await Assert.ThrowsAsync<ValidationException>(() => _bookService.CreateBookAsync(request));
+            await Assert.ThrowsAsync<ValidationException>(() => _bookService.CreateBookAsync(request, currentUserId));
             _bookRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Book>()), Times.Never);
         }
 

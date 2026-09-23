@@ -1,4 +1,5 @@
 ﻿using IndPubBack.Entities;
+using IndPubBack.Enums;
 
 namespace IndPubBack.Repositories.Interfaces;
 

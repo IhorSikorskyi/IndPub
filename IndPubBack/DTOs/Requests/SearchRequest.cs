@@ -1,40 +1,32 @@
 ﻿using IndPubBack.Entities;
 using System.ComponentModel.DataAnnotations;
+using IndPubBack.Enums;
 
 namespace IndPubBack.DTOs.Requests;
 
-public class BookSearchRequest
+public record BookSearchRequest
 {
-    public string? Title { get; set; }
-    public List<string>? AuthorName { get; set; }
-    public DateTime? PublishDateFrom { get; set; }
-    public DateTime? PublishDateTo { get; set; }
-    public DateTime? UpdatedDateFrom { get; set; }
-    public DateTime? UpdatedDateTo { get; set; }
-    public LanguageCode? Language { get; set; }
-    public Status? Status { get; set; }
-    public string? GenreName { get; set; }
-    public string? CategoryName { get; set; }
-    public string? SubcategoryName { get; set; }
-    public double? MinRating { get; set; }
-    public int? MinLikes { get; set; }
-    public int? MinChapters { get; set; }
-    public List<string>? BookTagName { get; set; }
+    public string? Title { get; init; }
+    public List<string>? AuthorName { get; init; }
+    public DateTime? PublishDateFrom { get; init; }
+    public DateTime? PublishDateTo { get; init; }
+    public DateTime? UpdatedDateFrom { get; init; }
+    public DateTime? UpdatedDateTo { get; init; }
+    public LanguageCode? Language { get; init; }
+    public Status? Status { get; init; }
+    public string? GenreName { get; init; }
+    public string? CategoryName { get; init; }
+    public string? SubcategoryName { get; init; }
+    public double? MinRating { get; init; }
+    public int? MinLikes { get; init; }
+    public int? MinChapters { get; init; }
+    public List<string>? BookTagName { get; init; }
 
-    public BookSortingBy SortingBy { get; set; } = BookSortingBy.Rating;
-    public bool Descending { get; set; } = true;
+    public BookSortingBy SortingBy { get; init; } = BookSortingBy.Rating;
+    public bool Descending { get; init; } = true;
 
-    public string? Cursor { get; set; }
+    public string? Cursor { get; init; }
+
     [Range(1, 100)]
-    public int PageSize { get; set; } = 20;
-}
-
-public enum BookSortingBy
-{
-    Title,
-    PublishDate,
-    UpdatedDate,
-    LikesNumber,
-    ChaptersNumber,
-    Rating
+    public int PageSize { get; init; } = 20;
 }

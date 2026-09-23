@@ -1,4 +1,5 @@
 ﻿using IndPubBack.Entities;
+using IndPubBack.Enums;
 using IndPubBack.Exceptions;
 using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Repositories.Interfaces;

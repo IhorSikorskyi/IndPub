@@ -1,7 +1,3 @@
 ﻿namespace IndPubBack.DTOs.Requests;
 
-public class ReviewRequest
-{
-    public double? Rating { get; set; }
-    public string? ReviewText { get; set; }
-}
+public record ReviewRequest(double? Rating = null, string? ReviewText = null);

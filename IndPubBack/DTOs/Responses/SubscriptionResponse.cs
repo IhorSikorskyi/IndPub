@@ -1,8 +1,8 @@
 ﻿namespace IndPubBack.DTOs.Responses;
 
-public class SubscriptionShortResponse
+public record SubscriptionShortResponse
 {
-    public Guid AuthorId { get; set; }
-    public string AuthorLogin { get; set; } = string.Empty;
-    public string? AuthorProfilePictureUrl { get; set; }
+    public Guid AuthorId { get; init; }
+    public string AuthorLogin { get; init; } = string.Empty;
+    public string? AuthorProfilePictureUrl { get; init; }
 }

@@ -1,13 +1,13 @@
 ﻿namespace IndPubBack.DTOs.Responses;
 
-public class ReviewResponse
+public record ReviewResponse
 {
-    public Guid Id { get; set; }
-    public Guid? BookId { get; set; }
-    public string BookTitle { get; set; } = string.Empty;
-    public Guid? UserId { get; set; }
-    public string UserName { get; set; } = string.Empty;
-    public double? Rating { get; set; }
-    public string? Text { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
+    public Guid Id { get; init; }
+    public Guid? BookId { get; init; }
+    public string BookTitle { get; init; } = string.Empty;
+    public Guid? UserId { get; init; }
+    public string UserName { get; init; } = string.Empty;
+    public double? Rating { get; init; }
+    public string? Text { get; init; }
+    public DateTime CreatedAt { get; init; }
 }

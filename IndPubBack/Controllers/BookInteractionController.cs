@@ -1,4 +1,5 @@
-﻿using IndPubBack.Services.Interfaces;
+﻿using IndPubBack.DTOs.Responses;
+using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,10 +12,10 @@ public class BookInteractionController(IBookInteractionService bookInteractionSe
 {
     [HttpPost("{bookId:guid}")]
     [ProducesResponseType(typeof(bool), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 401)]
-    [ProducesResponseType(typeof(object), 404)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 401)]
+    [ProducesResponseType(typeof(ErrorResponse), 404)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult<bool>> LikeBookAsync(
         [FromRoute(Name = "bookId")] Guid bookId)
     {
@@ -26,10 +27,10 @@ public class BookInteractionController(IBookInteractionService bookInteractionSe
 
     [HttpDelete("{bookId:guid}")]
     [ProducesResponseType(typeof(bool), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 401)]
-    [ProducesResponseType(typeof(object), 404)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 401)]
+    [ProducesResponseType(typeof(ErrorResponse), 404)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult<bool>> UnLikeBookAsync(
         [FromRoute(Name = "bookId")] Guid bookId)
     {

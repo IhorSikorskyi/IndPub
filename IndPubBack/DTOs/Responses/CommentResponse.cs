@@ -1,24 +1,18 @@
 ﻿namespace IndPubBack.DTOs.Responses;
 
-public class CommentResponse // Update and Create use the same response
+public record CommentResponse // Update and Create use the same response
 {
     // UserId from ClaimsPrincipal, so we don't need it here
 }
 
-public class CommentShortResponse
+public record CommentShortResponse
 {
-    // UserId from ClaimsPrincipal, so we don't need it here
-    public Guid Id { get; set; }
-    public Guid ChapterId { get; set; }
-    public int ChapterNumber { get; set; }
-    public string? ChapterTitle { get; set; }
-    public string Text { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
+    public Guid CommentId { get; init; }
+    public Guid ChapterId { get; init; }
+    public int ChapterNumber { get; init; }
+    public string? ChapterTitle { get; init; }
+    public string Text { get; init; } = string.Empty;
+    public DateTime CreatedAt { get; init; }
 }
 
-public class LikeCommentResponse // This is used for both like and unlike, as the client can determine the action based on the IsLiked property
-{
-    // UserId from ClaimsPrincipal, so we don't need it here
-    public Guid CommentId { get; set; }
-    public bool IsLiked { get; set; }
-}
+public record LikeCommentResponse(Guid CommentId, bool IsLiked);

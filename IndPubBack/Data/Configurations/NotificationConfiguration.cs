@@ -1,4 +1,5 @@
 ﻿using IndPubBack.Entities;
+using IndPubBack.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

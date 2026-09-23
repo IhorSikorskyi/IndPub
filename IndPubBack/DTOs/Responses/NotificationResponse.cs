@@ -1,14 +1,15 @@
 ﻿using IndPubBack.Entities;
+using IndPubBack.Enums;
 
 namespace IndPubBack.DTOs.Responses;
 
-public class NotificationResponse
+public record NotificationResponse
 {
-    public Guid Id { get; set; }
-    public string? Author { get; set; }
-    public string BookTitle { get; set; } = string.Empty;
-    public string? ChapterTitle { get; set; }
-    public required string Message { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public NotificationType Type { get; set; }
+    public Guid Id { get; init; }
+    public string? Author { get; init; }
+    public string BookTitle { get; init; } = string.Empty;
+    public string? ChapterTitle { get; init; }
+    public required string Message { get; init; }
+    public DateTime CreatedAt { get; init; }
+    public NotificationType Type { get; init; }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using IndPubBack.DTOs.Responses;
 using IndPubBack.Exceptions;
 
 namespace IndPubBack.Middleware;
@@ -33,14 +34,14 @@ public class ExceptionHandlingMiddleware(RequestDelegate next,
 
         var isKnownException = statusCode != HttpStatusCode.InternalServerError;
 
-        var problemDetails = new
+        var problemDetails = new ErrorResponse
         {
-            status = (int)statusCode,
-            title,
-            detail = isKnownException || environment.IsDevelopment()
+            Status = (int)statusCode,
+            Title = title,
+            Detail = isKnownException || environment.IsDevelopment()
                 ? exception.Message
                 : "An unexpected error occurred",
-            traceId = context.TraceIdentifier
+            TraceId = context.TraceIdentifier
         };
 
         context.Response.ContentType = "application/problem+json";

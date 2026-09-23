@@ -13,9 +13,9 @@ namespace IndPubBack.Controllers
     {
         [HttpPost]
         [ProducesResponseType(typeof(BookResponse), 200)]
-        [ProducesResponseType(typeof(object), 400)]
-        [ProducesResponseType(typeof(object), 401)]
-        [ProducesResponseType(typeof(object), 500)]
+        [ProducesResponseType(typeof(ErrorResponse), 400)]
+        [ProducesResponseType(typeof(ErrorResponse), 401)]
+        [ProducesResponseType(typeof(ErrorResponse), 500)]
         public async Task<ActionResult<BookResponse>> CreateBookAsync(
             BookCreateRequest request)
         {
@@ -27,10 +27,10 @@ namespace IndPubBack.Controllers
 
         [HttpPut("{bookId:guid}")]
         [ProducesResponseType(typeof(BookResponse), 200)]
-        [ProducesResponseType(typeof(object), 400)]
-        [ProducesResponseType(typeof(object), 401)]
-        [ProducesResponseType(typeof(object), 404)]
-        [ProducesResponseType(typeof(object), 500)]
+        [ProducesResponseType(typeof(ErrorResponse), 400)]
+        [ProducesResponseType(typeof(ErrorResponse), 401)]
+        [ProducesResponseType(typeof(ErrorResponse), 404)]
+        [ProducesResponseType(typeof(ErrorResponse), 500)]
         public async Task<ActionResult<BookResponse>> UpdateBookAsync(
             BookUpdateRequest request,
             [FromRoute(Name = "bookId")] Guid bookId)
@@ -44,10 +44,10 @@ namespace IndPubBack.Controllers
 
         [HttpDelete("{bookId:guid}")]
         [ProducesResponseType(typeof(bool), 200)]
-        [ProducesResponseType(typeof(object), 400)]
-        [ProducesResponseType(typeof(object), 401)]
-        [ProducesResponseType(typeof(object), 404)]
-        [ProducesResponseType(typeof(object), 500)]
+        [ProducesResponseType(typeof(ErrorResponse), 400)]
+        [ProducesResponseType(typeof(ErrorResponse), 401)]
+        [ProducesResponseType(typeof(ErrorResponse), 404)]
+        [ProducesResponseType(typeof(ErrorResponse), 500)]
         public async Task<ActionResult<bool>> DeleteBookAsync(
             [FromRoute(Name = "bookId")] Guid bookId)
         {
@@ -60,9 +60,9 @@ namespace IndPubBack.Controllers
         [AllowAnonymous]
         [HttpGet("{bookId:guid}")]
         [ProducesResponseType(typeof(BookResponse), 200)]
-        [ProducesResponseType(typeof(object), 400)]
-        [ProducesResponseType(typeof(object), 404)]
-        [ProducesResponseType(typeof(object), 500)]
+        [ProducesResponseType(typeof(ErrorResponse), 400)]
+        [ProducesResponseType(typeof(ErrorResponse), 404)]
+        [ProducesResponseType(typeof(ErrorResponse), 500)]
         public async Task<ActionResult<BookResponse>> GetBookByIdAsync(
             [FromRoute(Name = "bookId")] Guid bookId)
         {

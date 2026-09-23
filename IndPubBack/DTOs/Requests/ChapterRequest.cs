@@ -1,14 +1,14 @@
 ﻿namespace IndPubBack.DTOs.Requests;
 
-public class ChapterCreateRequest
+public record ChapterCreateRequest
 {
-    public string? Title { get; set; }
-    public required string Content { get; set; }
-    public int? ChapterNumber { get; set; }
+    public string? Title { get; init; }
+    public required string Content { get; init; }
+    public int? ChapterNumber { get; init; }
 }
 
-public class ChapterUpdateRequest
+public record ChapterUpdateRequest
 {
-    public string? Title { get; set; }
-    public string? Content { get; set; }
+    public string? Title { get; init; }
+    public string? Content { get; init; }
 }

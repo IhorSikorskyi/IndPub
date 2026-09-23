@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using IndPubBack.Enums;
 
 namespace IndPubBack.Entities;
 
@@ -33,24 +34,4 @@ public class Book : BaseEntity
     public ICollection<BookTag> BookTags { get; set; } = new List<BookTag>();
     public ICollection<LibraryEntry> LibraryEntries { get; set; } = new List<LibraryEntry>();
     public ICollection<BookView> BookViews { get; set; } = new List<BookView>();
-}
-
-public enum Status
-{
-    Ongoing,
-    Completed,
-    Dropped
-}
-
-public enum LanguageCode
-{
-    En,
-    Es,
-    Fr,
-    De,
-    It,
-    Pt,
-    Ru,
-    Ja,
-    Zh
 }

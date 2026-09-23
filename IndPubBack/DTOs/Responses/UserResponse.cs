@@ -2,41 +2,45 @@ using IndPubBack.Entities;
 
 namespace IndPubBack.DTOs.Responses;
 
-public class UserResponse
+public record UserResponse
 {
-    public string RefreshToken { get; set; } = string.Empty;
-    public DateTime RefreshTokenExpiry { get; set; }
-    public string AccessToken { get; set; } = string.Empty;
+    public string RefreshToken { get; init; } = string.Empty;
+    public DateTime RefreshTokenExpiry { get; init; }
+    public string AccessToken { get; init; } = string.Empty;
+    public override string ToString() =>
+        $"{nameof(UserResponse)} {{ AccessToken = [REDACTED], RefreshToken = [REDACTED], RefreshTokenExpiry = {RefreshTokenExpiry} }}";
 }
 
-public record AccessTokenResponse(string AccessToken);
-
-public class UserInfoResponse
+public record AccessTokenResponse(string AccessToken)
 {
-    public string Login { get; set; } = string.Empty;
-    public string? Email { get; set; }
-    public string? Bio { get; set; }
-    public string? ProfilePictureUrl { get; set; }
-    public DateTime? JoiningDate { get; set; }
-    public int? SubscribersCount { get; set; }
-
+    public override string ToString() => $"{nameof(AccessTokenResponse)} {{ AccessToken = [REDACTED] }}";
 }
 
-public class AuthorResponse
+public record UserInfoResponse
 {
-    public Guid Id { get; set; }
-    public string Login { get; set; } = null!;
-    public string? ProfilePictureUrl { get; set; }
+    public string Login { get; init; } = string.Empty;
+    public string? Email { get; init; }
+    public string? Bio { get; init; }
+    public string? ProfilePictureUrl { get; init; }
+    public DateTime? JoiningDate { get; init; }
+    public int? SubscribersCount { get; init; }
 }
 
-public class UserActivitiesResponse
+public record AuthorResponse
 {
-    public IList<LibraryEntryResponse>? Library { get; set; } = [];
-    public IList<BookShortResponse>? LikedBooks { get; set; } = [];
-    public IList<ReviewResponse>? Reviews { get; set; } = [];
-    public IList<ReviewResponse>? LikeReview { get; set; } = [];
-    public IList<CommentShortResponse>? Comments { get; set; } = [];
-    public IList<LikeCommentResponse>? LikeComment { get; set; } = [];
-    public IList<SubscriptionShortResponse>? Subscriptions { get; set; } = [];
-    public IList<BookmarkShortResponse>? Bookmarks { get; set; } = [];
+    public Guid Id { get; init; }
+    public required string Login { get; init; }
+    public string? ProfilePictureUrl { get; init; }
+}
+
+public record UserActivitiesResponse
+{
+    public IList<LibraryEntryResponse>? Library { get; init; } = [];
+    public IList<BookShortResponse>? LikedBooks { get; init; } = [];
+    public IList<ReviewResponse>? Reviews { get; init; } = [];
+    public IList<ReviewResponse>? LikeReview { get; init; } = [];
+    public IList<CommentShortResponse>? Comments { get; init; } = [];
+    public IList<LikeCommentResponse>? LikeComment { get; init; } = [];
+    public IList<SubscriptionShortResponse>? Subscriptions { get; init; } = [];
+    public IList<BookmarkShortResponse>? Bookmarks { get; init; } = [];
 }

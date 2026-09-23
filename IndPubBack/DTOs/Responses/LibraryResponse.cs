@@ -1,13 +1,14 @@
 ﻿using IndPubBack.Entities;
+using IndPubBack.Enums;
 
 namespace IndPubBack.DTOs.Responses;
 
-public class LibraryEntryResponse
+public record LibraryEntryResponse
 {
-    public Guid BookId { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public string? CoverImageUrl { get; set; }
-    public DateTime UpdatedDate { get; set; }
-    public int ChapterCount { get; set; }
-    public LibraryBookStatus Status { get; set; }
+    public Guid BookId { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public string? CoverImageUrl { get; init; }
+    public DateTime UpdatedDate { get; init; }
+    public int ChapterCount { get; init; }
+    public LibraryBookStatus Status { get; init; }
 }

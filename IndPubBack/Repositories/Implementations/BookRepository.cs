@@ -1,6 +1,7 @@
 ﻿using IndPubBack.Data;
 using IndPubBack.DTOs.Requests;
 using IndPubBack.Entities;
+using IndPubBack.Enums;
 using IndPubBack.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 

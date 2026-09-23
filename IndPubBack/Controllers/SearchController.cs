@@ -11,9 +11,9 @@ public class SearchController(ISearchService searchService) : BaseController
 {
     [HttpGet]
     [ProducesResponseType(typeof(IList<BookShortResponse>), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 404)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 404)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult<IList<BookShortResponse>>> GetBooksByFiltersAsync(
         BookSearchRequest request)
     {

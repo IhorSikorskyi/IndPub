@@ -14,9 +14,9 @@ public class ChapterController(IChapterService chapterService) : BaseController
 {
     [HttpPost]
     [ProducesResponseType(typeof(ChapterResponse), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 401)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 401)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult<ChapterResponse>> CreateChapterAsync(
         ChapterCreateRequest createRequest,
         [FromRoute(Name = "bookId")] Guid bookId)
@@ -29,10 +29,10 @@ public class ChapterController(IChapterService chapterService) : BaseController
 
     [HttpPut("{chapterId:guid}")]
     [ProducesResponseType(typeof(ChapterResponse), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 401)]
-    [ProducesResponseType(typeof(object), 404)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 401)]
+    [ProducesResponseType(typeof(ErrorResponse), 404)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult<ChapterResponse>> UpdateChapterAsync(
         ChapterUpdateRequest updateRequest,
         [FromRoute(Name = "bookId")] Guid bookId,
@@ -46,10 +46,10 @@ public class ChapterController(IChapterService chapterService) : BaseController
 
     [HttpDelete("{chapterId:guid}")]
     [ProducesResponseType(typeof(bool), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 401)]
-    [ProducesResponseType(typeof(object), 404)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 401)]
+    [ProducesResponseType(typeof(ErrorResponse), 404)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult> DeleteChapterAsync(
         [FromRoute(Name = "bookId")] Guid bookId,
         [FromRoute(Name = "chapterId")] Guid chapterId)
@@ -64,9 +64,9 @@ public class ChapterController(IChapterService chapterService) : BaseController
     [AllowAnonymous]
     [HttpGet("{chapterId:guid}")]
     [ProducesResponseType(typeof(ChapterResponse), 200)]
-    [ProducesResponseType(typeof(object), 400)]
-    [ProducesResponseType(typeof(object), 404)]
-    [ProducesResponseType(typeof(object), 500)]
+    [ProducesResponseType(typeof(ErrorResponse), 400)]
+    [ProducesResponseType(typeof(ErrorResponse), 404)]
+    [ProducesResponseType(typeof(ErrorResponse), 500)]
     public async Task<ActionResult<ChapterResponse>> GetChapterAsync(
         [FromRoute(Name = "bookId")] Guid bookId,
         [FromRoute(Name = "chapterId")] Guid chapterId)

@@ -1,5 +1,6 @@
 ﻿using IndPubBack.Data;
 using IndPubBack.Entities;
+using IndPubBack.Enums;
 using IndPubBack.Exceptions;
 using IndPubBack.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;

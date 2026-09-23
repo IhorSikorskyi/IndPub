@@ -1,62 +1,63 @@
 ﻿using IndPubBack.Entities;
 using System.ComponentModel.DataAnnotations;
+using IndPubBack.Enums;
 
 namespace IndPubBack.DTOs.Requests;
 
-public class BookCreateRequest
+public record BookCreateRequest
 {
-    public required string Title { get; set; }
+    public required string Title { get; init; }
 
-    public string? Description { get; set; }
+    public string? Description { get; init; }
 
-    public IFormFile? CoverImage { get; set; }
+    public IFormFile? CoverImage { get; init; }
 
-    public DateTime PublishedDate { get; set; } = DateTime.Now;
-    public DateTime? UpdateDate { get; set; } = DateTime.Now;
+    public DateTime PublishedDate { get; init; } = DateTime.Now;
+    public DateTime? UpdateDate { get; init; } = DateTime.Now;
 
-    public required LanguageCode Language { get; set; } = LanguageCode.En;
+    public required LanguageCode Language { get; init; } = LanguageCode.En;
 
-    public required Status Status { get; set; } = Status.Ongoing;
+    public required Status Status { get; init; } = Status.Ongoing;
 
-    public required Guid GenreId { get; set; }
+    public required Guid GenreId { get; init; }
 
-    public required Guid CategoryId { get; set; }
-    public required Guid SubcategoryId { get; set; }
+    public required Guid CategoryId { get; init; }
+    public required Guid SubcategoryId { get; init; }
 
     [MinLength(1)]
-    public required List<Guid> AuthorIds { get; set; }
+    public required List<Guid> AuthorIds { get; init; }
 
     [MinLength(1)]
-    public required List<ChapterCreateWithBookRequest> Chapters { get; set; }
+    public required List<ChapterCreateWithBookRequest> Chapters { get; init; }
 
-    public List<CreateBookTagRequest>? Tags { get; set; }
+    public List<CreateBookTagRequest>? Tags { get; init; }
 }
 
-public class BookUpdateRequest
+public record BookUpdateRequest
 {
-    public string? Title { get; set; }
+    public string? Title { get; init; }
 
-    public string? Description { get; set; }
+    public string? Description { get; init; }
 
-    public IFormFile? CoverImage { get; set; }
+    public IFormFile? CoverImage { get; init; }
 
-    public DateTime UpdateDate { get; set; } = DateTime.Now;
+    public DateTime UpdateDate { get; init; } = DateTime.Now;
 
-    public Status Status { get; set; } = Status.Ongoing;
+    public Status Status { get; init; } = Status.Ongoing;
 
     [MinLength(1)]
-    public List<Guid>? AuthorIds { get; set; }
+    public List<Guid>? AuthorIds { get; init; }
 
-    public List<CreateBookTagRequest>? Tags { get; set; }
+    public List<CreateBookTagRequest>? Tags { get; init; }
 }
 
-public class ChapterCreateWithBookRequest
+public record ChapterCreateWithBookRequest
 {
-    public required string Title { get; set; }
-    public required string Content { get; set; }
+    public required string Title { get; init; }
+    public required string Content { get; init; }
 }
 
-public class CreateBookTagRequest
+public record CreateBookTagRequest
 {
-    public required string Name { get; set; }
+    public required string Name { get; init; }
 }

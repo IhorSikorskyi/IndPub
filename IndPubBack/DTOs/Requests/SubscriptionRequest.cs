@@ -1,12 +1,10 @@
 ﻿namespace IndPubBack.DTOs.Requests;
 
-public class SubscriptionRequest
+public record SubscriptionRequest(Guid AuthorId);
+
+public record SubscriptionListRequest
 {
-    public Guid AuthorId;
-}
-public class SubscriptionListRequest
-{
-    public bool IsSubscribers { get; set; } = false;
-    public DateTime? Cursor { get; set; }
-    public int PageSize { get; set; } = 20;
+    public bool IsSubscribers { get; init; } = false;
+    public DateTime? Cursor { get; init; }
+    public int PageSize { get; init; } = 20;
 }

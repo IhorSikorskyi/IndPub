@@ -1,18 +1,24 @@
 ﻿using IndPubBack.Entities;
+using System.Text.Json.Serialization;
+using IndPubBack.Enums;
 
 namespace IndPubBack.DTOs.Requests;
 
-public class LibraryListRequest
+public record LibraryListRequest
 {
-    public LibraryBookStatus Status = LibraryBookStatus.Reading;
+    public LibraryBookStatus Status { get; init; } = LibraryBookStatus.Reading;
 
-    public DateTime? Cursor { get; set; }
+    public DateTime? Cursor { get; init; }
 
-    public int PageSize { get; set; }
+    [JsonRequired]
+    public int PageSize { get; init; }
 }
 
-public class LibraryEntryRequest
+public record LibraryEntryRequest
 {
-    public Guid BookId { get; set; }
-    public LibraryBookStatus Status { get; set; }
+    [JsonRequired]
+    public Guid BookId { get; init; }
+
+    [JsonRequired]
+    public LibraryBookStatus Status { get; init; }
 }
