@@ -11,11 +11,11 @@ namespace IndPubBack.Controllers;
 public class BookInteractionController(IBookInteractionService bookInteractionService) : BaseController
 {
     [HttpPost("{bookId:guid}")]
-    [ProducesResponseType(typeof(bool), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 401)]
-    [ProducesResponseType(typeof(ErrorResponse), 404)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<bool>> LikeBookAsync(
         [FromRoute(Name = "bookId")] Guid bookId)
     {
@@ -26,11 +26,11 @@ public class BookInteractionController(IBookInteractionService bookInteractionSe
     }
 
     [HttpDelete("{bookId:guid}")]
-    [ProducesResponseType(typeof(bool), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 401)]
-    [ProducesResponseType(typeof(ErrorResponse), 404)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<bool>> UnLikeBookAsync(
         [FromRoute(Name = "bookId")] Guid bookId)
     {

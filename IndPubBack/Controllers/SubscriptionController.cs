@@ -12,11 +12,11 @@ namespace IndPubBack.Controllers;
 public class SubscriptionController(ISubscriptionService subscriptionService) : BaseController
 {
     [HttpGet]
-    [ProducesResponseType(typeof(UserActivitiesResponse), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 401)]
-    [ProducesResponseType(typeof(ErrorResponse), 404)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(UserActivitiesResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserActivitiesResponse>> GetSubscriptionListAsync(
         SubscriptionListRequest request)
     {
@@ -27,11 +27,11 @@ public class SubscriptionController(ISubscriptionService subscriptionService) : 
     }
 
     [HttpPost("{authorId:guid}")]
-    [ProducesResponseType(typeof(bool), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 401)]
-    [ProducesResponseType(typeof(ErrorResponse), 404)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<bool>> SubscribeAsync(
         [FromRoute(Name = "authorId")] Guid authorId)
     {
@@ -42,11 +42,11 @@ public class SubscriptionController(ISubscriptionService subscriptionService) : 
     }
 
     [HttpDelete("{authorId:guid}")]
-    [ProducesResponseType(typeof(bool), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 401)]
-    [ProducesResponseType(typeof(ErrorResponse), 404)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<bool>> UnsubscribeAsync(
         [FromRoute(Name = "authorId")] Guid authorId)
     {

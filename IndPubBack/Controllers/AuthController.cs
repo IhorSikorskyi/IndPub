@@ -13,10 +13,10 @@ public class AuthController(IAuthService authService) : BaseController
     private const string RefreshTokenCookieName = "refreshToken";
 
     [HttpPost("register")]
-    [ProducesResponseType(typeof(AccessTokenResponse), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 409)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(AccessTokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<AccessTokenResponse>> RegisterAsync(
         RegisterRequest request)
     {
@@ -30,10 +30,10 @@ public class AuthController(IAuthService authService) : BaseController
     }
 
     [HttpPost("login")]
-    [ProducesResponseType(typeof(AccessTokenResponse), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 401)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(AccessTokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<AccessTokenResponse>> LoginAsync(
         LoginRequest request)
     {
@@ -49,10 +49,10 @@ public class AuthController(IAuthService authService) : BaseController
     }
 
     [HttpPost("refresh")]
-    [ProducesResponseType(typeof(AccessTokenResponse), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 401)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(AccessTokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<AccessTokenResponse>> Refresh(
         [FromHeader(Name = "Authorization")] string? authorization)
     {
@@ -79,10 +79,10 @@ public class AuthController(IAuthService authService) : BaseController
     }
 
     [HttpPost("logout")]
-    [ProducesResponseType(204)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 401)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> LogoutAsync()
     {
         var refreshToken = Request.Cookies[RefreshTokenCookieName];

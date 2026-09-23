@@ -12,10 +12,10 @@ namespace IndPubBack.Controllers
     public class BookController(IBookService bookService) : BaseController
     {
         [HttpPost]
-        [ProducesResponseType(typeof(BookResponse), 200)]
-        [ProducesResponseType(typeof(ErrorResponse), 400)]
-        [ProducesResponseType(typeof(ErrorResponse), 401)]
-        [ProducesResponseType(typeof(ErrorResponse), 500)]
+        [ProducesResponseType(typeof(BookResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<BookResponse>> CreateBookAsync(
             BookCreateRequest request)
         {
@@ -26,11 +26,11 @@ namespace IndPubBack.Controllers
         }
 
         [HttpPut("{bookId:guid}")]
-        [ProducesResponseType(typeof(BookResponse), 200)]
-        [ProducesResponseType(typeof(ErrorResponse), 400)]
-        [ProducesResponseType(typeof(ErrorResponse), 401)]
-        [ProducesResponseType(typeof(ErrorResponse), 404)]
-        [ProducesResponseType(typeof(ErrorResponse), 500)]
+        [ProducesResponseType(typeof(BookResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<BookResponse>> UpdateBookAsync(
             BookUpdateRequest request,
             [FromRoute(Name = "bookId")] Guid bookId)
@@ -43,11 +43,11 @@ namespace IndPubBack.Controllers
         }
 
         [HttpDelete("{bookId:guid}")]
-        [ProducesResponseType(typeof(bool), 200)]
-        [ProducesResponseType(typeof(ErrorResponse), 400)]
-        [ProducesResponseType(typeof(ErrorResponse), 401)]
-        [ProducesResponseType(typeof(ErrorResponse), 404)]
-        [ProducesResponseType(typeof(ErrorResponse), 500)]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<bool>> DeleteBookAsync(
             [FromRoute(Name = "bookId")] Guid bookId)
         {
@@ -59,10 +59,10 @@ namespace IndPubBack.Controllers
 
         [AllowAnonymous]
         [HttpGet("{bookId:guid}")]
-        [ProducesResponseType(typeof(BookResponse), 200)]
-        [ProducesResponseType(typeof(ErrorResponse), 400)]
-        [ProducesResponseType(typeof(ErrorResponse), 404)]
-        [ProducesResponseType(typeof(ErrorResponse), 500)]
+        [ProducesResponseType(typeof(BookResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<BookResponse>> GetBookByIdAsync(
             [FromRoute(Name = "bookId")] Guid bookId)
         {

@@ -12,11 +12,11 @@ namespace IndPubBack.Controllers;
 public class LibraryController(ILibraryService libraryService) : BaseController
 {
     [HttpGet]
-    [ProducesResponseType(typeof(IList<UserActivitiesResponse>), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 401)]
-    [ProducesResponseType(typeof(ErrorResponse), 404)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(IList<UserActivitiesResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IList<UserActivitiesResponse>>> GetLibraryAsync(LibraryListRequest request)
     {
         var userId = GetCurrentUserId();
@@ -27,11 +27,11 @@ public class LibraryController(ILibraryService libraryService) : BaseController
     }
 
     [HttpPost("{bookId:guid}")]
-    [ProducesResponseType(typeof(bool), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 401)]
-    [ProducesResponseType(typeof(ErrorResponse), 404)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<bool>> AddToLibraryAsync(
         [FromRoute(Name = "bookId")] Guid bookId)
     {
@@ -43,11 +43,11 @@ public class LibraryController(ILibraryService libraryService) : BaseController
     }
 
     [HttpDelete("{bookId:guid}")]
-    [ProducesResponseType(typeof(bool), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 401)]
-    [ProducesResponseType(typeof(ErrorResponse), 404)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<bool>> RemoveFromLibraryAsync(
         [FromRoute(Name = "bookId")] Guid bookId)
     {
@@ -59,11 +59,11 @@ public class LibraryController(ILibraryService libraryService) : BaseController
     }
 
     [HttpGet("isInLibrary/{bookId:guid}")]
-    [ProducesResponseType(typeof(bool), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 401)]
-    [ProducesResponseType(typeof(ErrorResponse), 404)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<bool>> IsBookInLibraryAsync(
         [FromRoute(Name = "bookId")] Guid bookId)
     {
@@ -74,10 +74,10 @@ public class LibraryController(ILibraryService libraryService) : BaseController
     }
 
     [HttpPut]
-    [ProducesResponseType(typeof(bool), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 401)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<bool>> UpdateLibraryEntryStatusAsync(LibraryEntryRequest request)
     {
         var userId = GetCurrentUserId();

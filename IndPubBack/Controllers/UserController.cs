@@ -13,10 +13,10 @@ public class UserController(IUserService userService) : BaseController
 {
     [AllowAnonymous]
     [HttpGet("{userId:guid}")]
-    [ProducesResponseType(typeof(UserInfoResponse), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 404)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(UserInfoResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserInfoResponse>> GetProfileAsync(
         [FromRoute(Name = "userId")] Guid userId)
     {
@@ -26,11 +26,11 @@ public class UserController(IUserService userService) : BaseController
     }
 
     [HttpGet("profile")]
-    [ProducesResponseType(typeof(UserInfoResponse), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 401)]
-    [ProducesResponseType(typeof(ErrorResponse), 404)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(UserInfoResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserInfoResponse>> GetUserProfileAsync()
     {
         var userId = GetCurrentUserId();
@@ -41,12 +41,12 @@ public class UserController(IUserService userService) : BaseController
     }
 
     [HttpPut]
-    [ProducesResponseType(typeof(UserInfoResponse), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 401)]
-    [ProducesResponseType(typeof(ErrorResponse), 404)]
-    [ProducesResponseType(typeof(ErrorResponse), 409)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(UserInfoResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserInfoResponse>> UpdateProfileAsync(
         UpdateProfileRequest request)
     {
@@ -58,11 +58,11 @@ public class UserController(IUserService userService) : BaseController
     }
 
     [HttpDelete("{userId:guid}")]
-    [ProducesResponseType(typeof(bool), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 401)]
-    [ProducesResponseType(typeof(ErrorResponse), 404)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<bool>> DeleteProfileAsync(
         [FromRoute(Name = "userId")] Guid? targetUserId)
     {
@@ -75,10 +75,10 @@ public class UserController(IUserService userService) : BaseController
 
     [AllowAnonymous]
     [HttpGet("{userId:guid}/reviews")]
-    [ProducesResponseType(typeof(IEnumerable<ReviewResponse>), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 404)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(IEnumerable<ReviewResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<ReviewResponse>>> GetUserReviewsAsync(
         [FromRoute(Name = "userId")] Guid userId)
     {

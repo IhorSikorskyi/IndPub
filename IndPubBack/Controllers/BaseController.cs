@@ -8,7 +8,6 @@ public abstract class BaseController : ControllerBase
 {
     protected const string MissingOrInvalidTokenMessage = "Authorization header is missing or invalid.";
     protected const string InvalidUserIdInTokenMessage = "Invalid user id in token.";
-    protected const string MessageStatus500 = "An error occurred while processing your request.";
     protected const string BearerPrefix = "Bearer ";
 
 

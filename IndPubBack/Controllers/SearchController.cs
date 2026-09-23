@@ -10,10 +10,10 @@ namespace IndPubBack.Controllers;
 public class SearchController(ISearchService searchService) : BaseController
 {
     [HttpGet]
-    [ProducesResponseType(typeof(IList<BookShortResponse>), 200)]
-    [ProducesResponseType(typeof(ErrorResponse), 400)]
-    [ProducesResponseType(typeof(ErrorResponse), 404)]
-    [ProducesResponseType(typeof(ErrorResponse), 500)]
+    [ProducesResponseType(typeof(IList<BookShortResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IList<BookShortResponse>>> GetBooksByFiltersAsync(
         BookSearchRequest request)
     {
