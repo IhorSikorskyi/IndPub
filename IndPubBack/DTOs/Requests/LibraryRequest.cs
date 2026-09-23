@@ -1,6 +1,6 @@
 ﻿using IndPubBack.Entities;
 
-namespace IndPubBack.DTO.Requests;
+namespace IndPubBack.DTOs.Requests;
 
 public class LibraryListRequest
 {

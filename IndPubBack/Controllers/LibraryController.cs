@@ -1,6 +1,5 @@
-﻿using IndPubBack.DTO.Requests;
-using IndPubBack.DTO.Responses;
-using IndPubBack.Exceptions;
+﻿using IndPubBack.DTOs.Requests;
+using IndPubBack.DTOs.Responses;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,170 +12,79 @@ namespace IndPubBack.Controllers;
 public class LibraryController(ILibraryService libraryService) : BaseController
 {
     [HttpGet]
-    public async Task<ActionResult<IList<UserActivitiesResponse>>> GetLibraryAsync([FromQuery] LibraryListRequest request)
+    [ProducesResponseType(typeof(IList<UserActivitiesResponse>), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
+    public async Task<ActionResult<IList<UserActivitiesResponse>>> GetLibraryAsync(LibraryListRequest request)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            var result = await libraryService.GetLibraryAsync(userId.Value, request);
+        var result = await libraryService.GetLibraryAsync(userId, request);
 
-            return Ok(result);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (UnauthorizedException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        return Ok(result);
     }
 
-    [HttpPost("{bookId}")]
+    [HttpPost("{bookId:guid}")]
+    [ProducesResponseType(typeof(bool), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<bool>> AddToLibraryAsync(
         [FromRoute(Name = "bookId")] Guid bookId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            var result = await libraryService.AddToLibraryAsync(bookId, userId.Value);
+        var result = await libraryService.AddToLibraryAsync(bookId, userId);
 
-            return Ok(result);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (UnauthorizedException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        return Ok(result);
     }
 
-    [HttpDelete("{bookId}")]
+    [HttpDelete("{bookId:guid}")]
+    [ProducesResponseType(typeof(bool), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<bool>> RemoveFromLibraryAsync(
         [FromRoute(Name = "bookId")] Guid bookId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            var result = await libraryService.RemoveFromLibraryAsync(bookId, userId.Value);
+        var result = await libraryService.RemoveFromLibraryAsync(bookId, userId);
 
-            return Ok(result);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (UnauthorizedException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        return Ok(result);
     }
 
-    [HttpGet("isInLibrary/{bookId}")]
+    [HttpGet("isInLibrary/{bookId:guid}")]
+    [ProducesResponseType(typeof(bool), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<bool>> IsBookInLibraryAsync(
         [FromRoute(Name = "bookId")] Guid bookId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            var result = await libraryService.IsBookInLibraryAsync(userId.Value, bookId);
-            return Ok(result);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (UnauthorizedException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var result = await libraryService.IsBookInLibraryAsync(userId, bookId);
+        return Ok(result);
     }
 
     [HttpPut]
-    public async Task<ActionResult<bool>> UpdateLibraryEntryStatusAsync([FromQuery] LibraryEntryRequest request)
+    [ProducesResponseType(typeof(bool), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 500)]
+    public async Task<ActionResult<bool>> UpdateLibraryEntryStatusAsync(LibraryEntryRequest request)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            var result = await libraryService.UpdateLibraryEntryStatusAsync(userId.Value, request);
+        var result = await libraryService.UpdateLibraryEntryStatusAsync(userId, request);
 
-            return Ok(result);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (UnauthorizedException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        return Ok(result);
     }
 }
 

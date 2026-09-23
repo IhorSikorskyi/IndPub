@@ -1,8 +1,7 @@
-using IndPubBack.DTO.Requests;
-using IndPubBack.DTO.Responses;
+using IndPubBack.DTOs.Requests;
+using IndPubBack.DTOs.Responses;
 using IndPubBack.Exceptions;
 using IndPubBack.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IndPubBack.Controllers;
@@ -14,157 +13,99 @@ public class AuthController(IAuthService authService) : BaseController
     private const string RefreshTokenCookieName = "refreshToken";
 
     [HttpPost("register")]
-    public async Task<ActionResult<UserResponse>> RegisterAsync(
-        [FromBody] RegisterRequest request)
+    [ProducesResponseType(typeof(AccessTokenResponse), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 409)]
+    [ProducesResponseType(typeof(object), 500)]
+    public async Task<ActionResult<AccessTokenResponse>> RegisterAsync(
+        RegisterRequest request)
     {
-        try
-        {
-            var result  = await authService.RegisterAsync(request);
+        var result = await authService.RegisterAsync(request);
 
-            Response.Cookies.Append(RefreshTokenCookieName, result.refreshToken, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict, // Change to None, if you need cross-site cookies
-                Expires = result.refreshTokenExpiry
-            });
+        SetRefreshTokenCookie(result.refreshToken, result.refreshTokenExpiry);
 
-            return Ok(new { accessToken = result.response });
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (ConflictException ex)
-        {
-            return Conflict(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var accessToken = result.response.AccessToken;
+
+        return Ok(new AccessTokenResponse(accessToken));
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<UserResponse>> LoginAsync(
-        [FromBody] LoginRequest request)
+    [ProducesResponseType(typeof(AccessTokenResponse), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 500)]
+    public async Task<ActionResult<AccessTokenResponse>> LoginAsync(
+        LoginRequest request)
     {
-        try
-        {
-            var result = await authService.LoginAsync(request);
 
-            Response.Cookies.Append(RefreshTokenCookieName, result.refreshToken, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict, // Change to None, if you need cross-site cookies
-                Expires = result.refreshTokenExpiry
-            });
+        var result = await authService.LoginAsync(request);
 
-            return Ok(new { accessToken = result.response });
-        }
-        catch (InvalidCredentialsException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        SetRefreshTokenCookie(result.refreshToken, result.refreshTokenExpiry);
+
+        var accessToken = result.response.AccessToken;
+
+        return Ok(new AccessTokenResponse(accessToken));
+
     }
 
     [HttpPost("refresh")]
-    public async Task<ActionResult<UserResponse>> Refresh(
+    [ProducesResponseType(typeof(AccessTokenResponse), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 500)]
+    public async Task<ActionResult<AccessTokenResponse>> Refresh(
         [FromHeader(Name = "Authorization")] string? authorization)
     {
-        try
+        if (string.IsNullOrEmpty(authorization) ||
+            !authorization.StartsWith(BearerPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            if (string.IsNullOrEmpty(authorization))
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
-
-            var accessToken = authorization.Replace("Bearer ", "");
-
-            var refreshToken = Request.Cookies[RefreshTokenCookieName];
-
-            if (string.IsNullOrEmpty(refreshToken))
-            {
-                return BadRequest(new { message = "Refresh token cookie is missing." });
-            }
-
-            var result = await authService.UpdateAccessTokenAsync(accessToken, refreshToken);
-
-            Response.Cookies.Append(RefreshTokenCookieName, result.refreshToken, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict, // Change to None, if you need cross-site cookies
-                Expires = result.refreshTokenExpiry
-            });
-
-            return Ok(new { accessToken = result.response });
+            throw new UnauthorizedException(MissingOrInvalidTokenMessage);
         }
-        catch (ValidationException ex)
+
+        var accessToken = authorization[BearerPrefix.Length..].Trim();
+
+        var refreshToken = Request.Cookies[RefreshTokenCookieName];
+
+        if (string.IsNullOrEmpty(refreshToken))
         {
-            return BadRequest(new { message = ex.Message });
+            throw new ValidationException("Refresh token cookie is missing.");
         }
-        catch (UnauthorizedException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (NotFoundException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (SecurityException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+
+        var result = await authService.UpdateAccessTokenAsync(accessToken, refreshToken);
+
+        SetRefreshTokenCookie(result.refreshToken, result.refreshTokenExpiry);
+
+        return Ok(new AccessTokenResponse(result.response.AccessToken));
     }
 
-    [Authorize]
     [HttpPost("logout")]
-    public async Task<ActionResult<bool>> LogoutAsync()
+    [ProducesResponseType(204)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 500)]
+    public async Task<IActionResult> LogoutAsync()
     {
-        try
-        {
-            var refreshToken = Request.Cookies[RefreshTokenCookieName];
+        var refreshToken = Request.Cookies[RefreshTokenCookieName];
 
-            if (string.IsNullOrEmpty(refreshToken))
-            {
-                return BadRequest(new { message = "Refresh token cookie is missing." });
-            }
+        if (string.IsNullOrEmpty(refreshToken))
+        {
+            throw new ValidationException("Refresh token cookie is missing.");
+        }
 
-            await authService.LogoutAsync(refreshToken);
+        await authService.LogoutAsync(refreshToken);
+        Response.Cookies.Delete(RefreshTokenCookieName);
 
-            Response.Cookies.Delete(RefreshTokenCookieName);
+        return NoContent();
+    }
 
-            return Ok();
-        }
-        catch (ValidationException ex)
+    private void SetRefreshTokenCookie(string refreshToken, DateTimeOffset expiry)
+    {
+        Response.Cookies.Append(RefreshTokenCookieName, refreshToken, new CookieOptions
         {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (UnauthorizedException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (NotFoundException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (SecurityException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict, // Change to None, if you need cross-site cookies
+            Expires = expiry
+        });
     }
 }

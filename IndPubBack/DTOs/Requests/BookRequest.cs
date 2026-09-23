@@ -1,7 +1,7 @@
 ﻿using IndPubBack.Entities;
 using System.ComponentModel.DataAnnotations;
 
-namespace IndPubBack.DTO.Requests;
+namespace IndPubBack.DTOs.Requests;
 
 public class BookCreateRequest
 {

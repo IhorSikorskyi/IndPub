@@ -1,5 +1,5 @@
-﻿using IndPubBack.DTO.Requests;
-using IndPubBack.DTO.Responses;
+﻿using IndPubBack.DTOs.Requests;
+using IndPubBack.DTOs.Responses;
 using IndPubBack.Exceptions;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -9,123 +9,69 @@ namespace IndPubBack.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/book/{bookId}/chapter")]
+[Route("api/book/{bookId:guid}/chapter")]
 public class ChapterController(IChapterService chapterService) : BaseController
 {
     [HttpPost]
+    [ProducesResponseType(typeof(ChapterResponse), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<ChapterResponse>> CreateChapterAsync(
-        [FromBody] ChapterCreateRequest createRequest, [FromRoute(Name = "bookId")] Guid bookId)
+        ChapterCreateRequest createRequest,
+        [FromRoute(Name = "bookId")] Guid bookId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            var chapter = await chapterService.CreateChapterAsync(bookId, userId.Value, createRequest);
-            return Ok(chapter);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ForbiddenException ex)
-        {
-            return StatusCode(403, new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var chapter = await chapterService.CreateChapterAsync(bookId, userId, createRequest);
+        return Ok(chapter);
     }
 
-    [HttpPut("{chapterId}")]
+    [HttpPut("{chapterId:guid}")]
+    [ProducesResponseType(typeof(ChapterResponse), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<ChapterResponse>> UpdateChapterAsync(
-        [FromBody] ChapterUpdateRequest updateRequest,
+        ChapterUpdateRequest updateRequest,
         [FromRoute(Name = "bookId")] Guid bookId,
         [FromRoute(Name = "chapterId")] Guid chapterId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
-            var chapter = await chapterService.UpdateChapterAsync(bookId, chapterId, userId.Value, updateRequest);
-            return Ok(chapter);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ForbiddenException ex)
-        {
-            return StatusCode(403, new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var userId = GetCurrentUserId();
+
+        var chapter = await chapterService.UpdateChapterAsync(bookId, chapterId, userId, updateRequest);
+        return Ok(chapter);
     }
 
-    [HttpDelete("{chapterId}")]
-    public async Task<ActionResult> DeleteChapter(
+    [HttpDelete("{chapterId:guid}")]
+    [ProducesResponseType(typeof(bool), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
+    public async Task<ActionResult> DeleteChapterAsync(
         [FromRoute(Name = "bookId")] Guid bookId,
         [FromRoute(Name = "chapterId")] Guid chapterId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
-            var result = await chapterService.DeleteChapterAsync(bookId, chapterId, userId.Value);
-            if (!result)
-            {
-                return NotFound(new { message = "Chapter not found or you are not the author" });
-            }
-            return NoContent();
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ForbiddenException ex)
-        {
-            return StatusCode(403, new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var userId = GetCurrentUserId();
+
+        var result = await chapterService.DeleteChapterAsync(bookId, chapterId, userId);
+        
+        return Ok(result);
     }
 
     [AllowAnonymous]
     [HttpGet("{chapterId:guid}")]
-    public async Task<ActionResult<ChapterResponse>> GetChapter(
+    [ProducesResponseType(typeof(ChapterResponse), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
+    public async Task<ActionResult<ChapterResponse>> GetChapterAsync(
         [FromRoute(Name = "bookId")] Guid bookId,
         [FromRoute(Name = "chapterId")] Guid chapterId)
     {
-        try
-        {
-            var chapter = await chapterService.GetChapterAsync(bookId, chapterId);
-            return Ok(chapter);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ForbiddenException ex)
-        {
-            return StatusCode(403, new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var chapter = await chapterService.GetChapterAsync(bookId, chapterId);
+        return Ok(chapter);
     }
 }

@@ -1,5 +1,5 @@
-﻿using IndPubBack.DTO.Requests;
-using IndPubBack.DTO.Responses;
+﻿using IndPubBack.DTOs.Requests;
+using IndPubBack.DTOs.Responses;
 using IndPubBack.Entities;
 using IndPubBack.Exceptions;
 using IndPubBack.Infrastructure.Interfaces;
@@ -21,7 +21,7 @@ public class BookService(
     private const long MaxFileSize = 5 * 1024 * 1024;
 
     #region CRUD
-    public async Task<BookResponse> CreateBookAsync(BookCreateRequest request)
+    public async Task<BookResponse> CreateBookAsync(BookCreateRequest request, Guid currentUserId)
     {
         if (string.IsNullOrWhiteSpace(request.Title))
         {
@@ -30,9 +30,9 @@ public class BookService(
 
         ValidateAuthorsNumbers(request.AuthorIds);
 
-        if (request.Chapters is null || request.Chapters.Count == 0)
+        if (!request.AuthorIds.Contains(currentUserId))
         {
-            throw new ValidationException("At least one chapter is required");
+            throw new ForbiddenException("You can only create a book where you are listed as an author.");
         }
 
         if (await IsTitleExistAsync(request.Title))
@@ -66,10 +66,10 @@ public class BookService(
 
         book.Chapters = [..request.Chapters.Select((c, index) => new Chapter
         {
+            BookId = book.Id,
             Title = c.Title,
             Content = c.Content,
             ChapterNumber = index + 1,
-            BookId = book.Id
         })];
 
         await Task.WhenAll(request.AuthorIds.Select(entityValidationService.EnsureUserExistsAsync));

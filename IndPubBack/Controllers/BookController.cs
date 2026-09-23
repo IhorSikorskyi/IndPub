@@ -1,6 +1,5 @@
-﻿using IndPubBack.DTO.Requests;
-using IndPubBack.DTO.Responses;
-using IndPubBack.Exceptions;
+﻿using IndPubBack.DTOs.Requests;
+using IndPubBack.DTOs.Responses;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,93 +12,62 @@ namespace IndPubBack.Controllers
     public class BookController(IBookService bookService) : BaseController
     {
         [HttpPost]
+        [ProducesResponseType(typeof(BookResponse), 200)]
+        [ProducesResponseType(typeof(object), 400)]
+        [ProducesResponseType(typeof(object), 401)]
+        [ProducesResponseType(typeof(object), 500)]
         public async Task<ActionResult<BookResponse>> CreateBookAsync(
-            [FromBody] BookCreateRequest request)
+            BookCreateRequest request)
         {
-            try
-            {
-                var result = await bookService.CreateBookAsync(request);
-                return Ok(result);
-            }
-            catch (ValidationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new { message = MessageStatus500 });
-            }
+            var userId = GetCurrentUserId();
+
+            var result = await bookService.CreateBookAsync(request, userId);
+            return Ok(result);
         }
 
-        [HttpPut("{bookId}")]
+        [HttpPut("{bookId:guid}")]
+        [ProducesResponseType(typeof(BookResponse), 200)]
+        [ProducesResponseType(typeof(object), 400)]
+        [ProducesResponseType(typeof(object), 401)]
+        [ProducesResponseType(typeof(object), 404)]
+        [ProducesResponseType(typeof(object), 500)]
         public async Task<ActionResult<BookResponse>> UpdateBookAsync(
-            [FromBody] BookUpdateRequest request,
+            BookUpdateRequest request,
             [FromRoute(Name = "bookId")] Guid bookId)
         {
-            try
-            {
-                var userId = GetCurrentUserId();
-                if (userId is null)
-                {
-                    return Unauthorized(new { message = InvalidMessage });
-                }
+            var userId = GetCurrentUserId();
 
-                var result = await bookService.UpdateBookAsync(request, bookId, userId.Value);
-                return Ok(result);
-            }
-            catch (ValidationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new { message = MessageStatus500 });
-            }
+            var result = await bookService.UpdateBookAsync(request, bookId, userId);
+
+            return Ok(result);
         }
 
-        [HttpDelete("{bookId}")]
+        [HttpDelete("{bookId:guid}")]
+        [ProducesResponseType(typeof(bool), 200)]
+        [ProducesResponseType(typeof(object), 400)]
+        [ProducesResponseType(typeof(object), 401)]
+        [ProducesResponseType(typeof(object), 404)]
+        [ProducesResponseType(typeof(object), 500)]
         public async Task<ActionResult<bool>> DeleteBookAsync(
             [FromRoute(Name = "bookId")] Guid bookId)
         {
-            try
-            {
-                var userId = GetCurrentUserId();
-                if (userId is null)
-                {
-                    return Unauthorized(new { message = InvalidMessage });
-                }
+            var userId = GetCurrentUserId();
 
-                var result = await bookService.DeleteBookAsync(bookId, userId.Value);
-                return Ok(result);
-            }
-            catch (ValidationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new { message = MessageStatus500 });
-            }
+            var result = await bookService.DeleteBookAsync(bookId, userId);
+            return Ok(result);
         }
 
         [AllowAnonymous]
-        [HttpGet("{bookId}")]
+        [HttpGet("{bookId:guid}")]
+        [ProducesResponseType(typeof(BookResponse), 200)]
+        [ProducesResponseType(typeof(object), 400)]
+        [ProducesResponseType(typeof(object), 404)]
+        [ProducesResponseType(typeof(object), 500)]
         public async Task<ActionResult<BookResponse>> GetBookByIdAsync(
             [FromRoute(Name = "bookId")] Guid bookId)
         {
-            try
-            {
-                var result = await bookService.GetBookByIdAsync(bookId);
-                return Ok(result);
-            }
-            catch (ValidationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new { message = "An error occurred while processing your request." });
-            }
+            var result = await bookService.GetBookByIdAsync(bookId);
+            return Ok(result);
         }
     }
 }

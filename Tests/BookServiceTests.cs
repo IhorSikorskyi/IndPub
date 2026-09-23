@@ -1,4 +1,4 @@
-﻿using IndPubBack.DTO.Requests;
+﻿using IndPubBack.DTOs.Requests;
 using IndPubBack.Entities;
 using IndPubBack.Exceptions;
 using IndPubBack.Infrastructure.Implementations;

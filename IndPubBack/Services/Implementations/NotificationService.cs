@@ -1,5 +1,5 @@
-﻿using IndPubBack.DTO.Requests;
-using IndPubBack.DTO.Responses;
+﻿using IndPubBack.DTOs.Requests;
+using IndPubBack.DTOs.Responses;
 using IndPubBack.Entities;
 using IndPubBack.Exceptions;
 using IndPubBack.Infrastructure.Interfaces;

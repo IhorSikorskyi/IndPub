@@ -1,6 +1,5 @@
-﻿using IndPubBack.DTO.Requests;
-using IndPubBack.DTO.Responses;
-using IndPubBack.Exceptions;
+﻿using IndPubBack.DTOs.Requests;
+using IndPubBack.DTOs.Responses;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,101 +12,47 @@ namespace IndPubBack.Controllers;
 public class SubscriptionController(ISubscriptionService subscriptionService) : BaseController
 {
     [HttpGet]
+    [ProducesResponseType(typeof(UserActivitiesResponse), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<UserActivitiesResponse>> GetSubscriptionListAsync(
-        [FromQuery] SubscriptionListRequest request)
+        SubscriptionListRequest request)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            var result = await subscriptionService.GetSubscriptionListAsync(userId.Value, request);
-            return Ok(result);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (UnauthorizedException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var result = await subscriptionService.GetSubscriptionListAsync(userId, request);
+        return Ok(result);
     }
 
-    [HttpPost("{authorId}")]
+    [HttpPost("{authorId:guid}")]
+    [ProducesResponseType(typeof(bool), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<bool>> SubscribeAsync(
         [FromRoute(Name = "authorId")] Guid authorId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            var result = await subscriptionService.SubscribeAsync(authorId, userId.Value);
-            return Ok(result);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (UnauthorizedException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var result = await subscriptionService.SubscribeAsync(authorId, userId);
+        return Ok(result);
     }
 
-    [HttpDelete("{authorId}")]
+    [HttpDelete("{authorId:guid}")]
+    [ProducesResponseType(typeof(bool), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<bool>> UnsubscribeAsync(
         [FromRoute(Name = "authorId")] Guid authorId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            var result = await subscriptionService.UnsubscribeAsync(authorId, userId.Value);
-            return Ok(result);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (UnauthorizedException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var result = await subscriptionService.UnsubscribeAsync(authorId, userId);
+        return Ok(result);
     }
 }

@@ -31,11 +31,15 @@ public class ExceptionHandlingMiddleware(RequestDelegate next,
             context.Request.Method,
             context.Request.Path);
 
+        var isKnownException = statusCode != HttpStatusCode.InternalServerError;
+
         var problemDetails = new
         {
             status = (int)statusCode,
             title,
-            detail = environment.IsDevelopment() ? exception.Message : null,
+            detail = isKnownException || environment.IsDevelopment()
+                ? exception.Message
+                : "An unexpected error occurred",
             traceId = context.TraceIdentifier
         };
 

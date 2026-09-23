@@ -1,6 +1,6 @@
 ﻿using IndPubBack.Entities;
 
-namespace IndPubBack.DTO.Responses;
+namespace IndPubBack.DTOs.Responses;
 
 public class BookResponse
 {

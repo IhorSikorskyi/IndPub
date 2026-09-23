@@ -1,6 +1,5 @@
-﻿using IndPubBack.DTO.Requests;
-using IndPubBack.DTO.Responses;
-using IndPubBack.Exceptions;
+﻿using IndPubBack.DTOs.Requests;
+using IndPubBack.DTOs.Responses;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,250 +9,122 @@ namespace IndPubBack.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/book/{bookId}/review")]
+[Route("api/book/{bookId:guid}/review")]
 public class ReviewController(IReviewService reviewService) : BaseController
 {
     [HttpPost]
+    [ProducesResponseType(typeof(ReviewResponse), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<ReviewResponse>> CreateReviewAsync(
-        [FromBody] ReviewRequest createRequest, [FromRoute(Name = "bookId")] Guid bookId)
+        ReviewRequest createRequest,
+        [FromRoute(Name = "bookId")] Guid bookId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            var review = await reviewService.CreateReviewAsync(bookId, userId.Value, createRequest);
-            return Ok(review);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ForbiddenException ex)
-        {
-            return StatusCode(403, new { message = ex.Message });
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var review = await reviewService.CreateReviewAsync(bookId, userId, createRequest);
+        return Ok(review);
     }
 
-    [HttpPut("{reviewId}")]
+    [HttpPut("{reviewId:guid}")]
+    [ProducesResponseType(typeof(ReviewResponse), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<ReviewResponse>> UpdateReviewAsync(
-        [FromBody] ReviewRequest updateRequest, [FromRoute(Name = "bookId")] Guid bookId,
+        ReviewRequest updateRequest,
+        [FromRoute(Name = "bookId")] Guid bookId,
         [FromRoute(Name = "reviewId")] Guid reviewId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            var review = await reviewService.UpdateReviewAsync(reviewId, bookId, userId.Value, updateRequest);
-            return Ok(review);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ForbiddenException ex)
-        {
-            return StatusCode(403, new { message = ex.Message });
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var review = await reviewService.UpdateReviewAsync(reviewId, bookId, userId, updateRequest);
+        return Ok(review);
     }
 
-    [HttpDelete("{reviewId}")]
+    [HttpDelete("{reviewId:guid}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult> DeleteReviewAsync([FromRoute(Name = "reviewId")] Guid reviewId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            await reviewService.DeleteReviewAsync(userId.Value, reviewId);
-            return Ok();
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ForbiddenException ex)
-        {
-            return StatusCode(403, new { message = ex.Message });
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        await reviewService.DeleteReviewAsync(userId, reviewId);
+
+        return NoContent();
     }
 
-    [HttpPost("{reviewId}/like")]
+    [HttpPost("{reviewId:guid}/like")]
+    [ProducesResponseType(typeof(bool), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult> LikeReviewAsync([FromRoute(Name = "reviewId")] Guid reviewId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            bool liked = await reviewService.LikeReviewAsync(reviewId, userId.Value);
-            return Ok(new { liked });
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ForbiddenException ex)
-        {
-            return StatusCode(403, new { message = ex.Message });
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        bool liked = await reviewService.LikeReviewAsync(reviewId, userId);
+        return Ok(new { liked });
     }
 
-    [HttpDelete("{reviewId}/like")]
+    [HttpDelete("{reviewId:guid}/like")]
+    [ProducesResponseType(typeof(bool), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult> UnLikeReviewAsync([FromRoute(Name = "reviewId")] Guid reviewId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            bool liked = await reviewService.UnLikeReviewAsync(reviewId, userId.Value);
-            return Ok(new { liked });
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ForbiddenException ex)
-        {
-            return StatusCode(403, new { message = ex.Message });
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        bool liked = await reviewService.UnLikeReviewAsync(reviewId, userId);
+        return Ok(new { liked });
     }
 
     [AllowAnonymous]
-    [HttpGet("{reviewId}")]
+    [HttpGet("{reviewId:guid}")]
+    [ProducesResponseType(typeof(ReviewResponse), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<ReviewResponse>> GetReviewByIdAsync(
         [FromRoute(Name = "reviewId")] Guid reviewId)
     {
-        try
-        {
-            var review = await reviewService.GetReviewByIdAsync(reviewId);
-            return Ok(review);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var review = await reviewService.GetReviewByIdAsync(reviewId);
+        return Ok(review);
     }
 
     [AllowAnonymous]
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<ReviewResponse>), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<IEnumerable<ReviewResponse>>> GetAllReviewsAsync(
         [FromRoute(Name = "bookId")] Guid bookId)
     {
-        try
-        {
-            var reviews = await reviewService.GetAllReviewsForBookAsync(bookId);
-            return Ok(reviews);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var reviews = await reviewService.GetAllReviewsForBookAsync(bookId);
+        return Ok(reviews);
     }
 
     [HttpGet("my")]
+    [ProducesResponseType(typeof(ReviewResponse), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<ReviewResponse>> GetUserReviewAsync(
         [FromRoute(Name = "bookId")] Guid bookId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            var review = await reviewService.GetUserReviewAsync(bookId, userId.Value);
-            return Ok(review);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ForbiddenException ex)
-        {
-            return StatusCode(403, new { message = ex.Message });
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var review = await reviewService.GetUserReviewAsync(bookId, userId);
+        return Ok(review);
     }
 }

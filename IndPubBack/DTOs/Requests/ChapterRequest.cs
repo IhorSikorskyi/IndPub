@@ -1,4 +1,4 @@
-﻿namespace IndPubBack.DTO.Requests;
+﻿namespace IndPubBack.DTOs.Requests;
 
 public class ChapterCreateRequest
 {

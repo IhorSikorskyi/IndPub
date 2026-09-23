@@ -1,11 +1,10 @@
-﻿using IndPubBack.DTO.Requests;
-using IndPubBack.DTO.Responses;
+﻿using IndPubBack.DTOs.Requests;
+using IndPubBack.DTOs.Responses;
+using IndPubBack.Entities;
 using IndPubBack.Exceptions;
 using IndPubBack.Infrastructure.Interfaces;
-using IndPubBack.Entities;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
-using Microsoft.AspNetCore.SignalR;
 
 namespace IndPubBack.Services.Implementations;
 
@@ -54,7 +53,7 @@ public class SubscriptionService(ISubscriptionRepository subscriptionRepository,
         await entityValidationService.EnsureUserExistsAsync(userId);
 
         await entityValidationService.EnsureUserExistsAsync(authorId);
-        
+
         var sub = await subscriptionRepository.GetSubscriptionAsync(userId, authorId) ??
                   throw new ConflictException("You not subscribe");
 

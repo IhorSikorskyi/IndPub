@@ -1,6 +1,5 @@
-﻿using IndPubBack.DTO.Requests;
-using IndPubBack.DTO.Responses;
-using IndPubBack.Exceptions;
+﻿using IndPubBack.DTOs.Requests;
+using IndPubBack.DTOs.Responses;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,137 +13,77 @@ public class UserController(IUserService userService) : BaseController
 {
     [AllowAnonymous]
     [HttpGet("{userId:guid}")]
+    [ProducesResponseType(typeof(UserInfoResponse), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<UserInfoResponse>> GetProfileAsync(
-        [FromRoute] Guid userId)
+        [FromRoute(Name = "userId")] Guid userId)
     {
-        try
-        {
-            var response = await userService.GetUserInfoAsync(userId);
+        var response = await userService.GetUserInfoAsync(userId);
 
-            return Ok(response);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (UnauthorizedException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        return Ok(response);
     }
 
     [HttpGet("profile")]
+    [ProducesResponseType(typeof(UserInfoResponse), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<UserInfoResponse>> GetUserProfileAsync()
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            var response = await userService.GetUserInfoAsync(userId.Value);
+        var response = await userService.GetUserInfoAsync(userId);
 
-            return Ok(response);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (UnauthorizedException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        return Ok(response);
     }
 
     [HttpPut]
+    [ProducesResponseType(typeof(UserInfoResponse), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 409)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<UserInfoResponse>> UpdateProfileAsync(
-        [FromBody] UpdateProfileRequest request)
+        UpdateProfileRequest request)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            var result = await userService.UpdateUserInfoAsync(userId.Value, request);
-            return Ok(result);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (InvalidCredentialsException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (ConflictException ex)
-        {
-            return Conflict(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var result = await userService.UpdateUserInfoAsync(userId, request);
+
+        return Ok(result);
     }
 
-    [HttpDelete("{userId}")]
+    [HttpDelete("{userId:guid}")]
+    [ProducesResponseType(typeof(bool), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 401)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<bool>> DeleteProfileAsync(
         [FromRoute(Name = "userId")] Guid? targetUserId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId is null)
-            {
-                return Unauthorized(new { message = InvalidMessage });
-            }
+        var userId = GetCurrentUserId();
 
-            var result = await userService.DeleteAccountAsync(userId.Value, targetUserId);
-            return Ok(result);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (UnauthorizedException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var result = await userService.DeleteAccountAsync(userId, targetUserId);
+
+        return Ok(result);
     }
 
     [AllowAnonymous]
     [HttpGet("{userId:guid}/reviews")]
+    [ProducesResponseType(typeof(IEnumerable<ReviewResponse>), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<IEnumerable<ReviewResponse>>> GetUserReviewsAsync(
         [FromRoute(Name = "userId")] Guid userId)
     {
-        try
-        {
-            var reviews = await userService.GetAllReviewsByUserAsync(userId);
-            return Ok(reviews);
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var reviews = await userService.GetAllReviewsByUserAsync(userId);
+
+        return Ok(reviews);
     }
 }

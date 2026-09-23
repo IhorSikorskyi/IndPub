@@ -1,4 +1,4 @@
-﻿namespace IndPubBack.DTO.Responses;
+﻿namespace IndPubBack.DTOs.Responses;
 
 public class CommentResponse // Update and Create use the same response
 {

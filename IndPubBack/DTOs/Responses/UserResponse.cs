@@ -1,6 +1,6 @@
 using IndPubBack.Entities;
 
-namespace IndPubBack.DTO.Responses;
+namespace IndPubBack.DTOs.Responses;
 
 public class UserResponse
 {
@@ -8,6 +8,8 @@ public class UserResponse
     public DateTime RefreshTokenExpiry { get; set; }
     public string AccessToken { get; set; } = string.Empty;
 }
+
+public record AccessTokenResponse(string AccessToken);
 
 public class UserInfoResponse
 {

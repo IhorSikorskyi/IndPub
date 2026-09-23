@@ -1,5 +1,5 @@
 ﻿using IndPubBack.Data;
-using IndPubBack.DTO.Requests;
+using IndPubBack.DTOs.Requests;
 using IndPubBack.Entities;
 using IndPubBack.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;

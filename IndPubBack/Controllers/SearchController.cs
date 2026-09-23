@@ -1,6 +1,5 @@
-﻿using IndPubBack.DTO.Requests;
-using IndPubBack.DTO.Responses;
-using IndPubBack.Exceptions;
+﻿using IndPubBack.DTOs.Requests;
+using IndPubBack.DTOs.Responses;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,21 +10,14 @@ namespace IndPubBack.Controllers;
 public class SearchController(ISearchService searchService) : BaseController
 {
     [HttpGet]
+    [ProducesResponseType(typeof(IList<BookShortResponse>), 200)]
+    [ProducesResponseType(typeof(object), 400)]
+    [ProducesResponseType(typeof(object), 404)]
+    [ProducesResponseType(typeof(object), 500)]
     public async Task<ActionResult<IList<BookShortResponse>>> GetBooksByFiltersAsync(
-        [FromQuery] BookSearchRequest request)
+        BookSearchRequest request)
     {
-        try
-        {
-            var result = await searchService.GetBooksByFiltersAsync(request);
-            return Ok(result);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception)
-        {
-            return StatusCode(500, new { message = MessageStatus500 });
-        }
+        var result = await searchService.GetBooksByFiltersAsync(request);
+        return Ok(result);
     }
 }

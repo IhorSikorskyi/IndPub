@@ -1,4 +1,4 @@
-﻿using IndPubBack.DTO.Requests;
+﻿using IndPubBack.DTOs.Requests;
 using IndPubBack.Entities;
 
 namespace IndPubBack.Repositories.Interfaces;
