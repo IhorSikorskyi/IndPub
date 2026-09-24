@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Repositories.Implementations;
 
-public class BookLikeRepository(IndPubDbContext dbContext) : Repository<BookLike>(dbContext), IBookLikeRepository
+public class BookLikeRepository(IndPubDbContext dbContext) : IBookLikeRepository
 {
     public async Task<BookLike?> GetLikedAsync(Guid bookId, Guid userId)
     {
@@ -20,7 +20,8 @@ public class BookLikeRepository(IndPubDbContext dbContext) : Repository<BookLike
     {
         IQueryable<BookLike> query = dbContext.BookLikes
             .Where(bl => bl.UserId == userId)
-            .Include(bl => bl.Book);
+            .Include(bl => bl.Book)
+            .AsNoTracking();
 
         if (cursor != null)
         {
@@ -33,10 +34,14 @@ public class BookLikeRepository(IndPubDbContext dbContext) : Repository<BookLike
             .ToListAsync();
     }
 
-    public async Task UnLikeBookAsync(BookLike like)
+    public void LikeBook(BookLike like)
+    {
+        dbContext.BookLikes.Add(like);
+    }
+
+    public void UnLikeBook(BookLike like)
     {
         dbContext.BookLikes.Remove(like);
-        await dbContext.SaveChangesAsync();
     }
 
     public async Task<bool> IsBookLikedAsync(Guid bookId, Guid userId)

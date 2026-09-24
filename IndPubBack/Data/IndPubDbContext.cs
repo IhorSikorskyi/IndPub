@@ -56,7 +56,8 @@ public class IndPubDbContext(DbContextOptions<IndPubDbContext> options) : DbCont
                 baseEntity.CreatedAt = now;
             }
 
-            if (entry.State != EntityState.Added && entry.State != EntityState.Modified)
+            if (entry.State != EntityState.Added && entry.State != EntityState.Modified
+                                                 && entry.State != EntityState.Deleted)
             {
                 continue;
             }
@@ -65,6 +66,10 @@ public class IndPubDbContext(DbContextOptions<IndPubDbContext> options) : DbCont
             {
                 case Book book:
                     book.UpdatedDate = now;
+                    break;
+
+                case Chapter chapter:
+                    UpdateBookTimestamp(chapter.BookId, now);
                     break;
 
                 case Subscription subscription when entry.State == EntityState.Added:
@@ -87,6 +92,24 @@ public class IndPubDbContext(DbContextOptions<IndPubDbContext> options) : DbCont
                     reviewLike.LikedAt = now;
                     break;
             }
+        }
+    }
+
+    private void UpdateBookTimestamp(Guid bookId, DateTime now)
+    {
+        var book = ChangeTracker.Entries<Book>()
+            .FirstOrDefault(e => e.Entity.Id == bookId)?.Entity;
+
+        if (book is not null)
+        {
+            book.UpdatedDate = now;
+            return;
+        }
+
+        var attachedBook = Books.Find(bookId);
+        if (attachedBook is not null)
+        {
+            attachedBook.UpdatedDate = now;
         }
     }
 }

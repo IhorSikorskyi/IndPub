@@ -1,27 +1,24 @@
 ﻿using IndPubBack.DTOs.Requests;
 using IndPubBack.DTOs.Responses;
 using IndPubBack.Entities;
+using IndPubBack.Enums;
 using IndPubBack.Exceptions;
-using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
 namespace IndPubBack.Services.Implementations;
 
-//TODO: Refactor this class to follow SRP and clean code principles. Consider splitting it into smaller services or using helper classes for specific functionalities.
 public class UserService(
-    IConfiguration configuration,
     IUserRepository userRepository,
-    IReviewRepository reviewRepository,
-    IBlobService blobService,
+    IUnitOfWork unitOfWork,
     IPasswordValidationService passwordValidationService,
-    IImageValidationService imageValidationService,
-    IAccessValidationService accessValidationService)
+    IImageService imageService)
     : IUserService
 {
     private static readonly string Check = "Invalid access token.";
     private const long MaxFileSize = 2 * 1024 * 1024;
+    private const string AvatarFolderConfigKey = "AzureStorage:ProfilePicturesFolder";
 
     #region Profile
 
@@ -43,35 +40,31 @@ public class UserService(
         await UpdateEmailAsync(user, request.Email);
         UpdatePassword(user, request.CurrentPassword, request.NewPassword, request.ConfirmNewPassword);
 
-        await userRepository.UpdateAsync(user);
+        userRepository.Update(user);
+        await unitOfWork.SaveChangesAsync();
 
-        return new UserInfoResponse
-        {
-            Login = user.Login,
-            Email = user.Email,
-            Bio = user.Bio,
-            ProfilePictureUrl = user.ProfilePictureUrl
-        };
+        return MapToUserInfoResponse(user);
     }
 
-    public async Task<bool> DeleteAccountAsync(Guid userId, Guid? targetUserId)
+    public async Task<bool> DeleteAccountAsync(Guid userId, Guid targetUserId)
     {
-        var idToDelete = targetUserId ?? userId;
+        var user = await userRepository.GetByIdAsync(targetUserId) 
+                   ?? throw new UnauthorizedException(Check);
 
-        if (idToDelete != userId)
+        if(targetUserId != userId)
         {
-            await accessValidationService.EnsureUserIsModeratorAsync(userId);
-        }
+            var role = await userRepository.GetUserRoleAsync(userId);
 
-        await userRepository.DeleteAsync(idToDelete);
+            if(role != nameof(Roles.Moderator))
+            {
+                throw new UnauthorizedException("You do not have permission to delete this account.");
+            }
+        }
+        
+        userRepository.Delete(user);
+        await unitOfWork.SaveChangesAsync();
 
         return true;
-    }
-
-    public async Task<IEnumerable<ReviewResponse>> GetAllReviewsByUserAsync(Guid userId)
-    {
-        var reviews = await reviewRepository.GetAllReviewsByUserAsync(userId);
-        return reviews.Select(MapToReviewResponse);
     }
 
     #endregion
@@ -85,14 +78,7 @@ public class UserService(
             return;
         }
 
-        if (!imageValidationService.ValidateImage(avatar, MaxFileSize))
-        {
-            throw new ValidationException("Invalid image");
-        }
-
-        string folder = configuration["AzureStorage:ProfilePicturesFolder"]!;
-        string avatarUrl = await blobService.UploadBlobAsync(folder, avatar, user.Id);
-        user.ProfilePictureUrl = avatarUrl;
+        user.ProfilePictureUrl = await imageService.UploadImageAsync(avatar, AvatarFolderConfigKey, user.Id, MaxFileSize);
     }
 
     private async Task UpdateLoginAsync(User user, string? login)
@@ -174,22 +160,6 @@ public class UserService(
             JoiningDate = user.CreatedAt,
             SubscribersCount = user.Subscribers.Count
         };
-    }
-
-    private static ReviewResponse MapToReviewResponse(Review review)
-    {
-        var response = new ReviewResponse
-        {
-            Id = review.Id,
-            BookId = review.BookId,
-            BookTitle = review.Book.Title,
-            UserId = review.UserId,
-            UserName = review.User.Login,
-            Rating = review.Rating,
-            Text = review.Text,
-            CreatedAt = review.CreatedAt
-        };
-        return response;
     }
 
     #endregion

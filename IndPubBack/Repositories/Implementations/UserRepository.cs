@@ -33,9 +33,7 @@ namespace IndPubBack.Repositories.Implementations
 
         // This method is overridden to include all related entities of the User, which are necessary for the application logic.
         // But need to be careful with this method, because it can lead to performance issues if the user has a lot of related entities.
-        // Consider using separate methods to get related entities if necessary.
-        // Batter to use separate methods to get related entities if necessary,
-        // and use this method only when you need to get all related entities of the user. 
+        // TODO: Consider using separate methods to get related entities if necessary.
         public override async Task<User?> GetByIdAsync(Guid id)
         {
             var data = await dbContext.Users

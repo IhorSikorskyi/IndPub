@@ -22,11 +22,11 @@ public class AuthController(IAuthService authService) : BaseController
     {
         var result = await authService.RegisterAsync(request);
 
-        SetRefreshTokenCookie(result.refreshToken, result.refreshTokenExpiry);
+        SetRefreshTokenCookie(result.RefreshToken, result.RefreshTokenExpiry);
 
-        var accessToken = result.response.AccessToken;
+        var accessToken = result.AccessToken;
 
-        return Ok(new AccessTokenResponse(accessToken));
+        return Ok(accessToken);
     }
 
     [HttpPost("login")]
@@ -40,11 +40,11 @@ public class AuthController(IAuthService authService) : BaseController
 
         var result = await authService.LoginAsync(request);
 
-        SetRefreshTokenCookie(result.refreshToken, result.refreshTokenExpiry);
+        SetRefreshTokenCookie(result.RefreshToken, result.RefreshTokenExpiry);
 
-        var accessToken = result.response.AccessToken;
+        var accessToken = result.AccessToken;
 
-        return Ok(new AccessTokenResponse(accessToken));
+        return Ok(accessToken);
 
     }
 
@@ -73,9 +73,9 @@ public class AuthController(IAuthService authService) : BaseController
 
         var result = await authService.UpdateAccessTokenAsync(accessToken, refreshToken);
 
-        SetRefreshTokenCookie(result.refreshToken, result.refreshTokenExpiry);
+        SetRefreshTokenCookie(result.RefreshToken, result.RefreshTokenExpiry);
 
-        return Ok(new AccessTokenResponse(result.response.AccessToken));
+        return Ok(result.AccessToken);
     }
 
     [HttpPost("logout")]

@@ -5,8 +5,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Repositories.Implementations;
 
-public class ReviewLikeRepository(IndPubDbContext dbContext) : Repository<ReviewLike>(dbContext), IReviewLikeRepository
+public class ReviewLikeRepository(IndPubDbContext dbContext) : IReviewLikeRepository
 {
+    public async Task AddAsync(ReviewLike like)
+    {
+        await dbContext.ReviewLikes.AddAsync(like);
+    }
+
+    public async Task<ReviewLike?> GetByIdAsync(Guid reviewId, Guid userId)
+    {
+        return await dbContext.ReviewLikes
+            .FirstOrDefaultAsync(rl => rl.ReviewId == reviewId && rl.UserId == userId);
+    }
+
     public async Task<IList<ReviewLike>> GetLikesAsync(Guid userId, DateTime? cursor, int pageSize)
     {
         IQueryable<ReviewLike> query = dbContext.ReviewLikes

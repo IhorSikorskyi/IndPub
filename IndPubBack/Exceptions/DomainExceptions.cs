@@ -14,3 +14,6 @@ public class ForbiddenException(string message) : Exception(message);
 
 public class SecurityException(string message) : Exception(message);
 
+public class TokenReuseDetectedException(string message) : Exception(message);
+
+public class TokenExpiredException(string message) : Exception(message);

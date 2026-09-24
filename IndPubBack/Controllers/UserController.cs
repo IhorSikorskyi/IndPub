@@ -1,5 +1,6 @@
 ﻿using IndPubBack.DTOs.Requests;
 using IndPubBack.DTOs.Responses;
+using IndPubBack.Services.Implementations;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,9 @@ namespace IndPubBack.Controllers;
 [Authorize]
 [Route("api/user")]
 [ApiController]
-public class UserController(IUserService userService) : BaseController
+public class UserController(
+    IUserService userService,
+    IReviewService reviewService) : BaseController
 {
     [AllowAnonymous]
     [HttpGet("{userId:guid}")]
@@ -64,7 +67,7 @@ public class UserController(IUserService userService) : BaseController
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<bool>> DeleteProfileAsync(
-        [FromRoute(Name = "userId")] Guid? targetUserId)
+        [FromRoute(Name = "userId")] Guid targetUserId)
     {
         var userId = GetCurrentUserId();
 
@@ -82,7 +85,7 @@ public class UserController(IUserService userService) : BaseController
     public async Task<ActionResult<IEnumerable<ReviewResponse>>> GetUserReviewsAsync(
         [FromRoute(Name = "userId")] Guid userId)
     {
-        var reviews = await userService.GetAllReviewsByUserAsync(userId);
+        var reviews = await reviewService.GetAllReviewsByUserAsync(userId);
 
         return Ok(reviews);
     }

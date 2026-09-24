@@ -1,19 +1,19 @@
 ﻿using IndPubBack.Data;
 using IndPubBack.Entities;
 using IndPubBack.Enums;
-using IndPubBack.Exceptions;
 using IndPubBack.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Repositories.Implementations;
 
-public class LibraryRepository(IndPubDbContext dbContext) : Repository<LibraryEntry>(dbContext), ILibraryRepository
+public class LibraryRepository(IndPubDbContext dbContext) : ILibraryRepository
 {
     public async Task<LibraryEntry?> GetByIdAsync(Guid userId, Guid bookId)
     {
         return await dbContext.Libraries
             .Where(e => e.UserId == userId && e.BookId == bookId)
             .Include(e => e.Book)
+            .AsNoTracking()
             .FirstOrDefaultAsync();
     }
 
@@ -32,18 +32,8 @@ public class LibraryRepository(IndPubDbContext dbContext) : Repository<LibraryEn
             .OrderByDescending(e => e.DateAdded)
             .Take(pageSize)
             .Include(e => e.Book)
+            .AsNoTracking()
             .ToListAsync();
-    }
-
-    public async Task<bool> DeleteFromLibraryAsync(Guid userId, Guid bookId)
-    {
-        var entity = await GetByIdAsync(userId, bookId) ??
-                     throw new NotFoundException("Library entry not found");
-
-        dbContext.Libraries.Remove(entity);
-        await dbContext.SaveChangesAsync();
-
-        return true;
     }
 
     public async Task<bool> IsBookInLibraryAsync(Guid userId, Guid bookId)
@@ -52,14 +42,18 @@ public class LibraryRepository(IndPubDbContext dbContext) : Repository<LibraryEn
             .AnyAsync(e => e.UserId == userId && e.BookId == bookId);
     }
 
-    public async Task<bool> UpdateLibraryEntryStatusAsync(Guid userId, Guid bookId, LibraryBookStatus status)
+    public async Task AddAsync(LibraryEntry libraryEntry)
     {
-        var entity = await GetByIdAsync(userId, bookId) ??
-                     throw new NotFoundException("Library entry not found");
+        await dbContext.Libraries.AddAsync(libraryEntry);
+    }
 
-        entity.Status = status;
-        await dbContext.SaveChangesAsync();
+    public void DeleteFromLibrary(LibraryEntry libraryEntry)
+    {
+        dbContext.Libraries.Remove(libraryEntry);
+    }
 
-        return true;
+    public void UpdateLibraryEntryStatus(LibraryEntry libraryEntry, LibraryBookStatus status)
+    {
+        libraryEntry.Status = status;
     }
 }

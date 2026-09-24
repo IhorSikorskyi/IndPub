@@ -2,23 +2,21 @@
 using IndPubBack.DTOs.Responses;
 using IndPubBack.Entities;
 using IndPubBack.Exceptions;
-using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 
 namespace IndPubBack.Services.Implementations;
 
 public class BookService(
-    IConfiguration configuration,
     IBookRepository bookRepository,
-    ITagRepository tagRepository,
-    IImageValidationService imageValidationService,
+    IUnitOfWork unitOfWork,
+    ITagService tagService,
+    IImageService imageService,
     IEntityValidationService entityValidationService,
-    IAccessValidationService accessValidationService,
-    IBlobService blobService) : IBookService
+    IAccessValidationService accessValidationService) : IBookService
 {
-
     private const long MaxFileSize = 5 * 1024 * 1024;
+    private const string BookCoversFolderKey = "AzureStorage:BookCoversFolder";
 
     #region CRUD
     public async Task<BookResponse> CreateBookAsync(BookCreateRequest request, Guid currentUserId)
@@ -55,13 +53,8 @@ public class BookService(
 
         if (request.CoverImage is not null)
         {
-            if (!imageValidationService.ValidateImage(request.CoverImage, MaxFileSize))
-            {
-                throw new ValidationException("Invalid image");
-            }
-
-            string folder = configuration["AzureStorage:BookCoversFolder"]!;
-            book.CoverImageUrl = await blobService.UploadBlobAsync(folder, request.CoverImage, book.Id);
+            book.CoverImageUrl = await imageService.UploadImageAsync(
+                request.CoverImage, BookCoversFolderKey, book.Id, MaxFileSize);
         }
 
         book.Chapters = [..request.Chapters.Select((c, index) => new Chapter
@@ -72,7 +65,7 @@ public class BookService(
             ChapterNumber = index + 1,
         })];
 
-        await Task.WhenAll(request.AuthorIds.Select(entityValidationService.EnsureUserExistsAsync));
+        await Task.WhenAll(request.AuthorIds.Select(entityValidationService.IsUserExistsAsync));
 
         book.BookAuthors = [..request.AuthorIds.Select(authorId => new BookAuthor
         {
@@ -85,23 +78,28 @@ public class BookService(
             var bookTags = new List<BookTag>();
             foreach (var tagRequest in request.Tags)
             {
-                var tag = await tagRepository.GetByNameAsync(tagRequest.Name)
-                          ?? await tagRepository.AddAsync(tagRequest.Name);
-                bookTags.Add(new BookTag { BookId = book.Id, TagId = tag.Id });
+                var tag = await tagService.GetOrCreateBookTagsAsync(book.Id, new List<CreateBookTagRequest> { tagRequest });
+                bookTags.AddRange(tag);
             }
             book.BookTags = bookTags;
         }
 
         await bookRepository.AddAsync(book);
+        await unitOfWork.SaveChangesAsync();
 
         return MapToBookResponse(book);
     }
 
     public async Task<BookResponse> UpdateBookAsync(BookUpdateRequest request, Guid bookId, Guid userId)
     {
-        await accessValidationService.EnsureUserIsAuthorOrModeratorAsync(userId, bookId);
         var book = await bookRepository.GetByIdAsync(bookId)
                    ?? throw new NotFoundException("Book not found");
+
+        _ = await accessValidationService.IsUserIsModeratorAsync(userId) ? true 
+            : throw new AccessViolationException("You are not an author or a moderator of this book.");
+
+        _ = await bookRepository.IsUserAuthorAsync(userId, bookId) ? true
+            : throw new AccessViolationException("You are not an author of this book.");
 
         book.UpdatedDate = DateTime.UtcNow;
 
@@ -122,13 +120,8 @@ public class BookService(
 
         if (request.CoverImage is not null)
         {
-            if (!imageValidationService.ValidateImage(request.CoverImage, MaxFileSize))
-            {
-                throw new ValidationException("Invalid image");
-            }
-
-            string folder = configuration["AzureStorage:BookCoversFolder"]!;
-            book.CoverImageUrl = await blobService.UploadBlobAsync(folder, request.CoverImage, book.Id);
+            book.CoverImageUrl = await imageService.UploadImageAsync(
+                request.CoverImage, BookCoversFolderKey, book.Id, MaxFileSize);
         }
 
         book.Status = request.Status;
@@ -136,7 +129,7 @@ public class BookService(
         if (request.AuthorIds is not null)
         {
             ValidateAuthorsNumbers(request.AuthorIds);
-            await Task.WhenAll(request.AuthorIds.Select(entityValidationService.EnsureUserExistsAsync));
+            await Task.WhenAll(request.AuthorIds.Select(entityValidationService.IsUserExistsAsync));
             book.BookAuthors = [..request.AuthorIds.Select(authorId => new BookAuthor
             {
                 BookId = book.Id,
@@ -149,24 +142,31 @@ public class BookService(
             var bookTags = new List<BookTag>();
             foreach (var tagRequest in request.Tags)
             {
-                var tag = await tagRepository.GetByNameAsync(tagRequest.Name)
-                          ?? await tagRepository.AddAsync(tagRequest.Name);
-                bookTags.Add(new BookTag { BookId = book.Id, TagId = tag.Id });
+                var tag = await tagService.GetOrCreateBookTagsAsync(book.Id, new List<CreateBookTagRequest> { tagRequest });
+                bookTags.AddRange(tag);
             }
             book.BookTags = bookTags;
         }
 
-        await bookRepository.UpdateAsync(book);
+        bookRepository.Update(book);
+        await unitOfWork.SaveChangesAsync();
 
         return MapToBookResponse(book);
     }
 
     public async Task<bool> DeleteBookAsync(Guid bookId, Guid userId)
     {
-        await entityValidationService.EnsureBookExistsAsync(bookId);
-        await accessValidationService.EnsureUserIsAuthorOrModeratorAsync(userId, bookId);
+        var book = await bookRepository.GetByIdAsync(bookId) 
+                   ?? throw new NotFoundException("Book not found.");
 
-        await bookRepository.DeleteAsync(bookId);
+        _ = await accessValidationService.IsUserIsModeratorAsync(userId) ? true
+            : throw new AccessViolationException("You are not an author or a moderator of this book.");
+
+        _ = await bookRepository.IsUserAuthorAsync(userId, bookId) ? true
+            : throw new AccessViolationException("You are not an author of this book.");
+
+        bookRepository.Delete(book);
+        await unitOfWork.SaveChangesAsync();
 
         return true;
     }

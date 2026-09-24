@@ -1,6 +1,4 @@
-﻿using IndPubBack.Infrastructure.Implementations;
-using IndPubBack.Infrastructure.Interfaces;
-using IndPubBack.Services.Implementations;
+﻿using IndPubBack.Services.Implementations;
 using IndPubBack.Services.Interfaces;
 
 namespace IndPubBack.Extensions;
@@ -19,14 +17,15 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IChapterService, ChapterService>();
         services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<INotificationService, NotificationService>();
-
-        // TODO: Review this services and consider to delete them if they are not best practices to use in the project or maybe replace them with better alternatives
-        // DI Container registrations for infrastructure services
         services.AddScoped<IBlobService, BlobService>();
         services.AddScoped<IEntityValidationService, EntityValidationService>();
-        services.AddScoped<IImageValidationService, ImageValidationService>();
+        services.AddScoped<IImageService, ImageService>();
         services.AddScoped<IPasswordValidationService, PasswordValidationService>();
         services.AddScoped<IAccessValidationService, AccessValidationService>();
+        services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+        services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+        services.AddScoped<IReviewInteractionService, ReviewInteractionService>();
+        services.AddScoped<ITagService, TagService>();
 
         return services;
     }

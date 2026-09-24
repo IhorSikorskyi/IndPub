@@ -2,13 +2,15 @@
 using IndPubBack.DTOs.Responses;
 using IndPubBack.Entities;
 using IndPubBack.Exceptions;
-using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 
 namespace IndPubBack.Services.Implementations;
 
-public class SubscriptionService(ISubscriptionRepository subscriptionRepository, IEntityValidationService entityValidationService) : ISubscriptionService
+public class SubscriptionService(
+    ISubscriptionRepository subscriptionRepository,
+    IUnitOfWork unitOfWork,
+    IEntityValidationService entityValidationService) : ISubscriptionService
 {
     public async Task<UserActivitiesResponse> GetSubscriptionListAsync(Guid userId, SubscriptionListRequest request)
     {
@@ -28,13 +30,15 @@ public class SubscriptionService(ISubscriptionRepository subscriptionRepository,
 
     public async Task<bool> SubscribeAsync(Guid authorId, Guid userId)
     {
-        await entityValidationService.EnsureUserExistsAsync(userId);
+        _ = await entityValidationService.IsUserExistsAsync(userId) ? true
+            : throw new NotFoundException("User not found");
 
-        await entityValidationService.EnsureUserExistsAsync(authorId);
+        _ = await entityValidationService.IsUserExistsAsync(authorId) ? true
+            : throw new NotFoundException("Author not found");
 
         if (await IsSubscribedAsync(userId, authorId))
         {
-            throw new ConflictException("You subscribe");
+            throw new ConflictException("You are already subscribed");
         }
 
         var sub = new Subscription
@@ -43,21 +47,25 @@ public class SubscriptionService(ISubscriptionRepository subscriptionRepository,
             UserId = userId
         };
 
-        await subscriptionRepository.AddAsync(sub);
+        await subscriptionRepository.SubscribeAsync(sub);
+        await unitOfWork.SaveChangesAsync();
 
         return true;
     }
 
     public async Task<bool> UnsubscribeAsync(Guid authorId, Guid userId)
     {
-        await entityValidationService.EnsureUserExistsAsync(userId);
+        _ = await entityValidationService.IsUserExistsAsync(userId) ? true 
+            : throw new NotFoundException("User not found");
 
-        await entityValidationService.EnsureUserExistsAsync(authorId);
+        _ = await entityValidationService.IsUserExistsAsync(authorId) ? true 
+            : throw new NotFoundException("Author not found");
 
         var sub = await subscriptionRepository.GetSubscriptionAsync(userId, authorId) ??
-                  throw new ConflictException("You not subscribe");
+                  throw new ConflictException("You are not subscribed");
 
-        await subscriptionRepository.UnSubscribedAsync(sub);
+        subscriptionRepository.UnSubscribe(sub);
+        await unitOfWork.SaveChangesAsync();
 
         return true;
     }

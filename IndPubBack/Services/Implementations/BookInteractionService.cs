@@ -1,5 +1,4 @@
 ﻿using IndPubBack.Exceptions;
-using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Entities;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
@@ -8,12 +7,16 @@ namespace IndPubBack.Services.Implementations;
 
 public class BookInteractionService(
     IEntityValidationService entityValidationService,
+    IUnitOfWork unitOfWork,
     IBookLikeRepository bookLikeRepository) : IBookInteractionService
 {
     public async Task<bool> LikeBookAsync(Guid bookId, Guid userId)
     {
-        await entityValidationService.EnsureUserExistsAsync(userId);
-        await entityValidationService.EnsureBookExistsAsync(bookId);
+        _ = await entityValidationService.IsUserExistsAsync(userId) ? true : 
+            throw new NotFoundException("User not found");
+
+        _ = await entityValidationService.IsBookExistsAsync(bookId) ? true : 
+            throw new NotFoundException("Book not found");
 
         if ( await IsBookLikedAsync(bookId, userId))
         {
@@ -26,20 +29,25 @@ public class BookInteractionService(
             UserId = userId
         };
 
-        await bookLikeRepository.AddAsync(like);
+        bookLikeRepository.LikeBook(like);
+        await unitOfWork.SaveChangesAsync();
 
         return true;
     }
 
     public async Task<bool> UnLikeBookAsync(Guid bookId, Guid userId)
     {
-        await entityValidationService.EnsureUserExistsAsync(userId);
-        await entityValidationService.EnsureBookExistsAsync(bookId);
+        _ = await entityValidationService.IsUserExistsAsync(userId) ? true :
+            throw new NotFoundException("User not found");
+
+        _ = await entityValidationService.IsBookExistsAsync(bookId) ? true :
+            throw new NotFoundException("Book not found");
 
         var like = await bookLikeRepository.GetLikedAsync(bookId, userId) 
                    ?? throw new ConflictException("Book not liked");
 
-        await bookLikeRepository.UnLikeBookAsync(like);
+        bookLikeRepository.UnLikeBook(like);
+        await unitOfWork.SaveChangesAsync();
         return true;
     }
 

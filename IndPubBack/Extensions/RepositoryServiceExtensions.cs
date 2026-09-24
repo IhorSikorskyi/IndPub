@@ -20,6 +20,7 @@ public static class RepositoryServiceExtensions
         services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddScoped<IReviewLikeRepository, ReviewLikeRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
     }

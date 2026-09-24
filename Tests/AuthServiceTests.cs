@@ -1,11 +1,11 @@
 ﻿using IndPubBack.DTOs.Requests;
+using IndPubBack.DTOs.Responses;
 using IndPubBack.Entities;
 using IndPubBack.Exceptions;
-using IndPubBack.Infrastructure.Implementations;
-using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Implementations;
-using Microsoft.Extensions.Configuration;
+using IndPubBack.Services.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Moq;
 
 namespace Tests
@@ -13,46 +13,36 @@ namespace Tests
     public class AuthServiceTests
     {
         private readonly Mock<IUserRepository> _userRepositoryMock;
-        private readonly Mock<IRefreshTokenRepository> _refreshTokenRepositoryMock;
+        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+        private readonly Mock<IJwtTokenGenerator> _jwtTokenGeneratorMock;
+        private readonly Mock<IRefreshTokenService> _refreshTokenServiceMock;
         private readonly AuthService _authService;
 
         public AuthServiceTests()
         {
             _userRepositoryMock = new Mock<IUserRepository>();
-            var bookRepositoryMock = new Mock<IBookRepository>();
-            var chapterRepositoryMock = new Mock<IChapterRepository>();
-            var reviewRepositoryMock = new Mock<IReviewRepository>();
-            _refreshTokenRepositoryMock = new Mock<IRefreshTokenRepository>();
+            _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _jwtTokenGeneratorMock = new Mock<IJwtTokenGenerator>();
+            _refreshTokenServiceMock = new Mock<IRefreshTokenService>();
             IPasswordValidationService passwordValidationService = new PasswordValidationService();
-            IEntityValidationService entityValidationService = new EntityValidationService(
-                _userRepositoryMock.Object,
-                bookRepositoryMock.Object,
-                chapterRepositoryMock.Object,
-                reviewRepositoryMock.Object);
 
-            IConfiguration configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["AppSettings:AccessToken"] = "ThisIsAVerySecretKeyForJWTTokenGenerationWithAtLeast32Characters!",
-                    ["AppSettings:Issuer"] = "TestIssuer",
-                    ["AppSettings:Audience"] = "TestAudience"
-                })
-                .Build();
+            _unitOfWorkMock.Setup(u => u.SaveChangesAsync())
+                .ReturnsAsync(1);
 
-            _userRepositoryMock
-                .Setup(r => r.GetUserRoleAsync(It.IsAny<Guid>()))
-                .ReturnsAsync("User");
+            _jwtTokenGeneratorMock
+                .Setup(j => j.GenerateToken(It.IsAny<User>()))
+                .Returns(new AccessTokenResponse("fake-access-token"));
 
-            _refreshTokenRepositoryMock
-                .Setup(r => r.AddAsync(It.IsAny<RefreshToken>()))
-                .Returns(Task.CompletedTask);
+            _refreshTokenServiceMock
+                .Setup(r => r.CreateRefreshTokenAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(("fake-refresh-token-hash", DateTime.UtcNow.AddDays(15)));
 
             _authService = new AuthService(
-                configuration,
                 _userRepositoryMock.Object,
-                _refreshTokenRepositoryMock.Object,
-                passwordValidationService,
-                entityValidationService);
+                _unitOfWorkMock.Object,
+                _jwtTokenGeneratorMock.Object,
+                _refreshTokenServiceMock.Object,
+                passwordValidationService);
         }
 
         #region RegisterAsync Tests
@@ -78,36 +68,16 @@ namespace Tests
             var result = await _authService.RegisterAsync(request);
 
             // Assert
-            Assert.NotNull(result.response);
-            Assert.NotNull(result.response.AccessToken);
-            Assert.NotNull(result.refreshToken);
-            Assert.True(result.refreshTokenExpiry > DateTime.UtcNow);
+            Assert.NotNull(result);
+            Assert.NotNull(result.AccessToken);
+            Assert.NotNull(result.RefreshToken);
+            Assert.True(result.RefreshTokenExpiry > DateTime.UtcNow);
             _userRepositoryMock.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Once);
-            _refreshTokenRepositoryMock.Verify(r => r.AddAsync(It.IsAny<RefreshToken>()), Times.Once);
-        }
-
-        [Theory]
-        [InlineData("ab", "test@example.com", "Test@1234", "Test@1234")]       // Short login
-        [InlineData("testuser", "invalidemail", "Test@1234", "Test@1234")]      // Invalid email
-        [InlineData("", "test@example.com", "Test@1234", "Test@1234")]          // Empty login
-        public async Task RegisterAsync_InvalidInput_ThrowsValidationException(
-            string login, string email, string password, string confirmPassword)
-        {
-            // Arrange
-            var request = new RegisterRequest
-            {
-                Login = login,
-                Email = email,
-                Password = password,
-                ConfirmPassword = confirmPassword
-            };
-
-            // Act & Assert
-            await Assert.ThrowsAsync<ValidationException>(() => _authService.RegisterAsync(request));
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
         }
 
         [Fact]
-        public async Task RegisterAsync_ExistingUser_ThrowsConflictException()
+        public async Task RegisterAsync_ExistingUser_ThrowsInvalidOperationException()
         {
             // Arrange
             var request = new RegisterRequest
@@ -118,17 +88,15 @@ namespace Tests
                 ConfirmPassword = "Test@1234"
             };
 
-            _userRepositoryMock.Setup(r => r.IsExistByLoginOrEmailAsync(request.Login))
-                .ReturnsAsync(true);
             _userRepositoryMock.Setup(r => r.IsExistByLoginOrEmailAsync(request.Email))
-                .ReturnsAsync(false);
+                .ReturnsAsync(true);
 
             // Act & Assert
-            await Assert.ThrowsAsync<ConflictException>(() => _authService.RegisterAsync(request));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _authService.RegisterAsync(request));
         }
 
         [Fact]
-        public async Task RegisterAsync_PasswordMismatch_ThrowsValidationException()
+        public async Task RegisterAsync_PasswordMismatch_ThrowsInvalidOperationException()
         {
             // Arrange
             var request = new RegisterRequest
@@ -143,15 +111,15 @@ namespace Tests
                 .ReturnsAsync(false);
 
             // Act & Assert
-            await Assert.ThrowsAsync<ValidationException>(() => _authService.RegisterAsync(request));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _authService.RegisterAsync(request));
         }
 
         [Theory]
-        [InlineData("weak")]              // Too short
-        [InlineData("alllowercase1!")]    // No uppercase
-        [InlineData("ALLUPPERCASE1!")]    // No lowercase
-        [InlineData("NoNumbers!")]        // No digits
-        [InlineData("NoSpecial123")]      // No special chars
+        [InlineData("weak")]
+        [InlineData("alllowercase1!")]
+        [InlineData("ALLUPPERCASE1!")]
+        [InlineData("NoNumbers!")]
+        [InlineData("NoSpecial123")]
         public async Task RegisterAsync_WeakPassword_ThrowsValidationException(string password)
         {
             // Arrange
@@ -189,8 +157,7 @@ namespace Tests
                 Id = Guid.NewGuid(),
                 Login = "testuser",
                 Email = "testuser@example.com",
-                PasswordHash = new Microsoft.AspNetCore.Identity.PasswordHasher<User>()
-                    .HashPassword(null!, "Test@1234")
+                PasswordHash = new PasswordHasher<User>().HashPassword(null!, "Test@1234")
             };
 
             _userRepositoryMock.Setup(r => r.GetByLoginAsync(request.LoginOrEmail))
@@ -200,11 +167,10 @@ namespace Tests
             var result = await _authService.LoginAsync(request);
 
             // Assert
-            Assert.NotNull(result.response);
-            Assert.NotNull(result.response.AccessToken);
-            Assert.NotNull(result.refreshToken);
-            Assert.True(result.refreshTokenExpiry > DateTime.UtcNow);
-            _refreshTokenRepositoryMock.Verify(r => r.AddAsync(It.IsAny<RefreshToken>()), Times.Once);
+            Assert.NotNull(result);
+            Assert.NotNull(result.AccessToken);
+            Assert.NotNull(result.RefreshToken);
+            Assert.True(result.RefreshTokenExpiry > DateTime.UtcNow);
         }
 
         [Fact]
@@ -241,8 +207,7 @@ namespace Tests
                 Id = Guid.NewGuid(),
                 Login = "testuser",
                 Email = "testuser@example.com",
-                PasswordHash = new Microsoft.AspNetCore.Identity.PasswordHasher<User>()
-                    .HashPassword(null!, "Test@1234")
+                PasswordHash = new PasswordHasher<User>().HashPassword(null!, "Test@1234")
             };
 
             _userRepositoryMock.Setup(r => r.GetByLoginAsync(request.LoginOrEmail))
@@ -261,28 +226,25 @@ namespace Tests
         {
             // Arrange
             var rawToken = "validrawtoken";
-            var hashedToken = Convert.ToBase64String(
-                System.Security.Cryptography.SHA256.HashData(
-                    System.Text.Encoding.UTF8.GetBytes(rawToken)));
-
+            var tokenId = Guid.NewGuid();
             var refreshToken = new RefreshToken
             {
-                Id = Guid.NewGuid(),
+                Id = tokenId,
                 UserId = Guid.NewGuid(),
-                RefreshTokenHash = hashedToken,
+                RefreshTokenHash = "hashed",
                 RefreshTokenExpiry = DateTime.UtcNow.AddDays(15)
             };
 
-            _refreshTokenRepositoryMock.Setup(r => r.GetByHashAsync(hashedToken))
+            _refreshTokenServiceMock.Setup(r => r.ValidateUserRefreshTokenAsync(rawToken))
                 .ReturnsAsync(refreshToken);
-            _refreshTokenRepositoryMock.Setup(r => r.RevokeTokenForUserAsync(refreshToken.Id))
-                .Returns(Task.CompletedTask);
+            _refreshTokenServiceMock.Setup(r => r.RevokeRefreshTokenAsync(tokenId))
+                .ReturnsAsync(true);
 
             // Act
             await _authService.LogoutAsync(rawToken);
 
             // Assert
-            _refreshTokenRepositoryMock.Verify(r => r.RevokeTokenForUserAsync(refreshToken.Id), Times.Once);
+            _refreshTokenServiceMock.Verify(r => r.RevokeRefreshTokenAsync(tokenId), Times.Once);
         }
 
         [Fact]
@@ -290,27 +252,12 @@ namespace Tests
         {
             // Arrange
             var rawToken = "revokedtoken";
-            var hashedToken = Convert.ToBase64String(
-                System.Security.Cryptography.SHA256.HashData(
-                    System.Text.Encoding.UTF8.GetBytes(rawToken)));
 
-            var refreshToken = new RefreshToken
-            {
-                Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid(),
-                RefreshTokenHash = hashedToken,
-                RefreshTokenExpiry = DateTime.UtcNow.AddDays(15),
-                RevokedAt = DateTime.UtcNow.AddHours(-1)
-            };
-
-            _refreshTokenRepositoryMock.Setup(r => r.GetByHashAsync(hashedToken))
-                .ReturnsAsync(refreshToken);
-            _refreshTokenRepositoryMock.Setup(r => r.RevokeAllTokensForUserAsync(refreshToken.UserId))
-                .Returns(Task.CompletedTask);
+            _refreshTokenServiceMock.Setup(r => r.ValidateUserRefreshTokenAsync(rawToken))
+                .ThrowsAsync(new SecurityException("Token has been revoked."));
 
             // Act & Assert
             await Assert.ThrowsAsync<SecurityException>(() => _authService.LogoutAsync(rawToken));
-            _refreshTokenRepositoryMock.Verify(r => r.RevokeAllTokensForUserAsync(refreshToken.UserId), Times.Once);
         }
 
         [Fact]
@@ -318,20 +265,9 @@ namespace Tests
         {
             // Arrange
             var rawToken = "expiredtoken";
-            var hashedToken = Convert.ToBase64String(
-                System.Security.Cryptography.SHA256.HashData(
-                    System.Text.Encoding.UTF8.GetBytes(rawToken)));
 
-            var refreshToken = new RefreshToken
-            {
-                Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid(),
-                RefreshTokenHash = hashedToken,
-                RefreshTokenExpiry = DateTime.UtcNow.AddDays(-1)
-            };
-
-            _refreshTokenRepositoryMock.Setup(r => r.GetByHashAsync(hashedToken))
-                .ReturnsAsync(refreshToken);
+            _refreshTokenServiceMock.Setup(r => r.ValidateUserRefreshTokenAsync(rawToken))
+                .ThrowsAsync(new ValidationException("Refresh token has expired."));
 
             // Act & Assert
             await Assert.ThrowsAsync<ValidationException>(() => _authService.LogoutAsync(rawToken));

@@ -1,12 +1,11 @@
 ﻿using IndPubBack.Data;
 using IndPubBack.Entities;
-using IndPubBack.Exceptions;
 using IndPubBack.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace IndPubBack.Repositories.Implementations;
 
-public class SubscriptionRepository(IndPubDbContext dbContext) : Repository<Subscription> (dbContext), ISubscriptionRepository
+public class SubscriptionRepository(IndPubDbContext dbContext) : ISubscriptionRepository
 {
     public async Task<Subscription?> GetSubscriptionAsync(Guid userId, Guid authorId)
     {
@@ -33,10 +32,14 @@ public class SubscriptionRepository(IndPubDbContext dbContext) : Repository<Subs
             .ToListAsync();
     }
 
-    public async Task UnSubscribedAsync(Subscription sub)
+    public void UnSubscribe(Subscription sub)
     {
         dbContext.Subscriptions.Remove(sub);
-        await dbContext.SaveChangesAsync();
+    }
+
+    public async Task SubscribeAsync(Subscription sub)
+    {
+        await dbContext.Subscriptions.AddAsync(sub);
     }
 
     public async Task<bool> IsSubscribedAsync(Guid userId, Guid authorId)

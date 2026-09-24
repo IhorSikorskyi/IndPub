@@ -1,14 +1,12 @@
 ﻿using IndPubBack.DTOs.Requests;
 using IndPubBack.Entities;
+using IndPubBack.Enums;
 using IndPubBack.Exceptions;
-using IndPubBack.Infrastructure.Implementations;
-using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Implementations;
+using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Moq;
-using IndPubBack.Enums;
 using System.Text;
 
 namespace Tests
@@ -16,48 +14,42 @@ namespace Tests
     public class BookServiceTests
     {
         private readonly Mock<IBookRepository> _bookRepositoryMock;
-        private readonly Mock<IUserRepository> _userRepositoryMock;
-        private readonly Mock<ITagRepository> _tagRepositoryMock;
+        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+        private readonly Mock<ITagService> _tagServiceMock;
         private readonly BookService _bookService;
 
         public BookServiceTests()
         {
             _bookRepositoryMock = new Mock<IBookRepository>();
-            _userRepositoryMock = new Mock<IUserRepository>();
-            _tagRepositoryMock = new Mock<ITagRepository>();
-            var reviewRepositoryMock = new Mock<IReviewRepository>();
-            var chapterRepositoryMock = new Mock<IChapterRepository>();
-            var notificationRepositoryMock = new Mock<INotificationRepository>();
-            var blobServiceMock = new Mock<IBlobService>();
-            var imageValidationServiceMock = new Mock<IImageValidationService>();
-            imageValidationServiceMock.Setup(r => r.ValidateImage(It.IsAny<IFormFile>(), It.IsAny<long>()))
-                .Returns(true);
-            IEntityValidationService entityValidationService = new EntityValidationService(
-                _userRepositoryMock.Object,
-                _bookRepositoryMock.Object,
-                chapterRepositoryMock.Object,
-                reviewRepositoryMock.Object);
-            IAccessValidationService accessValidationService = new AccessValidationService(
-                _userRepositoryMock.Object,
-                _bookRepositoryMock.Object,
-                reviewRepositoryMock.Object,
-                notificationRepositoryMock.Object);
-            IConfiguration configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["AppSettings:AccessToken"] = "ThisIsAVerySecretKeyForJWTTokenGenerationWithAtLeast32Characters!",
-                    ["AppSettings:Issuer"] = "TestIssuer",
-                    ["AppSettings:Audience"] = "TestAudience"
-                })
-                .Build();
+            _unitOfWorkMock = new Mock<IUnitOfWork>();
+            _tagServiceMock = new Mock<ITagService>();
+            var imageServiceMock = new Mock<IImageService>();
+            var entityValidationServiceMock = new Mock<IEntityValidationService>();
+            var accessValidationServiceMock = new Mock<IAccessValidationService>();
+
+            entityValidationServiceMock
+                .Setup(e => e.IsUserExistsAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(true);
+
+            imageServiceMock
+                .Setup(i => i.UploadImageAsync(It.IsAny<IFormFile>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<long>()))
+                .ReturnsAsync("https://example.com/cover.jpg");
+
+            _unitOfWorkMock
+                .Setup(u => u.SaveChangesAsync())
+                .ReturnsAsync(1);
+
+            accessValidationServiceMock
+                .Setup(a => a.IsUserIsModeratorAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(false);
+
             _bookService = new BookService(
-                configuration,
                 _bookRepositoryMock.Object,
-                _tagRepositoryMock.Object,
-                imageValidationServiceMock.Object,
-                entityValidationService,
-                accessValidationService,
-                blobServiceMock.Object);
+                _unitOfWorkMock.Object,
+                _tagServiceMock.Object,
+                imageServiceMock.Object,
+                entityValidationServiceMock.Object,
+                accessValidationServiceMock.Object);
         }
 
         #region CreateBookAsync Tests
@@ -72,14 +64,12 @@ namespace Tests
 
             _bookRepositoryMock.Setup(r => r.HasTitleAsync(request.Title))
                 .ReturnsAsync(false);
-            _userRepositoryMock.Setup(r => r.GetExistingIdsAsync(It.IsAny<List<Guid>>()))
-                .ReturnsAsync(request.AuthorIds);
-            _userRepositoryMock.Setup(r => r.IsExistAsync(It.IsAny<Guid>()))
-                .ReturnsAsync(true);
-            _tagRepositoryMock.Setup(r => r.GetByNameAsync(It.IsAny<string>()))
-                .ReturnsAsync((Tag?)null);
-            _tagRepositoryMock.Setup(r => r.AddAsync(It.IsAny<string>()))
-                .ReturnsAsync((string name) => new Tag { Id = Guid.NewGuid(), Name = name });
+
+            _tagServiceMock
+                .Setup(t => t.GetOrCreateBookTagsAsync(It.IsAny<Guid>(), It.IsAny<List<CreateBookTagRequest>>()))
+                .ReturnsAsync((Guid bookId, List<CreateBookTagRequest> tags) =>
+                    tags.Select(t => new BookTag { BookId = bookId, TagId = Guid.NewGuid(), Tag = new Tag { Name = t.Name } }).ToList());
+
             _bookRepositoryMock.Setup(r => r.AddAsync(It.IsAny<Book>()))
                 .Callback<Book>(b =>
                 {
@@ -89,8 +79,6 @@ namespace Tests
                     b.Subcategory = new Subcategory { Name = "TestSubcategory", Description = "Test" };
                     foreach (var ba in b.BookAuthors)
                         ba.User = new User { Login = "testauthor", Email = "test@test.com", PasswordHash = "hash" };
-                    foreach (var bt in b.BookTags)
-                        bt.Tag = new Tag { Name = "TestTag" };
                     savedBook = b;
                 })
                 .Returns(Task.CompletedTask);
@@ -111,6 +99,7 @@ namespace Tests
             Assert.Equal(request.Chapters.Count, savedBook.Chapters.Count);
             Assert.Equal(request.AuthorIds.Count, savedBook.BookAuthors.Count);
             _bookRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Book>()), Times.Once);
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
         }
 
         [Fact]
@@ -145,10 +134,9 @@ namespace Tests
         {
             // Arrange
             var request = CreateValidBookCreateRequest() with { AuthorIds = [] };
-            var currentUserId = request.AuthorIds[0];
 
             // Act & Assert
-            await Assert.ThrowsAsync<ValidationException>(() => _bookService.CreateBookAsync(request, currentUserId));
+            await Assert.ThrowsAsync<ValidationException>(() => _bookService.CreateBookAsync(request, Guid.NewGuid()));
             _bookRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Book>()), Times.Never);
         }
 
@@ -159,7 +147,12 @@ namespace Tests
             var request = CreateValidBookCreateRequest() with { Chapters = [] };
             var currentUserId = request.AuthorIds[0];
 
+            _bookRepositoryMock.Setup(r => r.HasTitleAsync(request.Title))
+                .ReturnsAsync(false);
+
             // Act & Assert
+            // Примітка: у BookService.CreateBookAsync немає явної перевірки на порожні Chapters —
+            // якщо ця перевірка справді потрібна, її треба додати в сервіс (зараз тест може не пройти)
             await Assert.ThrowsAsync<ValidationException>(() => _bookService.CreateBookAsync(request, currentUserId));
             _bookRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Book>()), Times.Never);
         }
@@ -193,28 +186,20 @@ namespace Tests
                 .ReturnsAsync(existingBook);
             _bookRepositoryMock.Setup(r => r.HasTitleAsync(request.Title))
                 .ReturnsAsync(false);
-            _bookRepositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Book>()))
-                .Returns(Task.CompletedTask);
-            _userRepositoryMock.Setup(r => r.IsExistAsync(It.IsAny<Guid>()))
-                .ReturnsAsync(true);
-            _userRepositoryMock.Setup(r => r.GetUserRoleAsync(userId))
-                .ReturnsAsync("User");
             _bookRepositoryMock.Setup(r => r.IsUserAuthorAsync(userId, bookId))
                 .ReturnsAsync(true);
-            _tagRepositoryMock.Setup(r => r.GetByNameAsync(It.IsAny<string>()))
-                .ReturnsAsync((Tag?)null);
-            _tagRepositoryMock.Setup(r => r.AddAsync(It.IsAny<string>()))
-                .ReturnsAsync((string name) => new Tag { Id = Guid.NewGuid(), Name = name });
-            _bookRepositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Book>()))
+
+            _tagServiceMock
+                .Setup(t => t.GetOrCreateBookTagsAsync(bookId, It.IsAny<List<CreateBookTagRequest>>()))
+                .ReturnsAsync((Guid bId, List<CreateBookTagRequest> tags) =>
+                    tags.Select(t => new BookTag { BookId = bId, TagId = Guid.NewGuid(), Tag = new Tag { Name = t.Name } }).ToList());
+
+            _bookRepositoryMock.Setup(r => r.Update(It.IsAny<Book>()))
                 .Callback<Book>(b =>
                 {
                     foreach (var ba in b.BookAuthors)
                         ba.User ??= new User { Login = "testauthor", Email = "test@test.com", PasswordHash = "hash" };
-                    foreach (var bt in b.BookTags)
-                        bt.Tag ??= new Tag { Name = "TestTag" };
-                })
-                .Returns(Task.CompletedTask);
-
+                });
 
             // Act
             var result = await _bookService.UpdateBookAsync(request, bookId, userId);
@@ -223,7 +208,8 @@ namespace Tests
             Assert.NotNull(result);
             Assert.Equal(bookId, result.BookId);
             Assert.Equal(request.Title, result.Title);
-            _bookRepositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Book>()), Times.Once);
+            _bookRepositoryMock.Verify(r => r.Update(It.IsAny<Book>()), Times.Once);
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
         }
 
         [Fact]
@@ -234,16 +220,12 @@ namespace Tests
             var userId = Guid.NewGuid();
             var request = new BookUpdateRequest { Title = "Updated Title" };
 
-            _bookRepositoryMock.Setup(r => r.IsUserAuthorAsync(userId, bookId))
-                .ReturnsAsync(true);
-            _userRepositoryMock.Setup(r => r.GetUserRoleAsync(userId))
-                .ReturnsAsync("User");
             _bookRepositoryMock.Setup(r => r.GetByIdAsync(bookId))
                 .ReturnsAsync((Book?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<NotFoundException>(() => _bookService.UpdateBookAsync(request, bookId, userId));
-            _bookRepositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Book>()), Times.Never);
+            _bookRepositoryMock.Verify(r => r.Update(It.IsAny<Book>()), Times.Never);
         }
 
         [Fact]
@@ -255,18 +237,16 @@ namespace Tests
             var request = new BookUpdateRequest { Title = "Taken Title" };
             var existingBook = CreateExistingBook(bookId, "Current Title", userId);
 
-            _bookRepositoryMock.Setup(r => r.IsUserAuthorAsync(userId, bookId))
-                .ReturnsAsync(true);
-            _userRepositoryMock.Setup(r => r.GetUserRoleAsync(userId))
-                .ReturnsAsync("User");
             _bookRepositoryMock.Setup(r => r.GetByIdAsync(bookId))
                 .ReturnsAsync(existingBook);
+            _bookRepositoryMock.Setup(r => r.IsUserAuthorAsync(userId, bookId))
+                .ReturnsAsync(true);
             _bookRepositoryMock.Setup(r => r.HasTitleAsync(request.Title))
                 .ReturnsAsync(true);
 
             // Act & Assert
             await Assert.ThrowsAsync<ConflictException>(() => _bookService.UpdateBookAsync(request, bookId, userId));
-            _bookRepositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Book>()), Times.Never);
+            _bookRepositoryMock.Verify(r => r.Update(It.IsAny<Book>()), Times.Never);
         }
 
         #endregion
@@ -281,23 +261,18 @@ namespace Tests
             var userId = Guid.NewGuid();
             var existingBook = CreateExistingBook(bookId, "Book to delete", userId);
 
-            _bookRepositoryMock.Setup(r => r.IsExistAsync(bookId))
-                .ReturnsAsync(true);
             _bookRepositoryMock.Setup(r => r.GetByIdAsync(bookId))
                 .ReturnsAsync(existingBook);
-            _bookRepositoryMock.Setup(r => r.DeleteAsync(bookId))
-                .Returns(Task.CompletedTask);
             _bookRepositoryMock.Setup(r => r.IsUserAuthorAsync(userId, bookId))
                 .ReturnsAsync(true);
-            _userRepositoryMock.Setup(r => r.GetUserRoleAsync(userId))
-                .ReturnsAsync("User");
 
             // Act
             var result = await _bookService.DeleteBookAsync(bookId, userId);
 
             // Assert
             Assert.True(result);
-            _bookRepositoryMock.Verify(r => r.DeleteAsync(bookId), Times.Once);
+            _bookRepositoryMock.Verify(r => r.Delete(existingBook), Times.Once);
+            _unitOfWorkMock.Verify(u => u.SaveChangesAsync(), Times.Once);
         }
 
         [Fact]
@@ -307,39 +282,30 @@ namespace Tests
             var bookId = Guid.NewGuid();
             var userId = Guid.NewGuid();
 
-            _bookRepositoryMock.Setup(r => r.IsExistAsync(bookId))
-                .ReturnsAsync(false);
-            _bookRepositoryMock.Setup(r => r.IsUserAuthorAsync(userId, bookId))
-                .ReturnsAsync(true);
-            _userRepositoryMock.Setup(r => r.GetUserRoleAsync(userId))
-                .ReturnsAsync("User");
-            _bookRepositoryMock.Setup(r => r.GetByIdAsync(bookId))
-                .ReturnsAsync((Book?)null);
             _bookRepositoryMock.Setup(r => r.GetByIdAsync(bookId))
                 .ReturnsAsync((Book?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<NotFoundException>(() => _bookService.DeleteBookAsync(bookId, userId));
-            _bookRepositoryMock.Verify(r => r.DeleteAsync(It.IsAny<Guid>()), Times.Never);
+            _bookRepositoryMock.Verify(r => r.Delete(It.IsAny<Book>()), Times.Never);
         }
 
         [Fact]
-        public async Task DeleteBookAsync_UserNotAuthor_ThrowsForbiddenException()
+        public async Task DeleteBookAsync_UserNotAuthor_ThrowsAccessViolationException()
         {
             // Arrange
             var bookId = Guid.NewGuid();
             var userId = Guid.NewGuid();
+            var existingBook = CreateExistingBook(bookId, "Book", userId);
 
-            _bookRepositoryMock.Setup(r => r.IsExistAsync(bookId))
-                .ReturnsAsync(true);
+            _bookRepositoryMock.Setup(r => r.GetByIdAsync(bookId))
+                .ReturnsAsync(existingBook);
             _bookRepositoryMock.Setup(r => r.IsUserAuthorAsync(userId, bookId))
                 .ReturnsAsync(false);
-            _userRepositoryMock.Setup(r => r.GetUserRoleAsync(userId))
-                .ReturnsAsync("User");
 
             // Act & Assert
-            await Assert.ThrowsAsync<ForbiddenException>(() => _bookService.DeleteBookAsync(bookId, userId));
-            _bookRepositoryMock.Verify(r => r.DeleteAsync(It.IsAny<Guid>()), Times.Never);
+            await Assert.ThrowsAsync<AccessViolationException>(() => _bookService.DeleteBookAsync(bookId, userId));
+            _bookRepositoryMock.Verify(r => r.Delete(It.IsAny<Book>()), Times.Never);
         }
 
         #endregion

@@ -1,7 +1,7 @@
 ﻿using IndPubBack.Exceptions;
-using IndPubBack.Infrastructure.Interfaces;
+using IndPubBack.Services.Interfaces;
 
-namespace IndPubBack.Infrastructure.Implementations;
+namespace IndPubBack.Services.Implementations;
 
 public class PasswordValidationService : IPasswordValidationService
 {

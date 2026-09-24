@@ -1,5 +1,6 @@
 ﻿using IndPubBack.DTOs.Requests;
 using IndPubBack.DTOs.Responses;
+using IndPubBack.Services.Implementations;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +11,10 @@ namespace IndPubBack.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/book/{bookId:guid}/review")]
-public class ReviewController(IReviewService reviewService) : BaseController
+public class ReviewController(
+    IReviewService reviewService,
+    IReviewInteractionService reviewInteractionService
+    ) : BaseController
 {
     [HttpPost]
     [ProducesResponseType(typeof(ReviewResponse), StatusCodes.Status200OK)]
@@ -69,7 +73,7 @@ public class ReviewController(IReviewService reviewService) : BaseController
     {
         var userId = GetCurrentUserId();
 
-        bool liked = await reviewService.LikeReviewAsync(reviewId, userId);
+        bool liked = await reviewInteractionService.LikeReviewAsync(reviewId, userId);
         return Ok(new { liked });
     }
 
@@ -83,7 +87,7 @@ public class ReviewController(IReviewService reviewService) : BaseController
     {
         var userId = GetCurrentUserId();
 
-        bool liked = await reviewService.UnLikeReviewAsync(reviewId, userId);
+        bool liked = await reviewInteractionService.UnLikeReviewAsync(reviewId, userId);
         return Ok(new { liked });
     }
 

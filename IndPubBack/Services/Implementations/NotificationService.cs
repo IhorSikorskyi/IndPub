@@ -3,13 +3,15 @@ using IndPubBack.DTOs.Responses;
 using IndPubBack.Entities;
 using IndPubBack.Enums;
 using IndPubBack.Exceptions;
-using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 
 namespace IndPubBack.Services.Implementations;
 
-public class NotificationService(INotificationRepository notificationRepository, IAccessValidationService accessValidationService, IEntityValidationService entityValidationService) : INotificationService 
+public class NotificationService(
+    INotificationRepository notificationRepository, 
+    IUnitOfWork unitOfWork,
+    IEntityValidationService entityValidationService) : INotificationService 
 {
     // Templates for notification messages
     // Func's are used to allow dynamic insertion of chapter and book names into the messages
@@ -26,7 +28,7 @@ public class NotificationService(INotificationRepository notificationRepository,
 
     public async Task<IEnumerable<NotificationResponse>> GetNotificationsByUserIdAsync(Guid userId, ListNotificationRequest request)
     {
-        await entityValidationService.EnsureUserExistsAsync(userId);
+        await entityValidationService.IsUserExistsAsync(userId);
 
         var notifications = await notificationRepository.GetNotificationsByUserIdAsync(userId, request.Cursor, request.PageSize, request.Type);
 
@@ -35,7 +37,7 @@ public class NotificationService(INotificationRepository notificationRepository,
 
     public async Task<NotificationResponse> CreateNotificationAsync(NotificationRequest request, Guid userId)
     {
-        await entityValidationService.EnsureUserExistsAsync(userId);
+        await entityValidationService.IsUserExistsAsync(userId);
 
         string message;
         NotificationType type;
@@ -66,16 +68,26 @@ public class NotificationService(INotificationRepository notificationRepository,
         };
 
         await notificationRepository.AddAsync(notification);
+        await unitOfWork.SaveChangesAsync();
 
         return MapToNotificationResponse(notification);
     }
 
     public async Task DeleteNotificationAsync(Guid userId, Guid notificationId)
     {
-        await entityValidationService.EnsureUserExistsAsync(userId);
-        await accessValidationService.EnsureUserIsNotificationOwnerOrModeratorAsync(userId, notificationId);
+        _ = await entityValidationService.IsUserExistsAsync(userId) ? true 
+            : throw new NotFoundException("User not found");
 
-        await notificationRepository.DeleteAsync(notificationId);
+        var notification = await notificationRepository.GetByIdAsync(notificationId)
+                           ?? throw new NotFoundException("Notification not found");
+
+        if(notification.UserId != userId)
+        {
+            throw new ForbiddenException("You are not allowed to delete this notification.");
+        }
+
+        notificationRepository.Delete(notification);
+        await unitOfWork.SaveChangesAsync();
     }
 
     private static NotificationResponse MapToNotificationResponse(Notification notification)

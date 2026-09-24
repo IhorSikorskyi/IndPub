@@ -23,12 +23,19 @@ public class RefreshTokenRepository(IndPubDbContext dbContext) : Repository<Refr
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task RevokeTokenForUserAsync(Guid tokenId)
+    public async Task<bool> RevokeTokenForUserAsync(Guid tokenId)
     {
         var token = await dbContext.RefreshTokens
-            .FirstOrDefaultAsync(rt => rt.Id == tokenId && rt.RevokedAt == null) ?? throw new NotFoundException("Token not found");
+            .FirstOrDefaultAsync(rt => rt.Id == tokenId && rt.RevokedAt == null);
+
+        if (token is null)
+        {
+            return false;
+        }
 
         token.RevokedAt = DateTime.UtcNow;
+
+        return true;
     }
 
     public async Task RemoveOldTokensAsync(CancellationToken cancellationToken = default)

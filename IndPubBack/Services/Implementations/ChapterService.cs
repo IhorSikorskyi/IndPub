@@ -2,44 +2,55 @@
 using IndPubBack.DTOs.Responses;
 using IndPubBack.Entities;
 using IndPubBack.Exceptions;
-using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 
 namespace IndPubBack.Services.Implementations;
 
 public class ChapterService(
-    IChapterRepository chapterRepository, 
+    IChapterRepository chapterRepository,
+    IUnitOfWork unitOfWork,
     IEntityValidationService entityValidationService,
     IAccessValidationService accessValidationService) : IChapterService
 {
+    private const string BookNotFoundMessage = "Book not found";
+    private const string UserNotFoundMessage = "User not found";
+
     public async Task<ChapterResponse> CreateChapterAsync(Guid bookId, Guid authorId, ChapterCreateRequest request)
     {
-        await entityValidationService.EnsureBookExistsAsync(bookId);
-        await entityValidationService.EnsureUserExistsAsync(authorId);
-        await accessValidationService.EnsureUserIsAuthorAsync(authorId, bookId);
+        _ = await entityValidationService.IsBookExistsAsync(bookId) ? true :
+            throw new NotFoundException(BookNotFoundMessage);
+        _ = await entityValidationService.IsUserExistsAsync(authorId) ? true :
+            throw new NotFoundException(UserNotFoundMessage);
+        _ = await accessValidationService.IsUserIsAuthorAsync(authorId, bookId) ? true :
+            throw new ForbiddenException("You are not an author of this book");
+
 
         var chapterNumber = await chapterRepository.GetNextChapterNumberAsync(bookId);
 
-        var chapter = new Chapter()
+        var chapter = new Chapter
         {
             BookId = bookId,
-            Title = string.IsNullOrWhiteSpace(request.Title)
-                ? $"Chapter {chapterNumber}"
+            Title = string.IsNullOrWhiteSpace(request.Title) 
+                ? $"Chapter {chapterNumber}" 
                 : request.Title,
             Content = request.Content,
             ChapterNumber = chapterNumber
         };
 
         await chapterRepository.AddAsync(chapter);
+        await unitOfWork.SaveChangesAsync();
 
         return MapToChapterResponse(chapter);
     }
     public async Task<ChapterResponse> UpdateChapterAsync(Guid bookId, Guid chapterId, Guid authorId, ChapterUpdateRequest request)
     {
-        await entityValidationService.EnsureUserExistsAsync(authorId);
-        await entityValidationService.EnsureBookExistsAsync(bookId);
-        await accessValidationService.EnsureUserIsAuthorAsync(authorId, bookId);
+        _ = await entityValidationService.IsUserExistsAsync(authorId) ? true :
+            throw new NotFoundException(UserNotFoundMessage);
+        _ = await entityValidationService.IsBookExistsAsync(bookId) ? true :
+            throw new NotFoundException(BookNotFoundMessage);
+        _ = await accessValidationService.IsUserIsAuthorAsync(authorId, bookId) ? true :
+            throw new ForbiddenException("You are not an author of this book");
 
         var chapter = await chapterRepository.GetByIdAsync(chapterId) ?? throw new NotFoundException("Chapter not found");
 
@@ -53,28 +64,46 @@ public class ChapterService(
             chapter.Content = request.Content;
         }
 
-        await chapterRepository.UpdateAsync(chapter);
+        chapterRepository.Update(chapter);
+        await unitOfWork.SaveChangesAsync();
 
         return MapToChapterResponse(chapter);
     }
 
     public async Task<ChapterResponse> GetChapterAsync(Guid bookId, Guid chapterId)
     {
-        await entityValidationService.EnsureBookExistsAsync(bookId);
+        _ = await entityValidationService.IsBookExistsAsync(bookId) ? true :
+            throw new NotFoundException(BookNotFoundMessage);
 
-        var chapter = await chapterRepository.GetByIdAsync(chapterId) ?? throw new NotFoundException("Chapter not found");
-        
+        var chapter = await chapterRepository.GetByIdAsync(chapterId) 
+                      ?? throw new NotFoundException("Chapter not found");
+
         return MapToChapterResponse(chapter);
     }
 
     public async Task<bool> DeleteChapterAsync(Guid bookId, Guid chapterId, Guid authorId)
     {
-        await entityValidationService.EnsureBookExistsAsync(bookId);
-        await entityValidationService.EnsureChapterExistsAsync(chapterId);
-        await entityValidationService.EnsureChapterBelongToBookAsync(bookId, chapterId);
-        await accessValidationService.EnsureUserIsAuthorOrModeratorAsync(authorId, bookId);
+        _ = await entityValidationService.IsBookExistsAsync(bookId) ? true :
+            throw new NotFoundException(BookNotFoundMessage);
 
-        await chapterRepository.DeleteAsync(chapterId);
+        var isAuthor = await accessValidationService.IsUserIsAuthorAsync(authorId, bookId);
+        var isModerator = await accessValidationService.IsUserIsModeratorAsync(authorId);
+
+        if (!isAuthor && !isModerator)
+        {
+            throw new ForbiddenException("You are not authorized to delete this chapter");
+        }
+
+        var chapter = await chapterRepository.GetByIdAsync(chapterId)
+                      ?? throw new NotFoundException("Chapter not found");
+
+        if (chapter.BookId != bookId)
+        {
+            throw new ValidationException("Chapter does not belong to the specified book");
+        }
+
+        chapterRepository.Delete(chapter);
+        await unitOfWork.SaveChangesAsync();
 
         return true;
     }

@@ -42,7 +42,5 @@ public class NotificationRepository(IndPubDbContext dbContext) : Repository<Noti
             .Where(n => n.CreatedAt < _lastNotificationDate)
             .ToListAsync(cancellationToken);
         dbContext.Notifications.RemoveRange(oldNotifications);
-
-        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

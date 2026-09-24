@@ -1,10 +1,25 @@
-﻿using IndPubBack.Infrastructure.Interfaces;
+﻿using IndPubBack.Services.Interfaces;
+using IndPubBack.Exceptions;
 
-namespace IndPubBack.Infrastructure.Implementations;
+namespace IndPubBack.Services.Implementations;
 
-public class ImageValidationService : IImageValidationService
+public class ImageService(
+    IConfiguration configuration,
+    IBlobService blobService) : IImageService
 {
-    public bool ValidateImage(IFormFile image, long maxSizeBytes)
+    public async Task<string> UploadImageAsync(IFormFile image, string folderConfigKey, Guid entityId, long maxFileSize)
+    {
+        if (!ValidateImage(image, maxFileSize))
+        {
+            throw new ValidationException("Invalid image");
+        }
+
+        string folder = configuration[folderConfigKey]!;
+        string imageUrl = await blobService.UploadBlobAsync(folder, image, entityId);
+        return imageUrl;
+    }
+
+    private static bool ValidateImage(IFormFile image, long maxSizeBytes)
     {
         if (image.Length == 0 || image.Length > maxSizeBytes)
         {

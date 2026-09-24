@@ -61,6 +61,8 @@ public class ExceptionHandlingMiddleware(RequestDelegate next,
             InvalidCredentialsException => (HttpStatusCode.Unauthorized, "Invalid credentials"),
             ForbiddenException => (HttpStatusCode.Forbidden, "Forbidden access"),
             SecurityException => (HttpStatusCode.Forbidden, "Security error"),
+            TokenReuseDetectedException => (HttpStatusCode.Forbidden, "Token reuse detected"),
+            TokenExpiredException => (HttpStatusCode.Unauthorized, "Token expired"),
             _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred")
         };
 }

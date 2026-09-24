@@ -71,8 +71,6 @@ public class BookRepository(IndPubDbContext dbContext) : Repository<Book>(dbCont
         {
             book.Rating = book.Reviews.Average(r => r.Rating);
         }
-
-        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private static IQueryable<Book> ApplyFilters(IQueryable<Book> query, BookSearchRequest request)

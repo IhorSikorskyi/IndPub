@@ -5,9 +5,9 @@ namespace IndPubBack.Services.Interfaces
 {
     public interface IAuthService
     {
-        Task<(UserResponse response, string refreshToken, DateTime refreshTokenExpiry)> RegisterAsync(RegisterRequest request);
-        Task<(UserResponse response, string refreshToken, DateTime refreshTokenExpiry)> LoginAsync(LoginRequest request);
-        Task<(UserResponse response, string refreshToken, DateTime refreshTokenExpiry)> UpdateAccessTokenAsync(string accessToken, string refreshToken);
+        Task<UserResponse> RegisterAsync(RegisterRequest request);
+        Task<UserResponse> LoginAsync(LoginRequest request);
         Task LogoutAsync(string refreshToken);
+        Task<UserResponse> UpdateAccessTokenAsync(string accessToken, string refreshToken);
     }
 }

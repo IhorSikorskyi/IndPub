@@ -1,12 +1,14 @@
+using IndPubBack.Entities;
+
 namespace IndPubBack.Repositories.Interfaces
 {
-    public interface IRepository<T> where T : class
+    public interface IRepository<T> where T : BaseEntity
     {
         Task<T?> GetByIdAsync(Guid id);
         Task<bool> IsExistAsync(Guid id);
         Task<IEnumerable<T>> GetAllAsync();
         Task AddAsync(T entity);
-        Task UpdateAsync(T entity);
-        Task DeleteAsync(Guid id);
+        void Update(T entity);
+        void Delete(T entity);
     }
 }

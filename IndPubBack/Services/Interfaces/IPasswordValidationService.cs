@@ -1,4 +1,4 @@
-﻿namespace IndPubBack.Infrastructure.Interfaces;
+﻿namespace IndPubBack.Services.Interfaces;
 
 public interface IPasswordValidationService
 {
