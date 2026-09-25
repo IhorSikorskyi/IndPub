@@ -1,7 +1,9 @@
-﻿using IndPubBack.DTOs.Requests;
-using IndPubBack.DTOs.Responses;
+﻿using IndPubBack.DTOs.Requests.Subscription;
+using IndPubBack.DTOs.Responses.Subscription;
+using IndPubBack.DTOs.Responses.User;
 using IndPubBack.Entities;
 using IndPubBack.Exceptions;
+using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 

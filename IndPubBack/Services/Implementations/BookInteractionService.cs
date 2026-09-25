@@ -2,6 +2,7 @@
 using IndPubBack.Entities;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
+using IndPubBack.Infrastructure.Interfaces;
 
 namespace IndPubBack.Services.Implementations;
 

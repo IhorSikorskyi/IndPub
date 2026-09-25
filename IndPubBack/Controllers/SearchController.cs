@@ -1,5 +1,6 @@
-﻿using IndPubBack.DTOs.Requests;
-using IndPubBack.DTOs.Responses;
+﻿using IndPubBack.DTOs.Requests.Search;
+using IndPubBack.DTOs.Responses.Book;
+using IndPubBack.DTOs.Responses.Error;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 

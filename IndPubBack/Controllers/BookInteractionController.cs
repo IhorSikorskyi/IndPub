@@ -1,4 +1,4 @@
-﻿using IndPubBack.DTOs.Responses;
+﻿using IndPubBack.DTOs.Responses.Error;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -1,7 +1,11 @@
-﻿using IndPubBack.DTOs.Requests;
+﻿using IndPubBack.DTOs.Requests.Book;
 using IndPubBack.DTOs.Responses;
+using IndPubBack.DTOs.Responses.Book;
+using IndPubBack.DTOs.Responses.Chapter;
+using IndPubBack.DTOs.Responses.User;
 using IndPubBack.Entities;
 using IndPubBack.Exceptions;
+using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 

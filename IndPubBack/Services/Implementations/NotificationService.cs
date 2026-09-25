@@ -1,8 +1,9 @@
-﻿using IndPubBack.DTOs.Requests;
-using IndPubBack.DTOs.Responses;
+﻿using IndPubBack.DTOs.Requests.Notification;
+using IndPubBack.DTOs.Responses.Notification;
 using IndPubBack.Entities;
 using IndPubBack.Enums;
 using IndPubBack.Exceptions;
+using IndPubBack.Infrastructure.Interfaces;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;
 

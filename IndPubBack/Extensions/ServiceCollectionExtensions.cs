@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
+using IndPubBack.Infrastructure.Interfaces;
 
 namespace IndPubBack.Extensions;
 
@@ -47,23 +49,24 @@ public static class ServiceCollectionExtensions
                 };
 
                 // TODO: Create ITokenRevocationStore and TokenRevocationStore, then uncomment the following code to enable token revocation checks
-                //options.Events = new JwtBearerEvents
-                //{
-                //    OnTokenValidated = async context =>
-                //    {
-                //        if (context.Principal != null)
-                //        {
-                //            var userId = context.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
-                //            var revocationStore = context.HttpContext.RequestServices
-                //                .GetRequiredService<ITokenRevocationStore>();
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = async context =>
+                    {
+                        if (context.Principal != null)
+                        {
+                            var userId = context.Principal.FindFirstValue(ClaimTypes.NameIdentifier)
+                                ?? throw new InvalidOperationException("User ID claim not found.");
+                            var revocationStore = context.HttpContext.RequestServices
+                                .GetRequiredService<ITokenRevocationStore>();
 
-                //            if (await revocationStore.IsRevokedAsync(userId))
-                //            {
-                //                context.Fail("Token revoked");
-                //            }
-                //        }
-                //    }
-                //};
+                            if (await revocationStore.IsRevokedAsync(userId))
+                            {
+                                context.Fail("Token revoked");
+                            }
+                        }
+                    }
+                };
             });
         return services;
     }

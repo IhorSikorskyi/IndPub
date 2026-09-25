@@ -1,4 +1,4 @@
-﻿using IndPubBack.DTOs.Requests;
+﻿using IndPubBack.DTOs.Requests.Book;
 using IndPubBack.Entities;
 using IndPubBack.Repositories.Interfaces;
 using IndPubBack.Services.Interfaces;

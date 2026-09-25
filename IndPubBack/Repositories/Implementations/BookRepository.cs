@@ -1,5 +1,5 @@
 ﻿using IndPubBack.Data;
-using IndPubBack.DTOs.Requests;
+using IndPubBack.DTOs.Requests.Search;
 using IndPubBack.Entities;
 using IndPubBack.Enums;
 using IndPubBack.Repositories.Interfaces;

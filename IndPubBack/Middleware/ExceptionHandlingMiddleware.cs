@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using IndPubBack.DTOs.Responses;
+using IndPubBack.DTOs.Responses.Error;
 using IndPubBack.Exceptions;
 
 namespace IndPubBack.Middleware;

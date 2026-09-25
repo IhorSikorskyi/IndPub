@@ -1,5 +1,5 @@
-﻿using IndPubBack.DTOs.Requests;
-using IndPubBack.DTOs.Responses;
+﻿using IndPubBack.DTOs.Requests.Notification;
+using IndPubBack.DTOs.Responses.Notification;
 
 namespace IndPubBack.Services.Interfaces;
 

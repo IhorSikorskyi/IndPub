@@ -1,5 +1,5 @@
-﻿using IndPubBack.DTOs.Requests;
-using IndPubBack.DTOs.Responses;
+﻿using IndPubBack.DTOs.Requests.Book;
+using IndPubBack.DTOs.Responses.Book;
 
 namespace IndPubBack.Services.Interfaces;
 

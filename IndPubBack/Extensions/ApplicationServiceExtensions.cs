@@ -1,4 +1,6 @@
-﻿using IndPubBack.Services.Implementations;
+﻿using IndPubBack.Infrastructure.Implementations;
+using IndPubBack.Infrastructure.Interfaces;
+using IndPubBack.Services.Implementations;
 using IndPubBack.Services.Interfaces;
 
 namespace IndPubBack.Extensions;
@@ -26,6 +28,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<IReviewInteractionService, ReviewInteractionService>();
         services.AddScoped<ITagService, TagService>();
+        services.AddScoped<ITokenRevocationStore, TokenRevocationStore>();
 
         return services;
     }

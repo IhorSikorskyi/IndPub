@@ -1,5 +1,6 @@
-﻿using IndPubBack.DTOs.Requests;
-using IndPubBack.DTOs.Responses;
+﻿using IndPubBack.DTOs.Requests.Chapter;
+using IndPubBack.DTOs.Responses.Chapter;
+using IndPubBack.DTOs.Responses.Error;
 using IndPubBack.Exceptions;
 using IndPubBack.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
